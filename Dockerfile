@@ -1,30 +1,19 @@
-FROM node:22-alpine AS deps
+﻿FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY GF2Learn.slnx ./
+COPY src/GF2Learn.Web/GF2Learn.Web.csproj src/GF2Learn.Web/
+RUN dotnet restore src/GF2Learn.Web/GF2Learn.Web.csproj
+COPY content/ content/
+COPY src/GF2Learn.Web/ src/GF2Learn.Web/
+WORKDIR /src/src/GF2Learn.Web
+RUN dotnet publish -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
-
-FROM node:22-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
-
-FROM node:22-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder /app/content ./content
-
-USER nextjs
-EXPOSE 3000
-CMD ["node", "server.js"]
+COPY --from=build /app/publish .
+COPY --from=build /src/content ./content
+ENV ASPNETCORE_URLS=http://+:8080
+ENV PathBase=
+ENV ContentPath=/app/content
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "GF2Learn.Web.dll"]

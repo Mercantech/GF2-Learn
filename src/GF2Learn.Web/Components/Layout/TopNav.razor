@@ -1,0 +1,29 @@
+﻿@using GF2Learn.Web.Models
+@inject NavigationManager Navigation
+
+<nav class="section-tabs" aria-label="Course navigation">
+    <a href="/curriculum" class="tab @Active(ContentSectionType.Curriculum)">
+        <span class="tab-icon">📖</span> Curriculum
+    </a>
+    <a href="/exercises" class="tab @Active(ContentSectionType.Exercises)">
+        <span class="tab-icon">✏️</span> Exercises
+    </a>
+    <a href="/projects" class="tab @Active(ContentSectionType.Projects)">
+        <span class="tab-icon">🚀</span> Projects
+    </a>
+</nav>
+
+@code {
+    private string? Active(ContentSectionType section)
+    {
+        var path = new Uri(Navigation.Uri).AbsolutePath;
+        var segment = section switch
+        {
+            ContentSectionType.Curriculum => "/curriculum",
+            ContentSectionType.Exercises => "/exercises",
+            ContentSectionType.Projects => "/projects",
+            _ => ""
+        };
+        return path.Contains(segment, StringComparison.OrdinalIgnoreCase) ? "active" : null;
+    }
+}

@@ -1,0 +1,169 @@
+﻿@page "/"
+@layout LandingLayout
+@inject ContentService Content
+
+<PageTitle>GF2 Learn — Your C# and Git learning platform</PageTitle>
+
+<section class="landing-hero">
+    <div class="landing-hero-bg" aria-hidden="true"></div>
+    <div class="landing-hero-inner">
+        <div class="landing-hero-copy">
+            <p class="landing-badge">Grundforløb 2 · Programmering</p>
+            <h1>Learn C# and Git —<br /><span class="landing-gradient-text">step by step</span></h1>
+            <p class="landing-hero-lead">
+                Din centrale platform til GF2. Teori, opgaver og projekter samlet ét sted —
+                så du altid ved, hvad du skal lære næste gang.
+            </p>
+            <div class="landing-hero-actions">
+                <a href="/curriculum" class="btn btn-primary">Start med pensum</a>
+                <a href="/exercises" class="btn btn-secondary">Prøv en opgave</a>
+            </div>
+            <AuthorizeView>
+                <Authorized>
+                    <p class="landing-welcome">
+                        Hej, <strong>@GetName(context.User)</strong> — fortsæt hvor du slap.
+                    </p>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+        <div class="landing-hero-visual">
+            <div class="landing-code-window">
+                <div class="landing-code-titlebar">
+                    <span></span><span></span><span></span>
+                    <span class="landing-code-filename">Program.cs</span>
+                </div>
+                <pre class="landing-code-body"><code><span class="tok-kw">using</span> System;
+
+<span class="tok-kw">class</span> <span class="tok-type">Program</span>
+{
+    <span class="tok-kw">static void</span> <span class="tok-fn">Main</span>()
+    {
+        Console.WriteLine(<span class="tok-str">"Hej GF2!"</span>);
+    }
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-stats">
+    <div class="landing-stats-inner">
+        <div class="stat-card">
+            <span class="stat-value">@CurriculumCount</span>
+            <span class="stat-label">Curriculum topics</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">@ExercisesCount</span>
+            <span class="stat-label">Exercises</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">@ProjectsCount</span>
+            <span class="stat-label">Projects</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">13</span>
+            <span class="stat-label">Learning days</span>
+        </div>
+    </div>
+</section>
+
+<section class="landing-pathways">
+    <div class="landing-section-header">
+        <h2>Choose your path</h2>
+        <p>Platformen er opdelt i tre dele — start dér, det giver mening for dig.</p>
+    </div>
+    <div class="pathway-grid">
+        <a href="/curriculum" class="pathway-card pathway-pensum">
+            <div class="pathway-icon">📖</div>
+            <h3>Curriculum</h3>
+            <p>Lær C#-begreber og Git med teori, eksempler og videoer. Perfekt til at forstå stoffet.</p>
+            <span class="pathway-meta">@CurriculumCount emner · C# + Git</span>
+            <span class="pathway-arrow">→</span>
+        </a>
+        <a href="/exercises" class="pathway-card pathway-opgaver">
+            <div class="pathway-icon">✏️</div>
+            <h3>Exercises</h3>
+            <p>Øv dig med opgaver fra begynder til avanceret. Hver opgave har Git-trin og links til pensum.</p>
+            <span class="pathway-meta">@ExercisesCount opgaver · 3 niveauer</span>
+            <span class="pathway-arrow">→</span>
+        </a>
+        <a href="/projects" class="pathway-card pathway-projekter">
+            <div class="pathway-icon">🚀</div>
+            <h3>Projects</h3>
+            <p>Byg rigtige programmer over 13 dage — fra Jobsøgning til Enterprise med GitHub-aflevering.</p>
+            <span class="pathway-meta">@ProjectsCount projekter · 13 dage</span>
+            <span class="pathway-arrow">→</span>
+        </a>
+    </div>
+</section>
+
+<section class="landing-journey">
+    <div class="landing-section-header">
+        <h2>Your learning journey</h2>
+        <p>Sådan bevæger du dig fra begynder til selvstændig programmør.</p>
+    </div>
+    <ol class="journey-steps">
+        <li class="journey-step">
+            <span class="journey-num">1</span>
+            <div>
+                <h3>Understand the basics</h3>
+                <p>Læs pensum om variabler, løkker, metoder og OOP.</p>
+            </div>
+        </li>
+        <li class="journey-step">
+            <span class="journey-num">2</span>
+            <div>
+                <h3>Practice in small steps</h3>
+                <p>Løs opgaver med stigende sværhedsgrad og commit til Git.</p>
+            </div>
+        </li>
+        <li class="journey-step">
+            <span class="journey-num">3</span>
+            <div>
+                <h3>Build projects</h3>
+                <p>Arbejd med større forløb og lær at strukturere rigtig kode.</p>
+            </div>
+        </li>
+        <li class="journey-step">
+            <span class="journey-num">4</span>
+            <div>
+                <h3>Submit via GitHub</h3>
+                <p>Brug branches, pull requests og professionel versionsstyring.</p>
+            </div>
+        </li>
+    </ol>
+</section>
+
+<section class="landing-features">
+    <div class="landing-features-grid">
+        <div class="feature-item">
+            <h3>Git from day 1</h3>
+            <p>Versionsstyring er vævet ind i hele forløbet — ikke et tillæg til sidst.</p>
+        </div>
+        <div class="feature-item">
+            <h3>Built for GF2</h3>
+            <p>Indhold og progression matcher undervisningen på datatekniker GF2.</p>
+        </div>
+        <div class="feature-item">
+            <h3>Sign in and track progress</h3>
+            <p>Opret profil via Mercantec Auth og gem din progression (kommer snart).</p>
+        </div>
+    </div>
+</section>
+
+<section class="landing-cta">
+    <div class="landing-cta-inner">
+        <h2>Ready to get started?</h2>
+        <p>Start med introduktionen til programmering — det tager kun få minutter.</p>
+        <a href="/curriculum/01-introduktion" class="btn btn-primary btn-lg">Gå til første lektion</a>
+    </div>
+</section>
+
+@code {
+    private int CurriculumCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Curriculum);
+    private int ExercisesCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Exercises);
+    private int ProjectsCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Projects && i.IsOverview);
+
+    private static string GetName(System.Security.Claims.ClaimsPrincipal user) =>
+        user.Identity?.Name ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "elev";
+}

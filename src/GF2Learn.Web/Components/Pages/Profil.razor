@@ -1,0 +1,66 @@
+@page "/profile"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using System.Security.Claims
+
+<PageTitle>Profile — GF2 Learn</PageTitle>
+
+<div class="profile-page">
+    <SectionHero Title="Profile" Eyebrow="Account" Lead="Du er logget ind via Mercantec Auth." />
+
+    <div class="profile-card">
+        <div class="profile-avatar-large">@GetInitials(User)</div>
+        <dl class="profile-list">
+            <div class="profile-row">
+                <dt>Navn</dt>
+                <dd>@(User.FindFirst(ClaimTypes.Name)?.Value ?? "—")</dd>
+            </div>
+            <div class="profile-row">
+                <dt>E-mail</dt>
+                <dd>@(User.FindFirst(ClaimTypes.Email)?.Value ?? "—")</dd>
+            </div>
+            <div class="profile-row">
+                <dt>Bruger-ID</dt>
+                <dd><code>@(User.FindFirst("sub")?.Value ?? "—")</code></dd>
+            </div>
+            <div class="profile-row">
+                <dt>Login-metode</dt>
+                <dd>@(User.FindFirst("login_method")?.Value ?? "—")</dd>
+            </div>
+            @if (User.FindAll(ClaimTypes.Role).Any())
+            {
+                <div class="profile-row">
+                    <dt>Roller</dt>
+                    <dd>
+                        @foreach (var role in User.FindAll(ClaimTypes.Role))
+                        {
+                            <span class="meta-chip">@role.Value</span>
+                        }
+                    </dd>
+                </div>
+            }
+        </dl>
+        <div class="profile-actions">
+            <a href="/curriculum" class="btn btn-secondary">Fortsæt med pensum</a>
+            <a href="/auth/logout" class="btn btn-ghost">Log ud</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
+    private ClaimsPrincipal User { get; set; } = new(new ClaimsIdentity());
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthStateTask is not null)
+            User = (await AuthStateTask).User;
+    }
+
+    private string GetInitials(ClaimsPrincipal user)
+    {
+        var name = user.Identity?.Name ?? user.FindFirst(ClaimTypes.Email)?.Value ?? "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2) return $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+        return name.Length > 0 ? char.ToUpperInvariant(name[0]).ToString() : "?";
+    }
+}

@@ -1,0 +1,5 @@
+{
+  "packages": {
+    "Newtonsoft.Json": "playground/refs/Newtonsoft.Json.dll"
+  }
+}

@@ -1,0 +1,29 @@
+﻿@page "/projects"
+@inject ContentService Content
+
+<PageTitle>Projects — GF2 Learn</PageTitle>
+
+<SectionShell Section="ContentSectionType.Projects" Title="Projects">
+    <SectionHero Title="Projects" Eyebrow="Courses" Lead="4 projektforløb over 13 undervisningsdage. Byg rigtige programmer og aflever via GitHub." />
+    <div class="project-grid">
+        @{
+            var projectMeta = new[] {
+                ("projekt-1-jobsoegning", "1", "Jobsøgning"),
+                ("projekt-2-hjemmet", "2", "Hjemmet"),
+                ("projekt-3-kontoret", "3", "Kontoret"),
+                ("projekt-4-enterprise", "4", "Enterprise")
+            };
+        }
+        @foreach (var project in Content.GetAll().Where(i => i.Section == ContentSectionType.Projects && i.IsOverview).OrderBy(i => i.Order))
+        {
+            var dayCount = Content.GetAll().Count(i => i.ProjectSlug == project.Slug && !i.IsOverview);
+            var num = projectMeta.FirstOrDefault(p => p.Item1 == project.Slug).Item2 ?? "?";
+            <a href="@project.Href" class="project-card">
+                <span class="project-num">Project @num</span>
+                <h2>@project.Title</h2>
+                <p>@dayCount undervisningsdage · Git-aflevering</p>
+                <span class="project-arrow">Se forløb →</span>
+            </a>
+        }
+    </div>
+</SectionShell>

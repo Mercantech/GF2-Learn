@@ -1,0 +1,27 @@
+<section class="section-hero @CssClass">
+    <div class="section-hero-content">
+        @if (!string.IsNullOrWhiteSpace(Eyebrow))
+        {
+            <p class="section-hero-eyebrow">@Eyebrow</p>
+        }
+        <h1>@Title</h1>
+        @if (!string.IsNullOrWhiteSpace(Lead))
+        {
+            <p class="section-hero-lead">@Lead</p>
+        }
+    </div>
+    @if (ChildContent is not null)
+    {
+        <div class="section-hero-extra">
+            @ChildContent
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Eyebrow { get; set; }
+    [Parameter] public string? Lead { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

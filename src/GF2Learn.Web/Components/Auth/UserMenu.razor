@@ -1,0 +1,45 @@
+@using System.Security.Claims
+@using GF2Learn.Web.Auth
+@inject MercantecAuthStatus AuthStatus
+
+<div class="user-menu">
+    @if (!AuthStatus.IsConfigured)
+    {
+        <span class="user-badge user-badge-muted" title="Sæt MercantecAuth__ClientSecret">Auth off</span>
+    }
+    else
+    {
+        <AuthorizeView>
+            <Authorized>
+                <div class="user-menu-logged-in">
+                    <span class="user-avatar">@GetInitials(context.User)</span>
+                    <span class="user-name" title="@GetEmail(context.User)">@GetDisplayName(context.User)</span>
+                    <a href="/profile" class="btn btn-ghost btn-sm">Profile</a>
+                    <a href="/auth/logout" class="btn btn-ghost btn-sm">Log out</a>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <a href="/auth/login" class="btn btn-primary btn-sm">Log in</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    }
+</div>
+
+@code {
+    private static string GetDisplayName(ClaimsPrincipal user) =>
+        user.Identity?.Name
+        ?? user.FindFirst(ClaimTypes.Email)?.Value
+        ?? "Bruger";
+
+    private static string? GetEmail(ClaimsPrincipal user) =>
+        user.FindFirst(ClaimTypes.Email)?.Value;
+
+    private static string GetInitials(ClaimsPrincipal user)
+    {
+        var name = GetDisplayName(user);
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+        return name.Length > 0 ? char.ToUpperInvariant(name[0]).ToString() : "?";
+    }
+}

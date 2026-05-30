@@ -1,0 +1,30 @@
+﻿<CascadingAuthenticationState>
+    <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity?.IsAuthenticated != true)
+                    {
+                        <div class="auth-required">
+                            <h1>Login required</h1>
+                            <p>Du skal logge ind for at se denne side.</p>
+                            <a href="/auth/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)" class="user-link user-link-login">Log in</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="auth-required">
+                            <h1>Access denied</h1>
+                            <p>Du har ikke adgang til denne side.</p>
+                        </div>
+                    }
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+}

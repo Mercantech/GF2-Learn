@@ -1,0 +1,25 @@
+﻿@page "/exercises/{Slug}"
+@inject ContentService Content
+
+<PageTitle>@(Item?.Title ?? "Exercise") — GF2 Learn</PageTitle>
+
+@if (Item is null)
+{
+    <p>Opgaven blev ikke fundet.</p>
+}
+else
+{
+    <SectionShell Section="ContentSectionType.Exercises" Title="Exercises" Current="Item">
+        <header class="page-header">
+            <p class="breadcrumb"><a href="/exercises">Exercises</a> / @Item.Title</p>
+            <h1>@Item.Title</h1>
+            <ContentMeta Item="Item" />
+        </header>
+        <ExerciseContent Item="Item" />
+    </SectionShell>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+    private ContentItem? Item => Content.GetExercise(Slug);
+}

@@ -1,0 +1,26 @@
+﻿services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      PathBase: ""
+      ContentPath: /app/content
+      ASPNETCORE_ENVIRONMENT: Production
+      MercantecAuth__ClientId: ${MercantecAuth__ClientId:-gf2-learn}
+      MercantecAuth__ClientSecret: ${MercantecAuth__ClientSecret}
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["with-db"]
+    environment:
+      POSTGRES_DB: gf2learn
+      POSTGRES_USER: gf2
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:

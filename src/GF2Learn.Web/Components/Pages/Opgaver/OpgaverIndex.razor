@@ -1,0 +1,26 @@
+﻿@page "/exercises"
+@inject ContentService Content
+
+<PageTitle>Exercises — GF2 Learn</PageTitle>
+
+<SectionShell Section="ContentSectionType.Exercises" Title="Exercises">
+    <SectionHero Title="Exercises" Eyebrow="Practice" Lead="Øv dig med opgaver i tre sværhedsgrader. Hver opgave har Git-trin og link til relevant pensum." />
+    @foreach (var level in new[] { ("begynder", "Beginner", "🌱"), ("mellem", "Intermediate", "⚡"), ("avanceret", "Advanced", "🔥") })
+    {
+        var items = Content.GetAll().Where(i => i.Section == ContentSectionType.Exercises && string.Equals(i.Difficulty, level.Item1, StringComparison.OrdinalIgnoreCase)).OrderBy(i => i.Order).ToList();
+        if (items.Count == 0) continue;
+        <section class="index-section">
+            <h2><span class="level-icon">@level.Item3</span> @level.Item2</h2>
+            <div class="index-list">
+                @foreach (var item in items)
+                {
+                    <a href="@item.Href" class="index-item">
+                        <span class="index-order">@item.Order.ToString("D2")</span>
+                        <div class="index-item-body"><strong>@item.Title</strong></div>
+                        <span class="index-arrow">→</span>
+                    </a>
+                }
+            </div>
+        </section>
+    }
+</SectionShell>

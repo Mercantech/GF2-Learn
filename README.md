@@ -1,101 +1,146 @@
-# GF2-Learn
+﻿# GF2 Learn
 
-Læringsplatform til **Grundforløb 2 på data** — [learn.mags.dk/gf2](https://learn.mags.dk/gf2).
+Central læringsplatform til **Grundforløb 2 programmering** på Mercantec — C#, Git, opgaver og projekter.
+
+**Produktion:** [learn.mags.dk](https://learn.mags.dk)
 
 ## Stack
 
-- Next.js 15 (App Router) med `basePath: /gf2`
-- Pensum i **MDX** i `content/modules/`
-- Valgfrit **live Notion** per lektion (`notionPageId` i frontmatter)
-- YouTube-embed, sidebar-navigation, mørk/lys tilstand
-- Docker (standalone) til Dokploy
+- **Blazor Web App** (.NET 10) med Static SSR
+- **Markdown + YAML frontmatter** i `content/` (versioneret i Git)
+- **Markdig** til rendering med custom directives (`:::git-step`, `:::exercise`, osv.)
+- **Mercantec Auth** ([auth.mercantec.tech](https://auth.mercantec.tech)) — OAuth 2.0 + PKCE
+- **Docker** + Cloudflare Tunnel til deploy
+
+## Tre sektioner
+
+| Sektion | Indhold |
+|---------|---------|
+| **Pensum** | C#-teori og Git |
+| **Opgaver** | Øvelser (begynder / mellem / avanceret) |
+| **Projekter** | 4 projektforløb over 13 dage |
+
+Pensum, opgaver og projekter er **offentligt tilgængelige**. `/profile` kræver login.
 
 ## Lokal udvikling
 
 ```bash
-npm install
-cp .env.example .env.local   # udfyld NOTION_API_KEY hvis du tester Notion
-npm run dev
+cd src/GF2Learn.Web
+dotnet user-secrets set "MercantecAuth:ClientSecret" "dit-client-secret"
+dotnet run --urls http://localhost:5288
 ```
 
-Åbn **http://localhost:3000/gf2** (ikke kun `/` på roden).
+Åbn **http://localhost:5083** (eller den port du bruger med `dotnet run --urls`)
 
-### Fejl i dev (`ENOENT` / `Cannot find module './611.js'`)
+## Mercantec Auth opsætning
 
-Sker ofte hvis `.next` slettes mens `npm run dev` kører. Stop serveren (Ctrl+C), ryd cache, start igen:
+### 1. Opret OAuth-klient i Auth Admin
 
-```bash
-npm run dev:clean
-```
+Registrér klient `gf2-learn` med **præcis** disse redirect URIs:
 
-Eller manuelt: slet mappen `.next`, kør derefter `npm run dev`.
+| Miljø | Redirect URI |
+|-------|----------------|
+| Lokal | `http://localhost:5083/signin-mercantec` |
+| Produktion | `https://learn.mags.dk/signin-mercantec` |
 
-Åbn [http://localhost:3000/gf2](http://localhost:3000/gf2).
+### 2. Konfiguration
+
+Miljøvariabler (se `.env.example`):
+
+| Variabel | Beskrivelse |
+|----------|-------------|
+| `MercantecAuth__ClientId` | OAuth client_id (default: `gf2-learn`) |
+| `MercantecAuth__ClientSecret` | Client secret (confidential client) |
+
+JWT valideres mod `iss=https://auth.mercantec.tech` og `aud=mercantec-apps`.
+
+### 3. Endpoints i appen
+
+| Sti | Formål |
+|-----|--------|
+| `/auth/login` | Start OAuth-flow (PKCE S256) |
+| `/signin-mercantec` | OAuth callback (automatisk) |
+| `/auth/logout` | Log ud + redirect til auth signout |
+| `/profile` | Brugerprofil (kræver login) |
+
+### 4. Logout
+
+Logout rydder app-cookie og sender brugeren til `https://auth.mercantec.tech/signout?returnUrl=...` for at nulstille auth-session (SSO).
 
 ## Indholdsstruktur
 
 ```
-content/modules/<modul-slug>/
-  module.json          # titel, beskrivelse, rækkefølge
-  lessons/
-    01-velkommen.mdx   # frontmatter + MDX-brødtekst
+content/
+  pensum/           # *.md — teori
+  opgaver/          # begynder/, mellem/, avanceret/
+  projekter/        # projekt-*/overview.md + dag-*.md
 ```
 
-### Frontmatter (GF2-forberedt)
-
-| Felt | Beskrivelse |
-|------|-------------|
-| `title` | Lektionstitel |
-| `module` | Modul-slug |
-| `order` | Sortering i modulet |
-| `fag` | Fag (udfydes i fase 2) |
-| `kompetencemaal` | Liste af mål |
-| `timer` | Antal timer |
-| `laereplanRef` | Reference til læreplan |
-| `youtubeId` | YouTube video-ID (valgfri) |
-| `notionPageId` | Notion side-ID — live indhold når sat |
-
-**Én kilde per lektion:** Hvis `notionPageId` er udfyldt, hentes indhold fra Notion; ellers vises MDX.
-
-**Notion-links i indhold:** Interne links til andre Notion-sider peger på `/gf2/notion/<page-id>` (eller på den tilsvarende lektion, hvis den findes i `content/`).
-
-### Opdel Notion-side efter overskrifter (sidebar)
-
-Sæt i lektionens frontmatter:
+### Frontmatter
 
 ```yaml
-notionPageId: "..."
-splitNotionByH1: true
+title: "Emnetitel"
+order: 1
+topics: [csharp, git]
+kompetencemaal: ["Kan ..."]
+timer: 2
+difficulty: begynder    # kun opgaver
+related_pensum: [02-variabler-og-datatyper]
+youtube_id: "..."       # valgfri
 ```
 
-Hver **Heading 1** (eller **Heading 2**, hvis der ikke findes H1) i Notion bliver et eget menupunkt under modulet. URL: `/gf2/modul/<modul>/<lektion>/<sektion-slug>`.
+### Custom directives
 
-Krav i Notion: brug rigtige overskriftsblokke (Heading 1 / Heading 2) — fed tekst eller store fonte tæller ikke.
+| Directive | Formål |
+|-----------|--------|
+| `:::callout type="info"` | Info/advarsel-boks |
+| `:::git-step` | Git commit/branch instruktion |
+| `:::exercise` | Opgavebeskrivelse |
+| `:::solution` | Fold-ud løsning |
+| `:::code-playground` | Interaktiv C#-playground (kører i browser via WASM). Valgfri `refs:` og `expected:` |
+| `:::related-pensum` | Links til pensum |
 
-## Notion-opsætning
+### C# playground (browser)
 
-1. Opret en [internal integration](https://www.notion.so/my-integrations) i Notion.
-2. Kopiér secret til `NOTION_API_KEY` i `.env.local` / Dokploy.
-3. Del relevante sider med integrationen (⋯ → Connect to → din integration).
-4. Side-ID findes i URL: `notion.so/.../<32-tegn-id>` (med eller uden bindestreger).
-5. Sæt `notionPageId` i lektionens frontmatter.
+På `/exercises/*` loades en WebAssembly-runtime (~15–25 MB, caches i browseren). Elever kan redigere og køre top-level C# med `Console.WriteLine` direkte på egen maskine.
 
-## Docker / Dokploy
+Editoren er **Monaco** (samme motor som VS Code) med C#-syntax og snippets — fx skriv `cw` + **Tab** for `Console.WriteLine()`. **Ctrl+Space** viser flere snippets (`for`, `foreach`, `if`, …).
+
+Ekstra NuGet-assemblies whitelistes i [`wwwroot/playground/playground.json`](src/GF2Learn.Web/wwwroot/playground/playground.json) — se [`wwwroot/playground/refs/README.md`](src/GF2Learn.Web/wwwroot/playground/refs/README.md).
+
+```markdown
+:::code-playground
+refs: System.Text.Json
+```csharp
+var json = JsonSerializer.Serialize(new { navn = "Ada" });
+Console.WriteLine(json);
+```
+expected: {"navn":"Ada"}
+:::
+```
+
+Manuel test (efter `dotnet run`):
+
+1. Åbn `/exercises/01-hello-world` — vent på WASM-load, tryk **Run**, tjek output mod **Expected**.
+2. Indsæt syntaksfejl — compile-fejl vises i output-panelet.
+3. Uendelig løkke — timeout efter 3 sekunder.
+4. JSON med `System.Text.Json` uden ekstra refs — skal virke via BCL.
+
+## Docker
 
 ```bash
-docker build -t gf2-learn .
-docker run -p 3000:3000 -e NOTION_API_KEY=din-nøgle gf2-learn
+cp .env.example .env   # udfyld MercantecAuth__ClientSecret
+docker compose up --build
 ```
 
-I **Dokploy**: peg GitHub-repo, build med Dockerfile, port **3000**, env-vars fra `.env.example`.
+Appen kører på port **8080** i roden (ingen path prefix).
 
-**Cloudflare Tunnel**: peg `learn.mags.dk` mod containeren. Appen forventer at være tilgængelig under `/gf2` (via reverse proxy path eller direkte med basePath).
+Postgres (fase 2 — progression):
 
-## Deploy-noter
+```bash
+docker compose --profile with-db up --build
+```
 
-- `output: "standalone"` — `content/` kopieres med i Docker-image, så MDX kan læses ved runtime.
-- Auth kommer i en senere fase; platformen er offentlig i v1.
+## Fase 2 (planlagt)
 
-## Fase 2
-
-Udfyld moduler og lektioner efter GF2 Data læreplan, rigtige YouTube-IDs og Notion-sider.
+- Elev-progression i Postgres (gem fuldførte emner/opgaver)

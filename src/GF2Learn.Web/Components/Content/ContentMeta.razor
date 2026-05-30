@@ -1,0 +1,23 @@
+﻿@using GF2Learn.Web.Models
+
+@if (Item.Kompetencemaal.Count > 0 || Item.Timer > 0 || !string.IsNullOrWhiteSpace(Item.Difficulty))
+{
+    <aside class="content-meta">
+        @if (Item.Timer > 0)
+        {
+            <span class="meta-chip">@Item.Timer timer</span>
+        }
+        @if (!string.IsNullOrWhiteSpace(Item.Difficulty))
+        {
+            <span class="meta-chip meta-chip-level">@Item.Difficulty</span>
+        }
+        @foreach (var mal in Item.Kompetencemaal)
+        {
+            <span class="meta-chip meta-chip-goal">@mal</span>
+        }
+    </aside>
+}
+
+@code {
+    [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
+}

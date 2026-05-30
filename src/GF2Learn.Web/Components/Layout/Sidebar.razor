@@ -1,0 +1,36 @@
+﻿@using GF2Learn.Web.Models
+@using GF2Learn.Web.Services
+
+@if (Nav is null)
+{
+    return;
+}
+
+<aside class="sidebar">
+    <p class="sidebar-title">@Title</p>
+    @foreach (var group in Nav.Groups)
+    {
+        <div class="sidebar-group">
+            <p class="sidebar-group-title">@group.Title</p>
+            <ul>
+                @foreach (var item in group.Items)
+                {
+                    var active = IsActive(item);
+                    <li>
+                        <a href="@item.Href" class="sidebar-link @(active ? "active" : null)">@item.Title</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</aside>
+
+@code {
+    [Parameter] public SectionNav? Nav { get; set; }
+    [Parameter] public string Title { get; set; } = "Navigation";
+    [Parameter] public ContentItem? Current { get; set; }
+
+    private bool IsActive(ContentItem item) =>
+        Current != null && Current.Slug == item.Slug && Current.Section == item.Section
+        && Current.ProjectSlug == item.ProjectSlug;
+}

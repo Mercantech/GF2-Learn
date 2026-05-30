@@ -1,0 +1,16 @@
+﻿@using GF2Learn.Web.Models
+@inject NavigationService NavService
+
+<div class="section-page">
+    <Sidebar Nav="@NavService.GetSectionNav(Section)" Title="@Title" Current="Current" />
+    <article class="section-article">
+        @ChildContent
+    </article>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ContentSectionType Section { get; set; }
+    [Parameter] public ContentItem? Current { get; set; }
+    [Parameter] public string Title { get; set; } = "Content";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,36 @@
+@using GF2Learn.Web.Models
+@inject PlaygroundParser PlaygroundParser
+@inject MarkdownService Markdown
+
+<div class="markdown-body exercise-content">
+    @if (!string.IsNullOrWhiteSpace(Item.YoutubeId))
+    {
+        <div class="video-embed">
+            <iframe src="@($"https://www.youtube.com/embed/{Item.YoutubeId}")" title="Video" allowfullscreen loading="lazy"></iframe>
+        </div>
+    }
+    @for (var i = 0; i < _segments.Count; i++)
+    {
+        var segment = _segments[i];
+        if (segment.IsPlayground && segment.Playground is not null)
+        {
+            <CodePlayground @key="@($"{Item.Slug}-pg-{i}")"
+                            InitialCode="@segment.Playground.Code"
+                            ExpectedOutput="@segment.Playground.Expected"
+                            Refs="@segment.Playground.Refs" />
+        }
+        else if (!string.IsNullOrWhiteSpace(segment.Html))
+        {
+            @((MarkupString)segment.Html)
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
+
+    private IReadOnlyList<ContentSegment> _segments = [];
+
+    protected override void OnParametersSet() =>
+        _segments = PlaygroundParser.BuildSegments(Item.Body, Markdown.ToHtml);
+}

@@ -1,0 +1,16 @@
+﻿@using GF2Learn.Web.Models
+@inject MarkdownService Markdown
+
+<div class="markdown-body">
+    @if (!string.IsNullOrWhiteSpace(Item.YoutubeId))
+    {
+        <div class="video-embed">
+            <iframe src="@($"https://www.youtube.com/embed/{Item.YoutubeId}")" title="Video" allowfullscreen loading="lazy"></iframe>
+        </div>
+    }
+    @((MarkupString)Markdown.ToHtml(Item.Body))
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
+}
