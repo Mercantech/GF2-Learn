@@ -86,7 +86,12 @@ if (!app.Environment.IsDevelopment())
 
 app.UseForwardedHeaders();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
+
+var behindReverseProxy = builder.Configuration.GetValue("GF2_BEHIND_REVERSE_PROXY", false);
+if (!behindReverseProxy)
+    app.UseHttpsRedirection();
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();

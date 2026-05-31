@@ -8,7 +8,7 @@ Opsætning styres via **Cloudflare Zero Trust / Dashboard** (web app) — ikke n
 |-------------------|--------|
 | **Public hostname** | `learn-dev.gf2.dk` |
 | **Service type** | Published application |
-| **URL / origin** | `http://localhost:2020` |
+| **URL / origin** | `http://127.0.0.1:2020` (på **Dokploy-serveren**, ikke din PC) |
 
 På serveren skal Docker køre:
 
@@ -26,13 +26,20 @@ Tilføj redirect URI i Auth Admin:
 
 Appen læser `X-Forwarded-Proto` / `X-Forwarded-Host` fra tunnelen, så login og cookies virker over HTTPS.
 
+## Dokploy
+
+Deploy via Dokploy (`docker compose -p gf2learn-...`) — se **[dokploy-cloudflare.md](dokploy-cloudflare.md)** for fuld fejlsøgning.
+
+Kort: SSH til serveren → `curl http://127.0.0.1:2020/health` skal give `200` før Cloudflare kan virke.
+
 ## Fejlsøgning
 
 | Symptom | Tjek |
 |---------|------|
-| 502 / connection refused | Kører `docker compose`? Er origin **http://localhost:2020** (ikke 8080 på host)? |
-| Login fejler / forkert callback | Er redirect URI registreret for `learn-dev.gf2.dk`? Genbyg web efter `UseForwardedHeaders` i `Program.cs`. |
-| Kun HTTP lokalt | Forventet — TLS håndteres af Cloudflare foran tunnelen. |
+| 502 / connection refused | Connector på **samme server** som Dokploy? Origin `http://127.0.0.1:2020` (host **2020**, ikke container 8080)? |
+| Deploy OK, tunnel nej | Se [dokploy-cloudflare.md](dokploy-cloudflare.md) |
+| Login fejler / forkert callback | Redirect URI `https://learn-dev.gf2.dk/signin-mercantec` |
+| Redirect loop | `GF2_BEHIND_REVERSE_PROXY=true` i compose (slår HTTPS-redirect fra bag tunnel) |
 
 ## Valgfri: CLI-config
 

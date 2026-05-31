@@ -157,6 +157,6 @@ Tunnelen styres i **Cloudflare Zero Trust / Dashboard** (Published application) 
 
 På samme maskine: `docker compose up -d` (app på host **2020**).
 
-Detaljer og fejlsøgning: [`deploy/cloudflare-tunnel.md`](deploy/cloudflare-tunnel.md)
+Detaljer: [`deploy/cloudflare-tunnel.md`](deploy/cloudflare-tunnel.md) · Dokploy: [`deploy/dokploy-cloudflare.md`](deploy/dokploy-cloudflare.md)
 
 OAuth: `https://learn-dev.gf2.dk/signin-mercantec` i Mercantec Auth Admin. Appen bruger forwarded headers bag tunnelen.

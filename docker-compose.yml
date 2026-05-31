@@ -9,6 +9,14 @@
     environment:
       ConnectionStrings__DefaultConnection: Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-gf2learn};Username=${POSTGRES_USER:-gf2};Password=${POSTGRES_PASSWORD:-changeme}
       ContentPath: /app/content
+      # Cloudflare Tunnel / Dokploy: origin er HTTP — undgå redirect til https://localhost
+      GF2_BEHIND_REVERSE_PROXY: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       postgres:
         condition: service_healthy
@@ -23,7 +31,7 @@
       POSTGRES_USER: ${POSTGRES_USER:-gf2}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      - "5422:5432"
+      - "5422:5422"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
