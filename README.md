@@ -40,7 +40,9 @@ Registrér klient `gf2-learn` med **præcis** disse redirect URIs:
 
 | Miljø | Redirect URI |
 |-------|----------------|
-| Lokal | `http://localhost:5083/signin-mercantec` |
+| Lokal (`dotnet run`) | `http://localhost:5083/signin-mercantec` |
+| Docker lokal | `http://localhost:2020/signin-mercantec` |
+| Dev (Cloudflare Tunnel) | `https://learn-dev.gf2.dk/signin-mercantec` |
 | Produktion | `https://learn.mags.dk/signin-mercantec` |
 
 ### 2. Konfiguration
@@ -143,3 +145,18 @@ OAuth redirect for lokal Docker (tilføj i Auth Admin hvis du tester login):
 `http://localhost:2020/signin-mercantec`
 
 Videnstjek-progression gemmes i Postgres ved login (migrationer kører automatisk ved opstart).
+
+### Cloudflare Tunnel (dev)
+
+Tunnelen styres i **Cloudflare Zero Trust / Dashboard** (Published application) — ikke via lokal config-fil.
+
+| I Cloudflare web app | Værdi |
+|----------------------|--------|
+| Hostname | `learn-dev.gf2.dk` |
+| Service | **Published application** → `http://localhost:2020` |
+
+På samme maskine: `docker compose up -d` (app på host **2020**).
+
+Detaljer og fejlsøgning: [`deploy/cloudflare-tunnel.md`](deploy/cloudflare-tunnel.md)
+
+OAuth: `https://learn-dev.gf2.dk/signin-mercantec` i Mercantec Auth Admin. Appen bruger forwarded headers bag tunnelen.

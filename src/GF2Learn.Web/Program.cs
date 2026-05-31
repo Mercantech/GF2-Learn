@@ -4,9 +4,21 @@ using GF2Learn.Web.Components;
 using GF2Learn.Web.Data;
 using GF2Learn.Web.Models;
 using GF2Learn.Web.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
+    // Cloudflare Tunnel (cloudflared) → localhost — trust proxy headers
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddSingleton<ContentPreprocessor>();
 builder.Services.AddSingleton<KnowledgeCheckCatalog>();
@@ -72,6 +84,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseForwardedHeaders();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 app.UseAuthentication();

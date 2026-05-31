@@ -1,0 +1,11 @@
+# Valgfri — kun hvis du kører cloudflared via CLI i stedet for Cloudflare web app.
+# Normal dev-opsætning: Public hostname i dashboard → http://localhost:2020
+# Se cloudflare-tunnel.md
+
+tunnel: <TUNNEL-UUID>
+credentials-file: C:\Users\<dig>\.cloudflared\<TUNNEL-UUID>.json
+
+ingress:
+  - hostname: learn-dev.gf2.dk
+    service: http://localhost:2020
+  - service: http_status:404
