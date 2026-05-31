@@ -2,6 +2,7 @@
   web:
     build: .
     ports:
+      # Host http://localhost:2020 → container ASP.NET på 8080
       - "2020:8080"
     env_file:
       - .env

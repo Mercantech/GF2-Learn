@@ -129,18 +129,17 @@ Manuel test (efter `dotnet run`):
 ## Docker
 
 ```bash
-cp .env.example .env   # udfyld MercantecAuth__ClientSecret
-docker compose up --build
+cp .env.example .env   # udfyld MercantecAuth__ClientSecret og POSTGRES_PASSWORD
+docker compose up -d --build
 ```
 
-Appen kører på port **8080** i roden (ingen path prefix).
+| Tjeneste | URL / port |
+|----------|------------|
+| **Web** | **http://localhost:2020** (host 2020 → container 8080) |
+| Postgres | `localhost:5422` (kun til debugging; app bruger `postgres:5432` internt) |
 
-Postgres (fase 2 — progression):
+OAuth redirect for lokal Docker (tilføj i Auth Admin hvis du tester login):
 
-```bash
-docker compose --profile with-db up --build
-```
+`http://localhost:2020/signin-mercantec`
 
-## Fase 2 (planlagt)
-
-- Elev-progression i Postgres (gem fuldførte emner/opgaver)
+Videnstjek-progression gemmes i Postgres ved login (migrationer kører automatisk ved opstart).
