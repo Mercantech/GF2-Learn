@@ -8,8 +8,8 @@ Opsætning styres via **Cloudflare Zero Trust / Dashboard** (web app) — ikke n
 |-------------------|--------|
 | **Public hostname** | `learn-dev.gf2.dk` |
 | **Service type** | Published application |
-| **URL / origin (Dokploy)** | **`http://dokploy-traefik:80`** — ikke localhost:2020/8031 |
-| **URL (cloudflared på host)** | `http://127.0.0.1:80` + Host `learn-dev.gf2.dk` |
+| **URL / origin (cloudflared på host)** | **`http://127.0.0.1:8031`** (eller din `WEB_HOST_PORT`) |
+| **URL (cloudflared i Docker)** | **`http://host.docker.internal:8031`** |
 
 På serveren skal Docker køre:
 
@@ -17,7 +17,7 @@ På serveren skal Docker køre:
 docker compose up -d
 ```
 
-Appen er tilgængelig lokalt på **http://localhost:2020** og offentligt på **https://learn-dev.gf2.dk**.
+Appen er tilgængelig lokalt på **http://127.0.0.1:8031** og offentligt på **https://learn-dev.gf2.dk**.
 
 ## Mercantec OAuth
 
@@ -31,13 +31,13 @@ Appen læser `X-Forwarded-Proto` / `X-Forwarded-Host` fra tunnelen, så login og
 
 Deploy via Dokploy (`docker compose -p gf2learn-...`) — se **[dokploy-cloudflare.md](dokploy-cloudflare.md)** for fuld fejlsøgning.
 
-Kort: SSH til serveren → `curl http://127.0.0.1:2020/health` skal give `200` før Cloudflare kan virke.
+Kort: SSH til serveren → `curl http://127.0.0.1:8031/health` skal give `200` før Cloudflare kan virke. Brug `scripts/verify-tunnel.sh`.
 
 ## Fejlsøgning
 
 | Symptom | Tjek |
 |---------|------|
-| 502 / connection refused | Connector på **samme server** som Dokploy? Origin `http://127.0.0.1:2020` (host **2020**, ikke container 8080)? |
+| 502 / connection refused | Connector på **samme server** som Dokploy? Origin `http://127.0.0.1:8031` (ikke Traefik, ikke container 8080)? |
 | Deploy OK, tunnel nej | Se [dokploy-cloudflare.md](dokploy-cloudflare.md) |
 | Login fejler / forkert callback | Redirect URI `https://learn-dev.gf2.dk/signin-mercantec` |
 | Redirect loop | `GF2_BEHIND_REVERSE_PROXY=true` i compose (slår HTTPS-redirect fra bag tunnel) |

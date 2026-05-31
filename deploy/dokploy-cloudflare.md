@@ -1,100 +1,63 @@
-# Dokploy + Cloudflare — port exposure (som dine andre apps)
+# Dokploy + Cloudflare — port exposure
 
-GF2-Learn er sat op til **normal host port mapping** — ikke Traefik-krav.
+Containers **Healthy** i Dokploy betyder ikke at **host-port** er åben. GF2-Learn bruger derfor **`network_mode: host`** på `web`, så appen lytter **direkte på serveren** — samme effekt som «exposed port» på dine andre apps.
 
-| Sted | Værdi |
-|------|--------|
-| Container (ASP.NET) | `8080` |
-| Host (standard i compose) | **`8031`** → `8080` |
-| Cloudflare Published application | `http://localhost:8031` eller se nedenfor hvis cloudflared kører i Docker |
+## Konfiguration
 
-Sæt i Dokploy environment:
+| Variabel | Standard | Brug |
+|----------|----------|------|
+| `WEB_HOST_PORT` | `8031` | Port på **host** + Cloudflare origin |
+| `POSTGRES_HOST_PORT` | `5422` | Postgres kun på localhost (web forbinder via `127.0.0.1`) |
+
+I Dokploy environment:
 
 ```env
 WEB_HOST_PORT=8031
+POSTGRES_HOST_PORT=5422
 ```
 
-Skift til samme port du bruger i Cloudflare og i Dokploy «exposed port».
-
----
-
-## 1. Tjek på serveren (SSH)
-
-Efter deploy:
-
-```bash
-docker ps --filter name=gf2learn --format "table {{.Names}}\t{{.Ports}}"
-curl -sI http://127.0.0.1:8031/health
-```
-
-**Forventet:** `HTTP/1.1 200 OK` og ports viser `0.0.0.0:8031->8080/tcp`.
-
-Hvis `curl` fejler her, er problemet **Docker/port** — ikke Cloudflare.
-
----
-
-## 2. Cloudflare origin — afhænger af hvor cloudflared kører
-
-### A) cloudflared på **host** (samme maskine som Dokploy)
-
-Published application URL:
+Cloudflare **Published application**:
 
 ```text
 http://127.0.0.1:8031
 ```
 
-eller `http://localhost:8031` — begge skal virke hvis port er published.
+(hvis `WEB_HOST_PORT` er 8031)
 
-### B) cloudflared i **Docker** (fx cloudflared-container i Dokploy)
+Hvis cloudflared kører **i Docker**:
 
-`localhost` inde i cloudflared-containeren er **ikke** hostens localhost.
-
-Brug i stedet **én** af disse i Cloudflare:
-
-| URL | Hvornår |
-|-----|---------|
-| `http://host.docker.internal:8031` | Docker 20.10+ (Linux med `host-gateway`) |
-| `http://172.17.0.1:8031` | Klassisk docker0 bridge (tjek med `ip addr show docker0`) |
-
-Test fra en vilkårlig container på serveren:
-
-```bash
-docker run --rm --add-host=host.docker.internal:host-gateway curlimages/curl \
-  -sI http://host.docker.internal:8031/health
+```text
+http://host.docker.internal:8031
 ```
 
-Hvis det giver `200`, men `localhost:8031` i tunnel ikke gør — er du i case **B**.
-
-Dine **andre apps** der virker med port exposure bruger sandsynligvis enten host-baseret cloudflared, eller `host.docker.internal` — ikke `localhost` fra en container.
-
----
-
-## 3. Tjek inde i web-containeren
+## Efter deploy — kør på serveren
 
 ```bash
-docker exec -it gf2learn-gf2learndev-ku1zfp-web-1 curl -sI http://127.0.0.1:8080/health
+chmod +x scripts/verify-tunnel.sh
+WEB_HOST_PORT=8031 ./scripts/verify-tunnel.sh
 ```
 
-Skal give `200`. Bekræfter at appen lytter inde i containeren.
+Eller manuelt:
 
----
+```bash
+curl -sI http://127.0.0.1:8031/health   # skal være HTTP 200
+ss -tlnp | grep 8031                     # skal vise dotnet lytter
+```
 
-## 4. Dokploy UI
+**Hvis curl giver 200** men browser/tunnel stadig fejler → problemet er **kun Cloudflare** (DNS, connector, forkert port i dashboard).
 
-- **Exposed port** i Dokploy skal matche **`WEB_HOST_PORT`** (fx `8031`).
-- Compose og Dokploy må ikke mappe **forskellige** host-porte.
-- Log «Detected: 0 mounts» er OK — det handler om volumes, ikke ports.
+**Hvis curl fejler** → tjek logs: `docker logs gf2learn-gf2learndev-ku1zfp-web-1`
 
----
+## Dokploy UI
 
-## 5. Valgfri: Traefik
-
-Kun hvis du **senere** vil samme mønster som Dokploy-domains via `dokploy-traefik:80`.  
-Ikke nødvendigt for simpel port exposure.
-
----
+- Sæt **ikke** en anden exposed port i UI end `WEB_HOST_PORT` — compose styrer host-netværk nu.
+- `network_mode: host` kræver at Dokploy tillader det (de fleste self-hosted gør).
 
 ## Postgres
 
-- App → `postgres:5432` (fast i compose)
-- `password authentication failed` → ens `POSTGRES_PASSWORD` som ved volume-oprettelse, eller slet `pgdata` og deploy forfra
+- Connection: `127.0.0.1:5422` fra web (host network)
+- `password authentication failed` → ens password som ved første volume-oprettelse
+
+## Hvis host network ikke er tilladt
+
+Kontakt os / brug bridge med `ports: "8031:8080"` og find den præcise origin-URL dine **andre** compose-apps bruger i Cloudflare (screenshot af deres Published route).

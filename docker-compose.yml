@@ -1,22 +1,22 @@
-﻿services:
+﻿# Dokploy + Cloudflare port exposure: web bruger host-netværk så localhost:WEB_HOST_PORT
+# rammer appen direkte (bridge port mapping udelades ofte af Dokploy).
+services:
   web:
     build: .
-    ports:
-      # Samme mønster som andre Dokploy-apps: host-port → container 8080 (0.0.0.0 på host)
-      # Sæt WEB_HOST_PORT i Dokploy/.env — skal matche Cloudflare Published application URL
-      - "${WEB_HOST_PORT:-8031}:8080"
+    network_mode: host
     env_file:
       - .env
     environment:
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-gf2learn};Username=${POSTGRES_USER:-gf2};Password=${POSTGRES_PASSWORD:-changeme}
+      ASPNETCORE_URLS: http://+:${WEB_HOST_PORT:-8031}
+      ConnectionStrings__DefaultConnection: Host=127.0.0.1;Port=${POSTGRES_HOST_PORT:-5422};Database=${POSTGRES_DB:-gf2learn};Username=${POSTGRES_USER:-gf2};Password=${POSTGRES_PASSWORD:-changeme}
       ContentPath: /app/content
       GF2_BEHIND_REVERSE_PROXY: "true"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${WEB_HOST_PORT:-8031}/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 40s
     depends_on:
       postgres:
         condition: service_healthy
@@ -31,7 +31,7 @@
       POSTGRES_USER: ${POSTGRES_USER:-gf2}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      - "${POSTGRES_HOST_PORT:-5422}:5432"
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5422}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

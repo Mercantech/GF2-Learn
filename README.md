@@ -137,9 +137,9 @@ docker compose up -d --build
 
 | Tjeneste | URL / port |
 |----------|------------|
-| **Web** | Host **`8031`** → container `8080` (sæt `WEB_HOST_PORT` i `.env`) |
-| **Offentlig** | `https://learn-dev.gf2.dk` via Cloudflare tunnel til host-port |
-| Postgres | `localhost:5422` (kun til debugging; app bruger `postgres:5432` internt) |
+| **Web** | Lytter på host **`WEB_HOST_PORT`** (standard `8031`) via `network_mode: host` |
+| **Offentlig** | `https://learn-dev.gf2.dk` via Cloudflare tunnel til `http://127.0.0.1:8031` |
+| Postgres | `127.0.0.1:5422` fra host (web forbinder via samme port) |
 
 OAuth redirect for lokal Docker (tilføj i Auth Admin hvis du tester login):
 
