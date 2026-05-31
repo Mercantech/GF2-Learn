@@ -75,6 +75,8 @@ docker inspect gf2learn-gf2learndev-ku1zfp-web-1 --format '{{range $k,$v := .Net
 ## Trin 3 — Dokploy-specifikt
 
 - **Environment:** Sæt `MercantecAuth__ClientSecret` og `POSTGRES_PASSWORD` i Dokploy UI (`.env` committes ikke).
+- **Postgres-port:** Brug **ikke** `POSTGRES_PORT=5422` i `.env`. Appen forbinder internt på **5432**. `5422` er kun host-port til pgAdmin/DBeaver.
+- Fejl `postgres:5422` / `Connection refused` → fjern `POSTGRES_PORT` fra Dokploy-env eller sæt den til `5432`; connection string i compose bruger nu fast `5432`.
 - **Ports:** Bekræft at compose-port `2020:8080` ikke overskrives. Nogle setups kræver eksplicit «Publish port 2020» i Dokploy.
 - **Gendeploy** efter ændring af `.env` i Dokploy.
 
