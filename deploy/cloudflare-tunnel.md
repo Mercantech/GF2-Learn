@@ -8,7 +8,8 @@ Opsætning styres via **Cloudflare Zero Trust / Dashboard** (web app) — ikke n
 |-------------------|--------|
 | **Public hostname** | `learn-dev.gf2.dk` |
 | **Service type** | Published application |
-| **URL / origin** | `http://127.0.0.1:2020` (på **Dokploy-serveren**, ikke din PC) |
+| **URL / origin (Dokploy)** | **`http://dokploy-traefik:80`** — ikke localhost:2020/8031 |
+| **URL (cloudflared på host)** | `http://127.0.0.1:80` + Host `learn-dev.gf2.dk` |
 
 På serveren skal Docker køre:
 

@@ -137,7 +137,8 @@ docker compose up -d --build
 
 | Tjeneste | URL / port |
 |----------|------------|
-| **Web** | **http://localhost:2020** (host 2020 → container 8080) |
+| **Web** | Host **`8031`** → container `8080` (sæt `WEB_HOST_PORT` i `.env`) |
+| **Offentlig** | `https://learn-dev.gf2.dk` via Cloudflare tunnel til host-port |
 | Postgres | `localhost:5422` (kun til debugging; app bruger `postgres:5432` internt) |
 
 OAuth redirect for lokal Docker (tilføj i Auth Admin hvis du tester login):
@@ -148,15 +149,11 @@ Videnstjek-progression gemmes i Postgres ved login (migrationer kører automatis
 
 ### Cloudflare Tunnel (dev)
 
-Tunnelen styres i **Cloudflare Zero Trust / Dashboard** (Published application) — ikke via lokal config-fil.
+Port exposure som andre apps — se [`deploy/dokploy-cloudflare.md`](deploy/dokploy-cloudflare.md).
 
-| I Cloudflare web app | Værdi |
-|----------------------|--------|
-| Hostname | `learn-dev.gf2.dk` |
-| Service | **Published application** → `http://localhost:2020` |
+| Cloudflare (host cloudflared) | `http://localhost:8031` |
+| Cloudflare (cloudflared i Docker) | `http://host.docker.internal:8031` |
 
-På samme maskine: `docker compose up -d` (app på host **2020**).
+`WEB_HOST_PORT=8031` i Dokploy skal matche.
 
-Detaljer: [`deploy/cloudflare-tunnel.md`](deploy/cloudflare-tunnel.md) · Dokploy: [`deploy/dokploy-cloudflare.md`](deploy/dokploy-cloudflare.md)
-
-OAuth: `https://learn-dev.gf2.dk/signin-mercantec` i Mercantec Auth Admin. Appen bruger forwarded headers bag tunnelen.
+OAuth: `https://learn-dev.gf2.dk/signin-mercantec`

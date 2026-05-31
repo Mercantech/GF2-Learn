@@ -2,15 +2,14 @@
   web:
     build: .
     ports:
-      # Host http://localhost:2020 → container ASP.NET på 8080
-      - "8031:8080"
+      # Samme mønster som andre Dokploy-apps: host-port → container 8080 (0.0.0.0 på host)
+      # Sæt WEB_HOST_PORT i Dokploy/.env — skal matche Cloudflare Published application URL
+      - "${WEB_HOST_PORT:-8031}:8080"
     env_file:
       - .env
     environment:
-      # Altid port 5432 internt — POSTGRES_PORT i .env er kun til værktøjer på host (se 5422:5432 nedenfor)
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-gf2learn};Username=${POSTGRES_USER:-gf2};Password=${POSTGRES_PASSWORD:-changeme}
       ContentPath: /app/content
-      # Cloudflare Tunnel / Dokploy: origin er HTTP — undgå redirect til https://localhost
       GF2_BEHIND_REVERSE_PROXY: "true"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
@@ -32,8 +31,7 @@
       POSTGRES_USER: ${POSTGRES_USER:-gf2}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      # Host 5422 → container 5432 (kun til DBeaver/pgAdmin fra serveren — ikke til web-containeren)
-      - "5422:5432"
+      - "${POSTGRES_HOST_PORT:-5422}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
