@@ -2,7 +2,7 @@
 title: "List and Loop"
 order: 3
 difficulty: mellem
-related_pensum: [04-loekker, 05-metoder]
+related_pensum: [05-loekker, 06-metoder, 07-datastrukturer]
 ---
 
 :::exercise level="mellem"

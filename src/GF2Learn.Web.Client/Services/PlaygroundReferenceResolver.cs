@@ -12,11 +12,14 @@ public sealed class PlaygroundReferenceResolver(IHttpClientFactory httpClientFac
         "System.Collections.Generic",
         "System.Linq",
         "System.Text",
-        "System.Text.Json",
         "System.Threading.Tasks"
     ];
 
-    private static readonly string[] RequiredAssemblies =
+    /// <summary>
+    /// Portable DLLs under wwwroot/playground/bcl (metadata for Roslyn only).
+    /// WASM assemblies have no on-disk location, so we cannot use host file paths.
+    /// </summary>
+    private static readonly string[] CoreBclAssemblies =
     [
         "System.Private.CoreLib",
         "System.Runtime",
@@ -48,23 +51,36 @@ public sealed class PlaygroundReferenceResolver(IHttpClientFactory httpClientFac
             if (_cachedCore is { } hit && !hit.IsDefaultOrEmpty)
                 return hit;
 
-            var builder = ImmutableArray.CreateBuilder<MetadataReference>();
-
-            foreach (var name in RequiredAssemblies)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var reference = await TryLoadBclReferenceAsync(name, cancellationToken);
-                if (reference is not null)
-                    builder.Add(reference);
-            }
-
-            _cachedCore = builder.ToImmutable();
+            _cachedCore = await LoadBclReferencesAsync(cancellationToken);
             return _cachedCore.Value;
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+    private async Task<ImmutableArray<MetadataReference>> LoadBclReferencesAsync(
+        CancellationToken cancellationToken)
+    {
+        var http = httpClientFactory.CreateClient("PlaygroundRefs");
+        var builder = ImmutableArray.CreateBuilder<MetadataReference>();
+
+        foreach (var name in CoreBclAssemblies)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                var bytes = await http.GetByteArrayAsync($"playground/bcl/{name}.dll", cancellationToken);
+                builder.Add(MetadataReference.CreateFromImage(bytes));
+            }
+            catch
+            {
+                // Missing or unreachable BCL assembly — continue with others
+            }
+        }
+
+        return builder.ToImmutable();
     }
 
     public async Task<IReadOnlyList<MetadataReference>> GetExtraReferencesAsync(
@@ -106,22 +122,6 @@ public sealed class PlaygroundReferenceResolver(IHttpClientFactory httpClientFac
         finally
         {
             _gate.Release();
-        }
-    }
-
-    private async Task<MetadataReference?> TryLoadBclReferenceAsync(
-        string assemblyName,
-        CancellationToken cancellationToken)
-    {
-        var http = httpClientFactory.CreateClient("PlaygroundRefs");
-        try
-        {
-            var bytes = await http.GetByteArrayAsync($"playground/bcl/{assemblyName}.dll", cancellationToken);
-            return MetadataReference.CreateFromImage(bytes);
-        }
-        catch
-        {
-            return null;
         }
     }
 

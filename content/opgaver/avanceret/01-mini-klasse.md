@@ -2,7 +2,7 @@
 title: "Mini Class"
 order: 1
 difficulty: avanceret
-related_pensum: [06-oop-grundlaeg]
+related_pensum: [09-oop-grundlaeg]
 ---
 
 :::exercise level="avanceret"

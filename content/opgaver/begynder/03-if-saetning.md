@@ -2,7 +2,7 @@
 title: "If Statement"
 order: 3
 difficulty: begynder
-related_pensum: [03-betingelser]
+related_pensum: [04-betingelser]
 ---
 
 :::exercise level="begynder"

@@ -8,9 +8,9 @@ public sealed class MarkdownService(ContentPreprocessor preprocessor)
         .UseAdvancedExtensions()
         .Build();
 
-    public string ToHtml(string markdown)
+    public string ToHtml(string markdown, string? contentSlug = null)
     {
-        var processed = preprocessor.Process(markdown);
+        var processed = preprocessor.Process(markdown, contentSlug);
         return Markdown.ToHtml(processed, _pipeline);
     }
 }

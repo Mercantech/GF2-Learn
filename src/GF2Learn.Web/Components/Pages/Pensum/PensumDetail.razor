@@ -1,5 +1,11 @@
 ﻿@page "/curriculum/{Slug}"
+@using System.Security.Claims
+@using System.Text.Json
+@using GF2Learn.Web.Models
+@using GF2Learn.Web.Services
 @inject ContentService Content
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IServiceProvider Services
 
 <PageTitle>@(Item?.Title ?? "Curriculum") — GF2 Learn</PageTitle>
 
@@ -10,16 +16,49 @@
 else
 {
     <SectionShell Section="ContentSectionType.Curriculum" Title="Curriculum" Current="Item">
-        <header class="page-header">
-            <p class="breadcrumb"><a href="/curriculum">Curriculum</a> / @Item.Title</p>
-            <h1>@Item.Title</h1>
-            <ContentMeta Item="Item" />
-        </header>
-        <MarkdownContent Item="Item" />
+        <div class="curriculum-page">
+            <header class="curriculum-header page-header">
+                <p class="breadcrumb"><a href="/curriculum">Curriculum</a> / @Item.Title</p>
+                <h1>@Item.Title</h1>
+                <ContentMeta Item="Item" />
+            </header>
+            <LearningGoals Item="Item" />
+            <MarkdownContent @key="Slug" Item="Item" />
+            @if (_savedAnswers.Count > 0)
+            {
+                <script type="application/json" id="kc-bootstrap-@Slug">@JsonSerializer.Serialize(_savedAnswers, JsonOptions)</script>
+            }
+        </div>
     </SectionShell>
 }
 
 @code {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     [Parameter] public string Slug { get; set; } = "";
     private ContentItem? Item => Content.GetCurriculum(Slug);
+    private List<KnowledgeCheckAnswerDto> _savedAnswers = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _savedAnswers = [];
+
+        var http = HttpContextAccessor.HttpContext;
+        if (http?.User.Identity?.IsAuthenticated != true)
+            return;
+
+        var progressService = Services.GetService<IKnowledgeCheckProgressService>();
+        if (progressService is null)
+            return;
+
+        var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? http.User.FindFirstValue("sub");
+        if (userSub is null)
+            return;
+
+        _savedAnswers = (await progressService.GetAnswersAsync(userSub, Slug)).ToList();
+    }
 }

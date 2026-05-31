@@ -2,7 +2,7 @@
 title: "Method with Return Value"
 order: 2
 difficulty: mellem
-related_pensum: [05-metoder]
+related_pensum: [06-metoder]
 ---
 
 :::exercise level="mellem"

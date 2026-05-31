@@ -2,7 +2,7 @@
 title: "Exception Handling"
 order: 2
 difficulty: avanceret
-related_pensum: [07-fejlfinding]
+related_pensum: [14-fejlfinding]
 ---
 
 :::exercise level="avanceret"

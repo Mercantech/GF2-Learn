@@ -47,7 +47,11 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
             }
 
             var references = coreRefs.AddRange(extraMetadata);
-            var source = BuildEntryPointSource(code);
+            var prepared = PlaygroundSourceBuilder.Prepare(code);
+            var source = PlaygroundSourceBuilder.BuildEntryPointSource(
+                prepared.ExecutableCode,
+                prepared.StdinLines,
+                prepared.UsesReadLine);
             var tree = CSharpSyntaxTree.ParseText(
                 source,
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
@@ -83,7 +87,7 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
             var method = type.GetMethod("Run", BindingFlags.Public | BindingFlags.Static)
                 ?? throw new InvalidOperationException("Kunne ikke finde Run-metoden.");
 
-            var output = method.Invoke(null, null) as string ?? string.Empty;
+            var output = InvokeRun(method);
             var normalizedOutput = NormalizeOutput(output);
             bool? expectedMatch = string.IsNullOrWhiteSpace(expectedOutput)
                 ? null
@@ -113,38 +117,35 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
             return new RunResult
             {
                 Success = false,
-                Error = ex.Message,
+                Error = FormatExceptionMessage(ex),
                 Elapsed = sw.Elapsed
             };
         }
     }
 
-    private static string BuildEntryPointSource(string userCode)
+    private static string InvokeRun(MethodInfo method)
     {
-        var indented = string.Join("\n", userCode.Split('\n').Select(l => "            " + l));
-        return $$"""
-            using System;
-            using System.IO;
+        try
+        {
+            return method.Invoke(null, null) as string ?? string.Empty;
+        }
+        catch (TargetInvocationException ex)
+        {
+            throw ex.InnerException ?? ex;
+        }
+    }
 
-            public static class __PlaygroundEntry
-            {
-                public static string Run()
-                {
-                    var __writer = new StringWriter();
-                    var __stdout = Console.Out;
-                    Console.SetOut(__writer);
-                    try
-                    {
-            {{indented}}
-                    }
-                    finally
-                    {
-                        Console.SetOut(__stdout);
-                    }
-                    return __writer.ToString();
-                }
-            }
-            """;
+    private static string FormatExceptionMessage(Exception ex)
+    {
+        var current = ex;
+        while (current is TargetInvocationException { InnerException: not null } tie)
+            current = tie.InnerException;
+        while (current is AggregateException { InnerException: not null } agg)
+            current = agg.InnerException;
+
+        return string.IsNullOrWhiteSpace(current?.Message)
+            ? current?.GetType().Name ?? "Ukendt fejl"
+            : current.Message;
     }
 
     private static string NormalizeOutput(string value) =>

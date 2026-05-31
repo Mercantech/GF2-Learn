@@ -18,14 +18,30 @@
     return systemPreference();
   }
 
+  function syncHljsStylesheet(mode) {
+    var link = document.getElementById("hljs-theme");
+    if (!link) return;
+    var dark = mode === "dark";
+    var wanted = dark
+      ? "https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github-dark.min.css"
+      : "https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github.min.css";
+    if (!link.href.endsWith(dark ? "github-dark.min.css" : "github.min.css")) {
+      link.href = wanted;
+    }
+  }
+
   function apply(mode) {
     mode = mode || readMode();
     var root = document.documentElement;
     root.setAttribute("data-theme", mode);
     root.style.colorScheme = mode;
     updateToggleUi(mode);
+    syncHljsStylesheet(mode);
     if (global.gf2Playground && global.gf2Playground.applyTheme) {
       global.gf2Playground.applyTheme();
+    }
+    if (global.gf2Highlight && global.gf2Highlight.syncTheme) {
+      global.gf2Highlight.syncTheme();
     }
     global.dispatchEvent(
       new CustomEvent("gf2-theme-change", { detail: { mode: mode, effective: mode } })
@@ -71,11 +87,19 @@
 
   apply(readMode());
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", wireToggles);
-  } else {
+  function onReady() {
+    apply(readMode());
     wireToggles();
   }
 
-  document.addEventListener("enhanced-load", wireToggles);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", onReady);
+  } else {
+    onReady();
+  }
+
+  document.addEventListener("gf2-enhanced-nav", function () {
+    apply(readMode());
+    wireToggles();
+  });
 })(window);

@@ -10,7 +10,13 @@
   <ItemGroup>
     <PackageReference Include="Markdig" Version="1.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.18.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageReference Include="YamlDotNet" Version="18.0.0" />
   </ItemGroup>
 
@@ -31,8 +37,8 @@
     <CopyPlaygroundBclScript>$(MSBuildThisFileDirectory)..\..\scripts\copy-playground-bcl.ps1</CopyPlaygroundBclScript>
   </PropertyGroup>
 
-  <Target Name="CopyPlaygroundBclAssemblies" AfterTargets="Build">
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(CopyPlaygroundBclScript)&quot; -FrameworkDir &quot;$(_ClientFrameworkDir)&quot; -OutputDir &quot;$(PlaygroundBclOutputDir)&quot;" />
+  <Target Name="CopyPlaygroundBclAssemblies" AfterTargets="Build" Condition="'$(SkipPlaygroundBclCopy)' != 'true'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(CopyPlaygroundBclScript)&quot; -FrameworkDir &quot;$(_ClientFrameworkDir)&quot; -OutputDir &quot;$(PlaygroundBclOutputDir)&quot;" Condition="'$(OS)' == 'Windows_NT'" />
   </Target>
 
 </Project>

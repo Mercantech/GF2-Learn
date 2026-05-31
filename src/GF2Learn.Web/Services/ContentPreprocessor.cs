@@ -17,7 +17,7 @@ public sealed partial class ContentPreprocessor
     private static string RenderInlineMarkdown(string body) =>
         string.IsNullOrWhiteSpace(body) ? string.Empty : Markdown.ToHtml(body.Trim(), InlinePipeline);
 
-    public string Process(string markdown)
+    public string Process(string markdown, string? contentSlug = null)
     {
         return DirectiveRegex().Replace(markdown, match =>
         {
@@ -32,6 +32,7 @@ public sealed partial class ContentPreprocessor
                 "code-playground" => string.Empty,
                 "related-pensum" => BuildRelatedPensum(body),
                 "exercise" => BuildExercise(args, body),
+                "knowledge-check" => BuildKnowledgeCheck(body, contentSlug),
                 _ => match.Value
             };
         });
@@ -93,6 +94,80 @@ public sealed partial class ContentPreprocessor
     {
         var match = Regex.Match(body, $@"^{key}:\s*(.+)$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
         return match.Success ? match.Groups[1].Value.Trim().Trim('"') : null;
+    }
+
+    private static string BuildKnowledgeCheck(string body, string? contentSlug)
+    {
+        var blocks = body.Split("---", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var sb = new StringBuilder();
+        var slugAttr = string.IsNullOrWhiteSpace(contentSlug)
+            ? string.Empty
+            : $" data-content-slug=\"{WebUtility.HtmlEncode(contentSlug)}\"";
+        sb.Append($"<section class=\"knowledge-check\"{slugAttr}><h2 class=\"kc-heading\">Test din viden</h2>");
+        sb.Append("<p class=\"kc-progress\" hidden></p>");
+
+        var questionNumber = 0;
+        foreach (var block in blocks)
+        {
+            var lines = block.Split('\n', StringSplitOptions.TrimEntries);
+            string? question = null;
+            var options = new List<string>();
+            int? correct = null;
+            var explainLines = new List<string>();
+            var inExplanation = false;
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("q:", StringComparison.OrdinalIgnoreCase))
+                {
+                    question = line[2..].Trim();
+                    inExplanation = false;
+                }
+                else if (line.StartsWith("correct:", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(line["correct:".Length..].Trim(), out var index))
+                        correct = index;
+                    inExplanation = false;
+                }
+                else if (line.StartsWith("explain:", StringComparison.OrdinalIgnoreCase))
+                {
+                    explainLines.Add(line["explain:".Length..].Trim());
+                    inExplanation = true;
+                }
+                else if (inExplanation)
+                {
+                    explainLines.Add(line);
+                }
+                else if (line.StartsWith("- "))
+                {
+                    options.Add(line[2..].Trim());
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(question) || options.Count == 0 || correct is null)
+                continue;
+
+            if (correct < 0 || correct >= options.Count)
+                continue;
+
+            questionNumber++;
+            var questionIndex = questionNumber - 1;
+            sb.Append($"<div class=\"kc-question\" data-correct=\"{correct.Value}\" data-question-index=\"{questionIndex}\">");
+            sb.Append($"<p class=\"kc-number\">Spørgsmål {questionNumber}</p>");
+            sb.Append($"<div class=\"kc-prompt\">{RenderInlineMarkdown(question)}</div>");
+            sb.Append("<ul class=\"kc-options\">");
+            for (var i = 0; i < options.Count; i++)
+                sb.Append($"<li><button type=\"button\" class=\"kc-option\" data-original-index=\"{i}\">{RenderInlineMarkdown(options[i])}</button></li>");
+            sb.Append("</ul>");
+            var explanation = string.Join("\n", explainLines);
+            sb.Append("<div class=\"kc-feedback\" hidden>");
+            sb.Append("<p class=\"kc-verdict\"></p>");
+            sb.Append($"<div class=\"kc-explanation\">{RenderInlineMarkdown(explanation)}</div>");
+            sb.Append("</div></div>");
+        }
+
+        sb.Append("</section>\n\n");
+        return sb.ToString();
     }
 }
 

@@ -2,7 +2,7 @@
 title: "Git Feature Branch"
 order: 3
 difficulty: avanceret
-related_pensum: [09-git-branches]
+related_pensum: [12-git-branches]
 ---
 
 :::exercise level="avanceret"

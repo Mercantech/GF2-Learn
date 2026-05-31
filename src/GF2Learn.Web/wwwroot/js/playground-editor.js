@@ -159,7 +159,8 @@ window.gf2Playground = {
     });
   },
 
-  init: async function (elementId, initialCode) {
+  init: async function (elementId, initialCode, options) {
+    options = options || {};
     await this.loadMonaco();
 
     var host = document.getElementById(elementId);
@@ -179,6 +180,7 @@ window.gf2Playground = {
       wordWrap: "on",
       tabSize: 4,
       insertSpaces: true,
+      readOnly: !!options.readOnly,
       renderLineHighlight: "line",
       padding: { top: 12, bottom: 12 },
       quickSuggestions: { other: true, comments: false, strings: false },
@@ -215,5 +217,12 @@ window.gf2Playground = {
     if (!editor) return;
     editor.dispose();
     delete this.editors[elementId];
+  },
+
+  disposeAll: function () {
+    var ids = Object.keys(this.editors);
+    for (var i = 0; i < ids.length; i++) {
+      this.dispose(ids[i]);
+    }
   }
 };

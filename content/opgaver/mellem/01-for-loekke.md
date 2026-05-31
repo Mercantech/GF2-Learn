@@ -2,7 +2,7 @@
 title: "For Loop Counter"
 order: 1
 difficulty: mellem
-related_pensum: [04-loekker]
+related_pensum: [05-loekker]
 ---
 
 :::exercise level="mellem"

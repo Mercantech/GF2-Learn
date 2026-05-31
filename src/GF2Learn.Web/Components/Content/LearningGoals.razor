@@ -1,0 +1,27 @@
+@using GF2Learn.Web.Models
+
+@if (Item.Kompetencemaal.Count > 0)
+{
+    <section class="learning-goals" aria-labelledby="@_headingId">
+        <div class="learning-goals-header">
+            <span class="learning-goals-icon" aria-hidden="true">🎯</span>
+        <div class="learning-goals-heading-wrap">
+            <h2 class="learning-goals-title" id="@_headingId">Læringsmål</h2>
+        </div>
+        </div>
+        <ul class="learning-goals-list">
+            @foreach (var mal in Item.Kompetencemaal)
+            {
+                <li class="learning-goals-item">
+                    <span class="learning-goals-check" aria-hidden="true"></span>
+                    <span>@mal</span>
+                </li>
+            }
+        </ul>
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
+    private readonly string _headingId = $"learning-goals-{Guid.NewGuid():N}";
+}

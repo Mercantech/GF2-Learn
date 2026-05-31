@@ -1,16 +1,98 @@
 ﻿@using GF2Learn.Web.Models
+
 @inject MarkdownService Markdown
 
-<div class="markdown-body">
+@inject RunnableCodeParser RunnableParser
+
+
+
+<div class="markdown-body @(Item.Section == ContentSectionType.Curriculum ? "curriculum-content" : null)">
+
     @if (!string.IsNullOrWhiteSpace(Item.YoutubeId))
+
     {
+
         <div class="video-embed">
+
             <iframe src="@($"https://www.youtube.com/embed/{Item.YoutubeId}")" title="Video" allowfullscreen loading="lazy"></iframe>
+
         </div>
+
     }
-    @((MarkupString)Markdown.ToHtml(Item.Body))
+
+    @if (Item.Section == ContentSectionType.Curriculum)
+
+    {
+
+        @for (var i = 0; i < _segments.Count; i++)
+
+        {
+
+            var segment = _segments[i];
+
+            if (segment.IsRunnableSnippet && segment.RunnableSnippet is not null)
+
+            {
+
+                <RunnableCodeSnippet @key="@($"{Item.Slug}-run-{i}")" Code="@segment.RunnableSnippet.Code" />
+
+            }
+
+            else if (!string.IsNullOrWhiteSpace(segment.Html))
+
+            {
+
+                @((MarkupString)segment.Html)
+
+            }
+
+        }
+
+    }
+
+    else
+
+    {
+
+        @((MarkupString)Markdown.ToHtml(Item.Body, null))
+
+    }
+
 </div>
 
+
+
 @code {
+
     [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
+
+
+
+    private IReadOnlyList<ContentSegment> _segments = [];
+
+
+
+    protected override void OnParametersSet()
+
+    {
+
+        if (Item.Section != ContentSectionType.Curriculum)
+
+        {
+
+            _segments = [];
+
+            return;
+
+        }
+
+
+
+        var html = Markdown.ToHtml(Item.Body, Item.Slug);
+
+        _segments = RunnableParser.BuildSegments(html);
+
+    }
+
 }
+

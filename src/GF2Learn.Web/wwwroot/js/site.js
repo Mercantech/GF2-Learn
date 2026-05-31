@@ -34,5 +34,9 @@
   }
 
   document.addEventListener("DOMContentLoaded", enhancePlaygrounds);
-  document.addEventListener("enhanced-load", enhancePlaygrounds);
+  document.addEventListener("gf2-enhanced-nav", enhancePlaygrounds);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.gf2Highlight) window.gf2Highlight.process(document);
+  });
 })();

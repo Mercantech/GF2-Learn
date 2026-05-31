@@ -1,4 +1,5 @@
-﻿@using GF2Learn.Web.Models
+﻿@using System.Security.Claims
+@using GF2Learn.Web.Models
 @using GF2Learn.Web.Services
 
 @if (Nav is null)
@@ -17,7 +18,15 @@
                 {
                     var active = IsActive(item);
                     <li>
-                        <a href="@item.Href" class="sidebar-link @(active ? "active" : null)">@item.Title</a>
+                        <a href="@item.Href"
+                           class="sidebar-link @(active ? "active" : null)"
+                           data-curriculum-slug="@(Nav.Section == ContentSectionType.Curriculum ? item.Slug : null)">
+                            <span class="sidebar-link-text">@item.Title</span>
+                            @if (IsChapterComplete(item))
+                            {
+                                <span class="sidebar-check" aria-label="Fuldført" title="Alle spørgsmål besvaret">✓</span>
+                            }
+                        </a>
                     </li>
                 }
             </ul>
@@ -30,7 +39,47 @@
     [Parameter] public string Title { get; set; } = "Navigation";
     [Parameter] public ContentItem? Current { get; set; }
 
+    [Inject] private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
+    [Inject] private ContentService Content { get; set; } = default!;
+    [Inject] private KnowledgeCheckCatalog Catalog { get; set; } = default!;
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    private HashSet<string> _completedSlugs = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Nav?.Section != ContentSectionType.Curriculum)
+            return;
+
+        var http = HttpContextAccessor.HttpContext;
+        if (http?.User.Identity?.IsAuthenticated != true)
+            return;
+
+        var progressService = Services.GetService<IKnowledgeCheckProgressService>();
+        if (progressService is null)
+            return;
+
+        var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? http.User.FindFirstValue("sub");
+        if (userSub is null)
+            return;
+
+        var chapters = Content.GetAll()
+            .Where(i => i.Section == ContentSectionType.Curriculum)
+            .Select(i => (i.Slug, Catalog.CountQuestions(i.Body)))
+            .ToList();
+
+        var progress = await progressService.GetCurriculumProgressAsync(userSub, chapters);
+        _completedSlugs = progress
+            .Where(p => p.IsComplete)
+            .Select(p => p.ContentSlug)
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
     private bool IsActive(ContentItem item) =>
         Current != null && Current.Slug == item.Slug && Current.Section == item.Section
         && Current.ProjectSlug == item.ProjectSlug;
+
+    private bool IsChapterComplete(ContentItem item) =>
+        Nav?.Section == ContentSectionType.Curriculum && _completedSlugs.Contains(item.Slug);
 }

@@ -1,7 +1,7 @@
 ﻿---
 title: "Dag 1 — Projektstart"
 order: 1
-related_pensum: [01-introduktion, 08-git-intro]
+related_pensum: [01-introduktion, 11-git-intro]
 ---
 
 # Dag 1 — Kom i gang

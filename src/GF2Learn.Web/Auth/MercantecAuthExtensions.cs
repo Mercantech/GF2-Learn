@@ -31,6 +31,28 @@ public static class MercantecAuthExtensions
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.SlidingExpiration = true;
                 options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    if (IsApiRequest(context.Request))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    }
+
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToAccessDenied = context =>
+                {
+                    if (IsApiRequest(context.Request))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        return Task.CompletedTask;
+                    }
+
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                };
             });
 
         if (IsAuthConfigured(authOptions))
@@ -123,6 +145,13 @@ public static class MercantecAuthExtensions
     private static bool IsAuthConfigured(MercantecAuthOptions options) =>
         !string.IsNullOrWhiteSpace(options.ClientId)
         && !string.IsNullOrWhiteSpace(options.ClientSecret);
+
+    private static bool IsApiRequest(HttpRequest request)
+    {
+        var path = request.Path.Value ?? string.Empty;
+        return path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/api", StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public sealed record MercantecAuthStatus(bool IsConfigured);

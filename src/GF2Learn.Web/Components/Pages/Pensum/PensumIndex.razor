@@ -1,27 +1,70 @@
 ﻿@page "/curriculum"
+@using System.Security.Claims
+@using GF2Learn.Web.Services
 @inject ContentService Content
+@inject KnowledgeCheckCatalog Catalog
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IServiceProvider Services
 
 <PageTitle>Curriculum — GF2 Learn</PageTitle>
 
-<SectionShell Section="ContentSectionType.Curriculum" Title="Curriculum">
+    <SectionShell Section="ContentSectionType.Curriculum" Title="Curriculum">
+    <div class="curriculum-index">
     <SectionHero Title="Curriculum" Eyebrow="Theory" Lead="C#-grundlag og Git — læs emnerne i rækkefølge, eller hop direkte til det du har brug for.">
         <span class="hero-chip">@CurriculumCount emner</span>
     </SectionHero>
     <div class="index-list">
         @foreach (var item in Content.GetAll().Where(i => i.Section == ContentSectionType.Curriculum).OrderBy(i => i.Order))
         {
-            <a href="@item.Href" class="index-item">
+            <a href="@item.Href" class="index-item" data-curriculum-slug="@item.Slug">
                 <span class="index-order">@item.Order.ToString("D2")</span>
                 <div class="index-item-body">
                     <strong>@item.Title</strong>
                     @if (item.Timer > 0) { <span class="index-meta">@item.Timer timer</span> }
                 </div>
-                <span class="index-arrow">→</span>
+                @if (_completedSlugs.Contains(item.Slug))
+                {
+                    <span class="index-check" aria-label="Fuldført" title="Alle spørgsmål besvaret">✓</span>
+                }
+                else
+                {
+                    <span class="index-arrow">→</span>
+                }
             </a>
         }
+    </div>
     </div>
 </SectionShell>
 
 @code {
+    private HashSet<string> _completedSlugs = [];
+
     private int CurriculumCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Curriculum);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = HttpContextAccessor.HttpContext;
+        if (http?.User.Identity?.IsAuthenticated != true)
+            return;
+
+        var progressService = Services.GetService<IKnowledgeCheckProgressService>();
+        if (progressService is null)
+            return;
+
+        var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? http.User.FindFirstValue("sub");
+        if (userSub is null)
+            return;
+
+        var chapters = Content.GetAll()
+            .Where(i => i.Section == ContentSectionType.Curriculum)
+            .Select(i => (i.Slug, Catalog.CountQuestions(i.Body)))
+            .ToList();
+
+        var progress = await progressService.GetCurriculumProgressAsync(userSub, chapters);
+        _completedSlugs = progress
+            .Where(p => p.IsComplete)
+            .Select(p => p.ContentSlug)
+            .ToHashSet(StringComparer.Ordinal);
+    }
 }

@@ -7,9 +7,16 @@ public sealed class PlaygroundBlock
     public IReadOnlyList<string> Refs { get; init; } = [];
 }
 
+public sealed class RunnableSnippetBlock
+{
+    public required string Code { get; init; }
+}
+
 public sealed class ContentSegment
 {
     public string? Html { get; init; }
     public PlaygroundBlock? Playground { get; init; }
+    public RunnableSnippetBlock? RunnableSnippet { get; init; }
     public bool IsPlayground => Playground is not null;
+    public bool IsRunnableSnippet => RunnableSnippet is not null;
 }
