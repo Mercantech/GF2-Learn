@@ -1,0 +1,122 @@
+@inject CSharpRunnerService Runner
+
+<div class="console-app @(_hasRun ? "console-app-has-run" : "")">
+    <div class="console-app-titlebar" aria-hidden="true">
+        <span class="console-app-dot"></span>
+        <span class="console-app-dot"></span>
+        <span class="console-app-dot"></span>
+        <span class="console-app-title">@WindowTitle</span>
+    </div>
+
+    <div class="console-app-body">
+        <pre class="console-app-screen" aria-live="polite">@_screenText</pre>
+
+        @if (_usesReadLine && _stdinFields.Count > 0)
+        {
+            <div class="console-app-stdin">
+                <p class="console-app-stdin-label">Simuleret tastatur</p>
+                <p class="console-app-stdin-hint">
+                    Hver linje svarer til ét <code>Console.ReadLine()</code> i programmet — som når du kører .exe i terminalen.
+                </p>
+                <ol class="console-app-stdin-list">
+                    @for (var i = 0; i < _stdinFields.Count; i++)
+                    {
+                        var index = i;
+                        <li>
+                            <label class="console-app-stdin-field">
+                                <span class="console-app-stdin-num">@(index + 1)</span>
+                                <input type="text"
+                                       class="console-app-stdin-input"
+                                       @bind="_stdinFields[index]"
+                                       @bind:event="oninput"
+                                       disabled="@_running" />
+                            </label>
+                        </li>
+                    }
+                </ol>
+            </div>
+        }
+
+        <div class="console-app-toolbar">
+            <button type="button" class="btn btn-primary btn-sm" disabled="@_running" @onclick="RunAsync">
+                @(_running ? "Kører…" : _hasRun ? "Kør igen" : "Start program")
+            </button>
+            @if (_usesReadLine && _stdinFields.Count > 0)
+            {
+                <button type="button" class="btn btn-ghost btn-sm" disabled="@_running" @onclick="ResetInputs">
+                    Nulstil input
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Code { get; set; } = "";
+    [Parameter] public string WindowTitle { get; set; } = "Konsol-app.exe";
+
+    private readonly List<string> _stdinFields = [];
+    private List<string> _defaultStdin = [];
+    private bool _usesReadLine;
+    private string _screenText = "";
+    private bool _running;
+    private bool _hasRun;
+    private bool _pendingAutoRun;
+
+    protected override void OnParametersSet()
+    {
+        if (_stdinFields.Count > 0)
+            return;
+
+        var prepared = PlaygroundSourceBuilder.Prepare(Code);
+        _usesReadLine = prepared.UsesReadLine;
+        _defaultStdin = prepared.StdinLines.ToList();
+        _stdinFields.AddRange(_defaultStdin);
+        _pendingAutoRun = true;
+        _screenText = "Tryk «Start program» for at køre reference-løsningen…";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_pendingAutoRun)
+            return;
+
+        _pendingAutoRun = false;
+        await RunAsync();
+    }
+
+    private async Task RunAsync()
+    {
+        _running = true;
+        _hasRun = true;
+        _screenText = "Kører…";
+        StateHasChanged();
+
+        try
+        {
+            var stdin = _usesReadLine ? (IReadOnlyList<string>)_stdinFields : null;
+            var result = await Runner.RunAsync(
+                Code,
+                expectedOutput: null,
+                extraRefs: [],
+                stdinOverride: stdin,
+                showStdinTraceInOutput: false);
+
+            if (result.Success)
+                _screenText = string.IsNullOrEmpty(result.Output) ? "(ingen output)" : result.Output;
+            else
+                _screenText = result.Error ?? "Ukendt fejl.";
+        }
+        finally
+        {
+            _running = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ResetInputs()
+    {
+        _stdinFields.Clear();
+        _stdinFields.AddRange(_defaultStdin);
+    }
+}

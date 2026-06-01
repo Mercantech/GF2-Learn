@@ -1,52 +1,134 @@
+@using GF2Learn.Web.Client.Components.ProjectDemos.Jobsoegning
 
-<ProjectDemoShell>
-    <div class="project-demo-row">
-        <input class="project-demo-input" @bind="_firma" placeholder="Firma" />
-        <input class="project-demo-input" @bind="_titel" placeholder="Stilling" />
-        <select class="project-demo-input" @bind="_status">
+<div class="project-demo-card job-tracker-demo job-tracker-demo-extended">
+    <header class="jt-hero jt-hero-extended">
+        <div class="jt-hero-icon" aria-hidden="true">📊</div>
+        <div>
+            <p class="jt-hero-eyebrow">Reference · Udvidet</p>
+            <h3 class="jt-hero-title">Jobsøgning-dashboard</h3>
+            <p class="jt-hero-lead">Søg, filtrér og opdater status — som en lille HR-/jobsøger-app.</p>
+        </div>
+    </header>
+
+    <div class="jt-toolbar">
+        <div class="jt-search-wrap">
+            <span class="jt-search-icon" aria-hidden="true">⌕</span>
+            <input class="jt-input jt-search" @bind="_search" @bind:event="oninput" placeholder="Søg firma eller stilling…" />
+        </div>
+        <select class="jt-input jt-filter" @bind="_statusFilter">
+            <option value="">Alle statusser</option>
             <option>Ansøgt</option>
             <option>Afventer</option>
             <option>Afvist</option>
         </select>
-        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
     </div>
-    <input class="project-demo-input" @bind="_search" @bind:event="oninput" placeholder="Søg..." />
-    <p class="project-demo-hint">Ansøgt: @Count("Ansøgt") · Afventer: @Count("Afventer") · Afvist: @Count("Afvist")</p>
-    <table class="project-demo-table">
-        <thead><tr><th>Firma</th><th>Stilling</th><th>Status</th></tr></thead>
-        <tbody>
-            @foreach (var j in Filtered())
-            {
-                <tr><td>@j.Firma</td><td>@j.Titel</td><td>@j.Status</td></tr>
-            }
-        </tbody>
-    </table>
-</ProjectDemoShell>
+
+    <div class="jt-stats jt-stats-compact">
+        <div class="jt-stat jt-stat-applied"><span class="jt-stat-value">@Count("Ansøgt")</span><span class="jt-stat-label">Ansøgt</span></div>
+        <div class="jt-stat jt-stat-waiting"><span class="jt-stat-value">@Count("Afventer")</span><span class="jt-stat-label">Afventer</span></div>
+        <div class="jt-stat jt-stat-rejected"><span class="jt-stat-value">@Count("Afvist")</span><span class="jt-stat-label">Afvist</span></div>
+        <div class="jt-stat jt-stat-total"><span class="jt-stat-value">@_jobs.Count</span><span class="jt-stat-label">I alt</span></div>
+    </div>
+
+    <div class="jt-form-card jt-form-card-inline">
+        <input class="jt-input" @bind="_company" placeholder="Firma" />
+        <input class="jt-input" @bind="_title" placeholder="Stilling" />
+        <select class="jt-input" @bind="_status">
+            <option>Ansøgt</option>
+            <option>Afventer</option>
+            <option>Afvist</option>
+        </select>
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Add" disabled="@(!CanAdd)">Tilføj</button>
+    </div>
+
+    <div class="jt-table-wrap">
+        <table class="jt-table">
+            <thead>
+                <tr>
+                    <th>Firma</th>
+                    <th>Stilling</th>
+                    <th>Status</th>
+                    <th>Ansøgt</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Filtered().Any())
+                {
+                    <tr><td colspan="5" class="jt-empty-cell">Ingen stillinger matcher filteret.</td></tr>
+                }
+                else
+                {
+                    @foreach (var job in Filtered())
+                    {
+                        <tr>
+                            <td><strong>@job.Company</strong></td>
+                            <td>@job.Title</td>
+                            <td>
+                                <select class="jt-status-select @JobStatusStyles.CssClass(job.Status)" @bind="job.Status">
+                                    <option>Ansøgt</option>
+                                    <option>Afventer</option>
+                                    <option>Afvist</option>
+                                </select>
+                            </td>
+                            <td class="jt-muted">@job.Applied.ToString("d. MMM") · @job.DaysSinceApplied d.</td>
+                            <td>
+                                <button type="button" class="btn btn-ghost btn-sm" title="Fjern" @onclick="() => Remove(job)">×</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <p class="jt-footer-hint">Tip: I konsol-versionen styrer I det samme med menu og <code>Console.ReadLine()</code>.</p>
+</div>
 
 @code {
-    private sealed record Job(string Firma, string Titel, string Status);
+    private string _company = "";
+    private string _title = "";
+    private string _status = "Ansøgt";
+    private string _search = "";
+    private string _statusFilter = "";
 
-    private string _firma = "", _titel = "", _status = "Ansøgt", _search = "";
-    private readonly List<Job> _jobs =
+    private readonly List<JobListing> _jobs =
     [
-        new("Mercantec", "GF2-elev", "Ansøgt"),
-        new("IT A/S", "Junior dev", "Afventer"),
-        new("Web Co", "Intern", "Afvist")
+        new() { Company = "Mercantec", Title = "GF2-elev", Status = "Ansøgt", Applied = DateOnly.FromDateTime(DateTime.Today.AddDays(-2)) },
+        new() { Company = "NovaTech ApS", Title = "Backend-praktikant", Status = "Afventer", Applied = DateOnly.FromDateTime(DateTime.Today.AddDays(-5)) },
+        new() { Company = "Web Co", Title = "Support", Status = "Afvist", Applied = DateOnly.FromDateTime(DateTime.Today.AddDays(-14)) },
+        new() { Company = "CloudNine", Title = "Junior .NET", Status = "Ansøgt", Applied = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)) }
     ];
+
+    private bool CanAdd => !string.IsNullOrWhiteSpace(_company) && !string.IsNullOrWhiteSpace(_title);
 
     private void Add()
     {
-        if (string.IsNullOrWhiteSpace(_firma) || string.IsNullOrWhiteSpace(_titel)) return;
-        _jobs.Add(new(_firma.Trim(), _titel.Trim(), _status));
-        _firma = _titel = "";
+        if (!CanAdd) return;
+        _jobs.Insert(0, new JobListing
+        {
+            Company = _company.Trim(),
+            Title = _title.Trim(),
+            Status = _status
+        });
+        _company = _title = "";
+        _status = "Ansøgt";
     }
 
-    private IEnumerable<Job> Filtered()
+    private void Remove(JobListing job) => _jobs.Remove(job);
+
+    private IEnumerable<JobListing> Filtered()
     {
-        if (string.IsNullOrWhiteSpace(_search)) return _jobs;
-        return _jobs.Where(j =>
-            j.Firma.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
-            j.Titel.Contains(_search, StringComparison.OrdinalIgnoreCase));
+        IEnumerable<JobListing> q = _jobs;
+        if (!string.IsNullOrWhiteSpace(_statusFilter))
+            q = q.Where(j => j.Status == _statusFilter);
+        if (!string.IsNullOrWhiteSpace(_search))
+        {
+            q = q.Where(j =>
+                j.Company.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                j.Title.Contains(_search, StringComparison.OrdinalIgnoreCase));
+        }
+        return q.OrderByDescending(j => j.Applied);
     }
 
     private int Count(string status) => _jobs.Count(j => j.Status == status);

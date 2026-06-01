@@ -5,11 +5,12 @@
 @if (!string.IsNullOrWhiteSpace(ConsoleCode))
 {
     <section class="project-solution-section">
-        <h2 class="project-solution-heading">Konsol-reference (kør udsnit)</h2>
+        <h2 class="project-solution-heading">Konsol-reference (kør program)</h2>
         <p class="project-solution-note">
-            Fuld aflevering er et komplet konsolprojekt i GitHub. Her kan I køre et <strong>repræsentativt udsnit</strong> i browseren.
+            Som en færdig <strong>.exe</strong> i terminalen: I ser hvordan reference-løsningen opfører sig — ikke C#-implementeringen.
+            Fuld aflevering er stadig jeres eget konsolprojekt i GitHub.
         </p>
-        <ConsoleCodeRunner Code="@ConsoleCode" />
+        <ConsoleProgramRunner Code="@ConsoleCode" WindowTitle="@ConsoleWindowTitle" />
     </section>
 }
 
@@ -34,6 +35,17 @@
     [Parameter] public string? ConsoleCode { get; set; }
     [Parameter] public bool ShowMvp { get; set; }
     [Parameter] public bool ShowExtended { get; set; }
+
+    private string ConsoleWindowTitle => Slug switch
+    {
+        "projekt-1-hjemmespil" => "Tidsfordrivsspil.exe",
+        "projekt-huskeliste" => "Huskeliste.exe",
+        "projekt-jobsoegning" => "Jobsøgning-tracker.exe",
+        "projekt-2-binaer" => "BinaerOmformer.exe",
+        "projekt-bibliotek" => "Bibliotek.exe",
+        "projekt-log-parser" => "LogParser.exe",
+        _ => "Konsol-app.exe"
+    };
 
     private RenderFragment RenderMvp() => Slug switch
     {

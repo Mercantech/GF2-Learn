@@ -1,40 +1,101 @@
+@using GF2Learn.Web.Client.Components.ProjectDemos.Jobsoegning
 
-<ProjectDemoShell>
-    <div class="project-demo-row">
-        <input class="project-demo-input" @bind="_firma" placeholder="Firma" />
-        <input class="project-demo-input" @bind="_titel" placeholder="Stilling" />
-        <select class="project-demo-input" @bind="_status">
-            <option>Ansøgt</option>
-            <option>Afventer</option>
-            <option>Afvist</option>
-        </select>
-        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
+<div class="project-demo-card job-tracker-demo">
+    <header class="jt-hero">
+        <div class="jt-hero-icon" aria-hidden="true">💼</div>
+        <div>
+            <p class="jt-hero-eyebrow">Reference · MVP</p>
+            <h3 class="jt-hero-title">Jobsøgning-tracker</h3>
+            <p class="jt-hero-lead">Tilføj stillinger og hold styr på status — som i jeres konsol-aflevering.</p>
+        </div>
+    </header>
+
+    <div class="jt-stats">
+        <div class="jt-stat jt-stat-applied">
+            <span class="jt-stat-value">@Count("Ansøgt")</span>
+            <span class="jt-stat-label">Ansøgt</span>
+        </div>
+        <div class="jt-stat jt-stat-waiting">
+            <span class="jt-stat-value">@Count("Afventer")</span>
+            <span class="jt-stat-label">Afventer</span>
+        </div>
+        <div class="jt-stat jt-stat-rejected">
+            <span class="jt-stat-value">@Count("Afvist")</span>
+            <span class="jt-stat-label">Afvist</span>
+        </div>
     </div>
-    <table class="project-demo-table">
-        <thead><tr><th>Firma</th><th>Stilling</th><th>Status</th></tr></thead>
-        <tbody>
-            @foreach (var j in _jobs)
+
+    <div class="jt-form-card">
+        <h4 class="jt-form-title">Ny stilling</h4>
+        <div class="jt-form-grid">
+            <label class="jt-field">
+                <span>Firma</span>
+                <input class="jt-input" @bind="_company" placeholder="fx Mercantec" />
+            </label>
+            <label class="jt-field">
+                <span>Stilling</span>
+                <input class="jt-input" @bind="_title" placeholder="fx GF2-elev" />
+            </label>
+            <label class="jt-field">
+                <span>Status</span>
+                <select class="jt-input" @bind="_status">
+                    <option>Ansøgt</option>
+                    <option>Afventer</option>
+                    <option>Afvist</option>
+                </select>
+            </label>
+        </div>
+        <button type="button" class="btn btn-primary" @onclick="Add" disabled="@(!CanAdd)">+ Tilføj til listen</button>
+    </div>
+
+    <div class="jt-list">
+        @if (_jobs.Count == 0)
+        {
+            <p class="jt-empty">Ingen stillinger endnu — tilføj din første ovenfor.</p>
+        }
+        else
+        {
+            @foreach (var job in _jobs.OrderByDescending(j => j.Applied))
             {
-                <tr><td>@j.Firma</td><td>@j.Titel</td><td>@j.Status</td></tr>
+                <article class="jt-job-card">
+                    <div class="jt-job-main">
+                        <strong class="jt-job-company">@job.Company</strong>
+                        <span class="jt-job-title">@job.Title</span>
+                    </div>
+                    <span class="@JobStatusStyles.CssClass(job.Status)">@job.Status</span>
+                </article>
             }
-        </tbody>
-    </table>
-</ProjectDemoShell>
+        }
+    </div>
+</div>
 
 @code {
-    private sealed record Job(string Firma, string Titel, string Status);
+    private string _company = "";
+    private string _title = "";
+    private string _status = "Ansøgt";
 
-    private string _firma = "", _titel = "", _status = "Ansøgt";
-    private readonly List<Job> _jobs =
+    private readonly List<JobListing> _jobs =
     [
-        new("Mercantec", "GF2-elev", "Ansøgt"),
-        new("IT A/S", "Junior dev", "Afventer")
+        new() { Company = "Mercantec", Title = "GF2-elev", Status = "Ansøgt", Applied = DateOnly.FromDateTime(DateTime.Today.AddDays(-3)) },
+        new() { Company = "IT A/S", Title = "Junior udvikler", Status = "Afventer", Applied = DateOnly.FromDateTime(DateTime.Today.AddDays(-7)) }
     ];
+
+    private bool CanAdd => !string.IsNullOrWhiteSpace(_company) && !string.IsNullOrWhiteSpace(_title);
 
     private void Add()
     {
-        if (string.IsNullOrWhiteSpace(_firma) || string.IsNullOrWhiteSpace(_titel)) return;
-        _jobs.Add(new(_firma.Trim(), _titel.Trim(), _status));
-        _firma = _titel = "";
+        if (!CanAdd) return;
+        _jobs.Insert(0, new JobListing
+        {
+            Company = _company.Trim(),
+            Title = _title.Trim(),
+            Status = _status,
+            Applied = DateOnly.FromDateTime(DateTime.Today)
+        });
+        _company = "";
+        _title = "";
+        _status = "Ansøgt";
     }
+
+    private int Count(string status) => _jobs.Count(j => j.Status == status);
 }

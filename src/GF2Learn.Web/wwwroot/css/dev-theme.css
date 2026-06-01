@@ -615,6 +615,307 @@ a:hover { color: var(--accent-bright); }
   color: var(--text);
 }
 .project-demo-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+.playground-stdin-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+/* ─── Konsol-program (skjult kildekode, som .exe) ─── */
+.console-app {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  background: #0c0c0c;
+}
+.console-app-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+}
+.console-app-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: #3f3f3f;
+}
+.console-app-dot:nth-child(1) { background: #f87171; }
+.console-app-dot:nth-child(2) { background: #fbbf24; }
+.console-app-dot:nth-child(3) { background: #34d399; }
+.console-app-title {
+  margin-left: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #a3a3a3;
+  font-weight: 500;
+}
+.console-app-body {
+  padding: 0;
+  background: #0a0a0a;
+}
+.console-app-screen {
+  margin: 0;
+  min-height: 14rem;
+  max-height: 28rem;
+  overflow: auto;
+  padding: 1rem 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #e5e5e5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #0a0a0a;
+  border-bottom: 1px solid #222;
+}
+.console-app-has-run .console-app-screen {
+  color: #d4d4d4;
+}
+.console-app-stdin {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #222;
+  background: #111;
+}
+.console-app-stdin-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #737373;
+}
+.console-app-stdin-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.8rem;
+  color: #a3a3a3;
+  line-height: 1.45;
+}
+.console-app-stdin-hint code {
+  font-size: 0.85em;
+  color: #93c5fd;
+  background: rgba(56, 189, 248, 0.1);
+  border: none;
+}
+.console-app-stdin-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.console-app-stdin-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.console-app-stdin-num {
+  flex-shrink: 0;
+  width: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #525252;
+  text-align: right;
+}
+.console-app-stdin-input {
+  flex: 1;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid #333;
+  border-radius: var(--radius-sm);
+  background: #0a0a0a;
+  color: #e5e5e5;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+.console-app-stdin-input:focus {
+  outline: 2px solid rgba(56, 189, 248, 0.35);
+  border-color: #525252;
+}
+.console-app-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: #141414;
+}
+
+/* ─── Jobsøgning-tracker demos ─── */
+.job-tracker-demo {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+.jt-hero {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem 1.35rem;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(99, 102, 241, 0.12) 50%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+}
+.jt-hero-extended {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(56, 189, 248, 0.1) 100%);
+}
+.jt-hero-icon {
+  font-size: 2rem;
+  line-height: 1;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.06);
+}
+.jt-hero-eyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.jt-hero-title { margin: 0.2rem 0 0; font-size: 1.2rem; font-weight: 700; }
+.jt-hero-lead { margin: 0.35rem 0 0; font-size: 0.88rem; color: var(--text-muted); max-width: 36rem; }
+.jt-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  padding: 1rem 1.35rem 0;
+}
+.jt-stats-compact { grid-template-columns: repeat(4, 1fr); }
+.jt-stat {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+.jt-stat-applied { border-color: rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.08); }
+.jt-stat-waiting { border-color: rgba(250, 204, 21, 0.35); background: rgba(250, 204, 21, 0.08); }
+.jt-stat-rejected { border-color: rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.08); }
+.jt-stat-total { border-color: rgba(56, 189, 248, 0.35); background: rgba(56, 189, 248, 0.06); }
+.jt-stat-value { display: block; font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+.jt-stat-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.jt-form-card {
+  margin: 1rem 1.35rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.15);
+}
+.jt-form-card-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.jt-form-title { margin: 0 0 0.75rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.jt-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+.jt-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--text-muted); }
+.jt-input {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.jt-input:focus { outline: 2px solid rgba(56, 189, 248, 0.4); border-color: var(--accent); }
+.jt-list { padding: 0 1.35rem 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.jt-job-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.jt-job-card:hover { border-color: rgba(56, 189, 248, 0.35); transform: translateX(2px); }
+.jt-job-main { display: flex; flex-direction: column; gap: 0.15rem; }
+.jt-job-company { font-size: 0.95rem; }
+.jt-job-title { font-size: 0.85rem; color: var(--text-muted); }
+.jt-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.jt-badge-applied { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.jt-badge-waiting { background: rgba(250, 204, 21, 0.2); color: #facc15; }
+.jt-badge-rejected { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+.jt-empty, .jt-empty-cell { color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1rem; }
+.jt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0 1.35rem 0.5rem;
+  align-items: center;
+}
+.jt-search-wrap { position: relative; flex: 1; min-width: 12rem; }
+.jt-search-icon {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.jt-search { width: 100%; padding-left: 2rem; }
+.jt-filter { min-width: 9rem; }
+.jt-table-wrap { padding: 0 1.35rem 1rem; overflow-x: auto; }
+.jt-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.jt-table th {
+  text-align: left;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.jt-table td { padding: 0.65rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.jt-table tbody tr:hover { background: rgba(56, 189, 248, 0.04); }
+.jt-status-select {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+}
+.jt-muted { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+.jt-footer-hint {
+  margin: 0;
+  padding: 0.75rem 1.35rem 1.1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.12);
+}
+@media (max-width: 640px) {
+  .jt-stats, .jt-stats-compact { grid-template-columns: repeat(2, 1fr); }
+  .jt-hero { flex-direction: column; }
+}
 .project-card p { margin: 0; color: var(--text-muted); font-size: 0.85rem; flex: 1; }
 .project-arrow { margin-top: 0.75rem; font-size: 0.85rem; font-weight: 500; color: var(--accent); }
 

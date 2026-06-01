@@ -22,21 +22,24 @@ public static class PlaygroundSourceBuilder
         return new PreparedCode(transformed, stdinLines, usesReadLine);
     }
 
-    public static string BuildEntryPointSource(string userCode)
-    {
-        var prepared = Prepare(userCode);
-        return BuildEntryPointSource(prepared.ExecutableCode, prepared.StdinLines, prepared.UsesReadLine);
-    }
+    public static string BuildEntryPointSource(string userCode, bool showStdinTraceInOutput = true) =>
+        BuildEntryPointSource(Prepare(userCode), showStdinTraceInOutput);
+
+    public static string BuildEntryPointSource(PreparedCode prepared, bool showStdinTraceInOutput = true) =>
+        BuildEntryPointSource(prepared.ExecutableCode, prepared.StdinLines, prepared.UsesReadLine, showStdinTraceInOutput);
+
+    public static IReadOnlyList<string> GetSimulatedStdinLines(string userCode) => ParseSimulatedInput(userCode);
 
     internal static string BuildEntryPointSource(
         string transformedCode,
         IReadOnlyList<string> stdinLines,
-        bool usesReadLine)
+        bool usesReadLine,
+        bool showStdinTraceInOutput = true)
     {
         var stdinInit = stdinLines.Count == 0
             ? "Array.Empty<string>()"
             : $"new string[] {{ {string.Join(", ", stdinLines.Select(l => $"\"{EscapeCSharpString(l)}\""))} }}";
-        var stdinNote = usesReadLine
+        var stdinNote = usesReadLine && showStdinTraceInOutput
             ? """
                     if (__stdinIdx > 0)
                         __sb.AppendLine("(Simuleret input: " + string.Join(", ", __stdin.Take(__stdinIdx)) + ")");
@@ -151,18 +154,29 @@ public static class PlaygroundSourceBuilder
 
     private static List<string> ParseSimulatedInput(string userCode)
     {
-        var match = Regex.Match(
-            userCode,
-            @"//\s*gf2-input:\s*(.+)$",
-            RegexOptions.Multiline | RegexOptions.IgnoreCase);
-        if (!match.Success)
-            return [];
+        var stdin = new List<string>();
+        foreach (Match match in Regex.Matches(
+                     userCode,
+                     @"//\s*gf2-input:\s*(.+)$",
+                     RegexOptions.Multiline | RegexOptions.IgnoreCase))
+        {
+            var raw = match.Groups[1].Value.Trim();
+            if (raw.Length == 0)
+                continue;
 
-        return match.Groups[1].Value
-            .Split(',')
-            .Select(s => s.Trim().Trim('"', '\''))
-            .Where(s => s.Length > 0)
-            .ToList();
+            if (raw.Contains(','))
+            {
+                stdin.AddRange(raw.Split(',')
+                    .Select(s => s.Trim().Trim('"', '\''))
+                    .Where(s => s.Length > 0));
+            }
+            else
+            {
+                stdin.Add(raw.Trim('"', '\''));
+            }
+        }
+
+        return stdin;
     }
 
     private static string EscapeCSharpString(string value) =>

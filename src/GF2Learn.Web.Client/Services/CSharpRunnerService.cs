@@ -12,10 +12,19 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
 {
     private const int DefaultTimeoutMs = 3000;
 
+    public Task<RunResult> RunAsync(
+        string code,
+        string? expectedOutput,
+        IReadOnlyList<string> extraRefs,
+        CancellationToken cancellationToken = default) =>
+        RunAsync(code, expectedOutput, extraRefs, stdinOverride: null, showStdinTraceInOutput: true, cancellationToken);
+
     public async Task<RunResult> RunAsync(
         string code,
         string? expectedOutput,
         IReadOnlyList<string> extraRefs,
+        IReadOnlyList<string>? stdinOverride,
+        bool showStdinTraceInOutput,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -48,10 +57,12 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
 
             var references = coreRefs.AddRange(extraMetadata);
             var prepared = PlaygroundSourceBuilder.Prepare(code);
+            var stdin = stdinOverride ?? prepared.StdinLines;
             var source = PlaygroundSourceBuilder.BuildEntryPointSource(
                 prepared.ExecutableCode,
-                prepared.StdinLines,
-                prepared.UsesReadLine);
+                stdin,
+                prepared.UsesReadLine,
+                showStdinTraceInOutput);
             var tree = CSharpSyntaxTree.ParseText(
                 source,
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));

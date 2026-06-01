@@ -37,7 +37,13 @@ Hold styr på **stillingsopslag** du søger — virksomhed, titel, status og evt
 
 ## Aflevering
 
-README med skærmbillede eller eksempel-output. Push til GitHub.
+- **GitHub-repo** med README (skærmbillede eller eksempel-output fra konsollen)
+- **Konsol-app** med menu og `Console.ReadLine()` — se [løsning & aflevering](/projects/projekt-jobsoegning/solution) for kørbar demo
+- **Blazor** (valgfri/anbefalet ekstra) — samme data i et pænere UI
+
+:::callout type="tip"
+Åbn **Se løsning & aflevering** på projektsiden for reference til konsol (med simuleret input) og Blazor-demos.
+:::
 
 :::git-step
 commit: "feat: jobsøgning-tracker"

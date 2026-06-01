@@ -1,6 +1,12 @@
 @inject CSharpRunnerService Runner
 @inject IJSRuntime Js
 
+@if (ShowsSimulatedInputHint)
+{
+    <p class="playground-stdin-hint">
+        <strong>Simuleret konsol-input:</strong> Linjer med <code>// gf2-input: …</code> i koden svarer til det du «taster» ved hvert <code>ReadLine()</code>. Rediger værdierne i koden og tryk Kør igen.
+    </p>
+}
 <div class="code-playground code-playground-readonly">
     <div class="playground-header playground-header-unified">
         <div class="playground-header-start">
@@ -46,6 +52,9 @@
 
 @code {
     [Parameter, EditorRequired] public string Code { get; set; } = "";
+
+    private bool ShowsSimulatedInputHint =>
+        Code.Contains("gf2-input:", StringComparison.OrdinalIgnoreCase);
 
     private ElementReference _codePre;
     private string? _highlightedCode;
