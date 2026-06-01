@@ -32,5 +32,5 @@
     private IReadOnlyList<ContentSegment> _segments = [];
 
     protected override void OnParametersSet() =>
-        _segments = PlaygroundParser.BuildSegments(Item.Body, md => Markdown.ToHtml(md));
+        _segments = PlaygroundParser.BuildSegments(Item.Body, md => Markdown.ToHtml(md, Item.Slug));
 }

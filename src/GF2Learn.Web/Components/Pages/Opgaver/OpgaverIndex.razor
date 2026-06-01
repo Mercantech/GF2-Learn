@@ -1,10 +1,16 @@
 ﻿@page "/exercises"
+@using System.Security.Claims
+@using GF2Learn.Web.Models
+@using GF2Learn.Web.Services
 @inject ContentService Content
+@inject IHttpContextAccessor HttpContextAccessor
+@inject ExerciseCatalog ExerciseCatalog
+@inject ExerciseProgressScope ProgressScope
 
 <PageTitle>Exercises — GF2 Learn</PageTitle>
 
 <SectionShell Section="ContentSectionType.Exercises" Title="Exercises">
-    <SectionHero Title="Exercises" Eyebrow="Practice" Lead="Øv dig med opgaver i tre sværhedsgrader. Hver opgave har Git-trin og link til relevant pensum." />
+    <SectionHero Title="Exercises" Eyebrow="Practice" Lead="Øv dig med opgaver i tre sværhedsgrader. Gem dine løsninger når du er logget ind — som ved pensum-quizzen." />
     @foreach (var level in new[] { ("begynder", "Beginner", "🌱"), ("mellem", "Intermediate", "⚡"), ("avanceret", "Advanced", "🔥") })
     {
         var items = Content.GetAll().Where(i => i.Section == ContentSectionType.Exercises && string.Equals(i.Difficulty, level.Item1, StringComparison.OrdinalIgnoreCase)).OrderBy(i => i.Order).ToList();
@@ -14,13 +20,50 @@
             <div class="index-list">
                 @foreach (var item in items)
                 {
-                    <a href="@item.Href" class="index-item">
+                    <a href="@item.Href" class="index-item" data-exercise-slug="@item.Slug">
                         <span class="index-order">@item.Order.ToString("D2")</span>
                         <div class="index-item-body"><strong>@item.Title</strong></div>
-                        <span class="index-arrow">→</span>
+                        @if (_completedSlugs.Contains(item.Slug))
+                        {
+                            <span class="index-check" aria-label="Fuldført" title="Alle opgavedele løst">✓</span>
+                        }
+                        else
+                        {
+                            <span class="index-arrow">→</span>
+                        }
                     </a>
                 }
             </div>
         </section>
     }
 </SectionShell>
+
+@code {
+    private HashSet<string> _completedSlugs = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = HttpContextAccessor.HttpContext;
+        if (http?.User.Identity?.IsAuthenticated != true)
+            return;
+
+        var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? http.User.FindFirstValue("sub");
+        if (userSub is null)
+            return;
+
+        var exercises = Content.GetAll()
+            .Where(i => i.Section == ContentSectionType.Exercises)
+            .Select(i => (i.Slug, ExerciseCatalog.CountParts(i.Body)))
+            .ToList();
+
+        var progress = await ProgressScope.TryExecuteAsync(
+            (svc, ct) => svc.GetExerciseProgressAsync(userSub, exercises, ct),
+            fallback: (IReadOnlyList<ExerciseChapterProgress>)[]);
+
+        _completedSlugs = progress
+            .Where(p => p.IsComplete)
+            .Select(p => p.ContentSlug)
+            .ToHashSet(StringComparer.Ordinal);
+    }
+}

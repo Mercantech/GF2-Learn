@@ -19,6 +19,7 @@ public sealed partial class ContentPreprocessor
 
     public string Process(string markdown, string? contentSlug = null)
     {
+        var exercisePartIndex = 0;
         return DirectiveRegex().Replace(markdown, match =>
         {
             var name = match.Groups["name"].Value;
@@ -31,7 +32,7 @@ public sealed partial class ContentPreprocessor
                 "solution" => BuildSolution(body),
                 "code-playground" => string.Empty,
                 "related-pensum" => BuildRelatedPensum(body),
-                "exercise" => BuildExercise(args, body),
+                "exercise" => BuildExercise(args, body, contentSlug, exercisePartIndex++),
                 "knowledge-check" => BuildKnowledgeCheck(body, contentSlug),
                 _ => match.Value
             };
@@ -44,10 +45,31 @@ public sealed partial class ContentPreprocessor
         return $"<div class=\"callout callout-{WebUtility.HtmlEncode(type)}\">{RenderInlineMarkdown(body)}</div>\n\n";
     }
 
-    private static string BuildExercise(string args, string body)
+    private static string BuildExercise(string args, string body, string? contentSlug, int partIndex)
     {
         var level = ParseArg(args, "level") ?? "begynder";
-        return $"<div class=\"exercise-card\" data-level=\"{WebUtility.HtmlEncode(level)}\"><p class=\"exercise-label\">Opgave · {WebUtility.HtmlEncode(level)}</p>{RenderInlineMarkdown(body)}</div>\n\n";
+        var slugAttr = string.IsNullOrWhiteSpace(contentSlug)
+            ? string.Empty
+            : $" data-content-slug=\"{WebUtility.HtmlEncode(contentSlug)}\"";
+        var partNum = partIndex + 1;
+
+        return $"""
+            <section class="exercise-part"{slugAttr} data-part-index="{partIndex}">
+            <div class="exercise-card" data-level="{WebUtility.HtmlEncode(level)}">
+            <p class="exercise-label">Opgave · {WebUtility.HtmlEncode(level)} <span class="exercise-part-badge">del {partNum}</span></p>
+            {RenderInlineMarkdown(body)}
+            </div>
+            <div class="exercise-save-panel">
+            <label class="exercise-save-label" for="exercise-answer-{WebUtility.HtmlEncode(contentSlug ?? "x")}-{partIndex}">Din løsning</label>
+            <textarea id="exercise-answer-{WebUtility.HtmlEncode(contentSlug ?? "x")}-{partIndex}" class="exercise-answer-input" rows="5" placeholder="Indsæt din kode eller kort beskrivelse af, hvad du har lavet…"></textarea>
+            <div class="exercise-save-actions">
+            <button type="button" class="btn btn-primary btn-sm exercise-save-btn">Gem som løst</button>
+            <span class="exercise-saved-badge" hidden aria-live="polite">✓ Gemt</span>
+            </div>
+            </div>
+            </section>
+
+            """;
     }
 
     private static string BuildGitStep(string body)

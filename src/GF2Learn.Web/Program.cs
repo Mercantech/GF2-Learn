@@ -22,6 +22,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 builder.Services.AddSingleton<ContentPreprocessor>();
 builder.Services.AddSingleton<KnowledgeCheckCatalog>();
+builder.Services.AddSingleton<ExerciseCatalog>();
 builder.Services.AddSingleton<MarkdownService>();
 builder.Services.AddSingleton<ContentService>();
 builder.Services.AddSingleton<NavigationService>();
@@ -36,6 +37,8 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         options.UseNpgsql(connectionString));
     builder.Services.AddScoped<IKnowledgeCheckProgressService, KnowledgeCheckProgressService>();
     builder.Services.AddSingleton<KnowledgeCheckProgressScope>();
+    builder.Services.AddScoped<IExerciseProgressService, ExerciseProgressService>();
+    builder.Services.AddSingleton<ExerciseProgressScope>();
 }
 
 builder.Services.AddMercantecAuth(builder.Configuration);
@@ -134,6 +137,43 @@ if (!string.IsNullOrWhiteSpace(connectionString))
             request.QuestionIndex,
             request.SelectedIndex,
             request.IsCorrect,
+            cancellationToken);
+
+        return Results.NoContent();
+    }).DisableAntiforgery();
+
+    progress.MapGet("/exercise/{contentSlug}", async (
+        string contentSlug,
+        ClaimsPrincipal user,
+        IExerciseProgressService progressService,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var answers = await progressService.GetAnswersAsync(userSub, contentSlug, cancellationToken);
+        return Results.Ok(answers);
+    });
+
+    progress.MapPost("/exercise", async (
+        SaveExercisePartRequest request,
+        ClaimsPrincipal user,
+        IExerciseProgressService progressService,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        if (request.PartIndex < 0)
+            return Results.BadRequest();
+
+        await progressService.SavePartAsync(
+            userSub,
+            request.ContentSlug,
+            request.PartIndex,
+            request.AnswerText,
             cancellationToken);
 
         return Results.NoContent();

@@ -1,5 +1,11 @@
 ﻿@page "/exercises/{Slug}"
+@using System.Security.Claims
+@using System.Text.Json
+@using GF2Learn.Web.Models
+@using GF2Learn.Web.Services
 @inject ContentService Content
+@inject IHttpContextAccessor HttpContextAccessor
+@inject ExerciseProgressScope ProgressScope
 
 <PageTitle>@(Item?.Title ?? "Exercise") — GF2 Learn</PageTitle>
 
@@ -15,11 +21,49 @@ else
             <h1>@Item.Title</h1>
             <ContentMeta Item="Item" />
         </header>
-        <ExerciseContent Item="Item" />
+        <div class="exercise-page" data-content-slug="@Slug">
+            @if (_partCount > 0)
+            {
+                <p class="exercise-progress-summary" hidden aria-live="polite">0 af @_partCount opgavedele gemt som løst</p>
+            }
+            <ExerciseContent Item="Item" />
+            @if (_savedParts.Count > 0)
+            {
+                <script type="application/json" id="exercise-bootstrap-@Slug">@JsonSerializer.Serialize(_savedParts, JsonOptions)</script>
+            }
+        </div>
     </SectionShell>
 }
 
 @code {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     [Parameter] public string Slug { get; set; } = "";
+    [Inject] private ExerciseCatalog ExerciseCatalog { get; set; } = default!;
+
     private ContentItem? Item => Content.GetExercise(Slug);
+    private List<ExercisePartAnswerDto> _savedParts = [];
+    private int _partCount;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _savedParts = [];
+        _partCount = Item is null ? 0 : ExerciseCatalog.CountParts(Item.Body);
+
+        var http = HttpContextAccessor.HttpContext;
+        if (http?.User.Identity?.IsAuthenticated != true || Item is null)
+            return;
+
+        var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? http.User.FindFirstValue("sub");
+        if (userSub is null)
+            return;
+
+        _savedParts = (await ProgressScope.TryExecuteAsync(
+            (svc, ct) => svc.GetAnswersAsync(userSub, Slug, ct),
+            fallback: (IReadOnlyList<ExercisePartAnswerDto>)[])).ToList();
+    }
 }

@@ -57,6 +57,42 @@ partial class Gf2LearnDbContextModelSnapshot : ModelSnapshot
 
                 b.ToTable("knowledge_check_answers", (string)null);
             });
+
+        modelBuilder.Entity("GF2Learn.Web.Models.ExerciseAnswer", b =>
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                b.Property<string>("AnswerText")
+                    .HasMaxLength(16000)
+                    .HasColumnType("character varying(16000)");
+
+                b.Property<DateTimeOffset>("CompletedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("ContentSlug")
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.Property<int>("PartIndex")
+                    .HasColumnType("integer");
+
+                b.Property<string>("UserSub")
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("UserSub", "ContentSlug", "PartIndex")
+                    .IsUnique();
+
+                b.ToTable("exercise_answers", (string)null);
+            });
 #pragma warning restore 612, 618
     }
 }

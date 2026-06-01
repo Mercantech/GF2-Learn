@@ -23,11 +23,12 @@
                     <li>
                         <a href="@item.Href"
                            class="sidebar-link @(active ? "active" : null)"
-                           data-curriculum-slug="@(Nav.Section == ContentSectionType.Curriculum ? item.Slug : null)">
+                           data-curriculum-slug="@(Nav.Section == ContentSectionType.Curriculum ? item.Slug : null)"
+                           data-exercise-slug="@(Nav.Section == ContentSectionType.Exercises ? item.Slug : null)">
                             <span class="sidebar-link-text">@item.Title</span>
-                            @if (IsChapterComplete(item))
+                            @if (IsItemComplete(item))
                             {
-                                <span class="sidebar-check" aria-label="Fuldført" title="Alle spørgsmål besvaret">✓</span>
+                                <span class="sidebar-check" aria-label="Fuldført" title="@CompleteTitle(item)">✓</span>
                             }
                         </a>
                     </li>
@@ -45,13 +46,15 @@
     [Inject] private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
     [Inject] private ContentService Content { get; set; } = default!;
     [Inject] private KnowledgeCheckCatalog Catalog { get; set; } = default!;
+    [Inject] private ExerciseCatalog ExerciseCatalog { get; set; } = default!;
     [Inject] private KnowledgeCheckProgressScope ProgressScope { get; set; } = default!;
+    [Inject] private ExerciseProgressScope ExerciseProgressScope { get; set; } = default!;
 
     private HashSet<string> _completedSlugs = [];
 
     protected override async Task OnInitializedAsync()
     {
-        if (Nav?.Section != ContentSectionType.Curriculum)
+        if (Nav is null)
             return;
 
         var http = HttpContextAccessor.HttpContext;
@@ -63,25 +66,51 @@
         if (userSub is null)
             return;
 
-        var chapters = Content.GetAll()
-            .Where(i => i.Section == ContentSectionType.Curriculum)
-            .Select(i => (i.Slug, Catalog.CountQuestions(i.Body)))
-            .ToList();
+        if (Nav.Section == ContentSectionType.Curriculum)
+        {
+            var chapters = Content.GetAll()
+                .Where(i => i.Section == ContentSectionType.Curriculum)
+                .Select(i => (i.Slug, Catalog.CountQuestions(i.Body)))
+                .ToList();
 
-        var progress = await ProgressScope.TryExecuteAsync(
-            (svc, ct) => svc.GetCurriculumProgressAsync(userSub, chapters, ct),
-            fallback: (IReadOnlyList<CurriculumChapterProgress>)[]);
+            var progress = await ProgressScope.TryExecuteAsync(
+                (svc, ct) => svc.GetCurriculumProgressAsync(userSub, chapters, ct),
+                fallback: (IReadOnlyList<CurriculumChapterProgress>)[]);
 
-        _completedSlugs = progress
-            .Where(p => p.IsComplete)
-            .Select(p => p.ContentSlug)
-            .ToHashSet(StringComparer.Ordinal);
+            _completedSlugs = progress
+                .Where(p => p.IsComplete)
+                .Select(p => p.ContentSlug)
+                .ToHashSet(StringComparer.Ordinal);
+            return;
+        }
+
+        if (Nav.Section == ContentSectionType.Exercises)
+        {
+            var exercises = Content.GetAll()
+                .Where(i => i.Section == ContentSectionType.Exercises)
+                .Select(i => (i.Slug, ExerciseCatalog.CountParts(i.Body)))
+                .ToList();
+
+            var progress = await ExerciseProgressScope.TryExecuteAsync(
+                (svc, ct) => svc.GetExerciseProgressAsync(userSub, exercises, ct),
+                fallback: (IReadOnlyList<ExerciseChapterProgress>)[]);
+
+            _completedSlugs = progress
+                .Where(p => p.IsComplete)
+                .Select(p => p.ContentSlug)
+                .ToHashSet(StringComparer.Ordinal);
+        }
     }
 
     private bool IsActive(ContentItem item) =>
         Current != null && Current.Slug == item.Slug && Current.Section == item.Section
         && Current.ProjectSlug == item.ProjectSlug;
 
-    private bool IsChapterComplete(ContentItem item) =>
-        Nav?.Section == ContentSectionType.Curriculum && _completedSlugs.Contains(item.Slug);
+    private bool IsItemComplete(ContentItem item) =>
+        Nav is not null && _completedSlugs.Contains(item.Slug);
+
+    private static string CompleteTitle(ContentItem item) =>
+        item.Section == ContentSectionType.Exercises
+            ? "Alle opgavedele løst"
+            : "Alle spørgsmål besvaret";
 }
