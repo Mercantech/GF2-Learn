@@ -45,6 +45,28 @@ public sealed partial class ContentPreprocessor
         return $"<div class=\"callout callout-{WebUtility.HtmlEncode(type)}\">{RenderInlineMarkdown(body)}</div>\n\n";
     }
 
+    public string BuildExerciseCardHtml(string args, string body)
+    {
+        var level = ParseArg(args, "level") ?? "begynder";
+        return $"""
+            <div class="exercise-card" data-level="{WebUtility.HtmlEncode(level)}">
+            <p class="exercise-label">Opgave · {WebUtility.HtmlEncode(level)}</p>
+            {RenderInlineMarkdown(body)}
+            </div>
+
+            """;
+    }
+
+    public string BuildSolutionHtml(string body) => BuildSolution(body);
+
+    public string BuildDirectiveHtml(string name, string args, string body) => name switch
+    {
+        "callout" => BuildCallout(args, body),
+        "git-step" => BuildGitStep(body),
+        "related-pensum" => BuildRelatedPensum(body),
+        _ => string.Empty
+    };
+
     private static string BuildExercise(string args, string body, string? contentSlug, int partIndex)
     {
         var level = ParseArg(args, "level") ?? "begynder";
@@ -91,7 +113,7 @@ public sealed partial class ContentPreprocessor
         return sb.ToString();
     }
 
-    private static string BuildSolution(string body)
+    internal static string BuildSolution(string body)
         => $"<details class=\"solution\"><summary>Vis løsningsforslag</summary><div class=\"solution-body\">{RenderInlineMarkdown(body)}</div></details>\n\n";
 
     private static string BuildRelatedPensum(string body)

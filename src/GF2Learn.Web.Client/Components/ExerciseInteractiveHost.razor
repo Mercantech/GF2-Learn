@@ -1,0 +1,53 @@
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@using GF2Learn.Web.Client.Models
+@using GF2Learn.Web.Client.Services
+
+@foreach (var segment in _segments)
+{
+    @if (segment is ExercisePartSegment part)
+    {
+        <section class="exercise-part exercise-part-ide" data-part-index="@part.PartIndex" data-content-slug="@ContentSlug">
+            @((MarkupString)part.CardHtml)
+            <ExercisePartEditor ContentSlug="@ContentSlug"
+                                PartIndex="@part.PartIndex"
+                                InitialCode="@part.Code"
+                                SavedCode="@GetSavedCode(part.PartIndex)"
+                                OnSaved="() => NotifySaved(part.PartIndex)" />
+        </section>
+    }
+    else if (segment is HtmlSegment html)
+    {
+        @((MarkupString)html.Html)
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public string ContentSlug { get; set; } = "";
+    [Parameter] public IReadOnlyList<ExerciseBlockTransfer> Blocks { get; set; } = [];
+    [Parameter] public IReadOnlyList<ExercisePartAnswerDto> SavedParts { get; set; } = [];
+    [Parameter] public EventCallback OnProgressChanged { get; set; }
+
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    private IReadOnlyList<ExercisePageSegment> _segments = [];
+
+    protected override void OnParametersSet() =>
+        _segments = ExerciseSegmentBuilder.Build(Blocks);
+
+    private string? GetSavedCode(int partIndex) =>
+        SavedParts.FirstOrDefault(p => p.PartIndex == partIndex)?.AnswerText;
+
+    private async Task NotifySaved(int partIndex)
+    {
+        try
+        {
+            await Js.InvokeVoidAsync("gf2ExerciseProgress.markPartComplete", ContentSlug, partIndex);
+        }
+        catch
+        {
+            // Editor shows saved state locally
+        }
+
+        await OnProgressChanged.InvokeAsync();
+    }
+}

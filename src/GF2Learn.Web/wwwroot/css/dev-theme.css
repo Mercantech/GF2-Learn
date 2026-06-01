@@ -1805,6 +1805,39 @@ a:hover { color: var(--accent-bright); }
   color: var(--text-muted);
   font-weight: 500;
 }
+.exercise-part-ide .exercise-card {
+  margin-bottom: 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+.exercise-ide-playground {
+  margin: 0;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-top: none;
+}
+.exercise-ide-playground .playground-title {
+  color: var(--accent-teal);
+}
+.playground-editor-host-exercise {
+  min-height: 16rem;
+  height: 16rem;
+}
+.exercise-ide-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.exercise-ide-save-error {
+  font-size: 0.82rem;
+  color: #f87171;
+}
+.playground-footer {
+  margin: 0;
+  padding: 0;
+}
 .exercise-save-panel {
   padding: 0.85rem 1rem;
   border: 1px solid var(--border);

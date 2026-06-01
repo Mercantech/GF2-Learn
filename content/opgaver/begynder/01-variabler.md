@@ -1,4 +1,4 @@
----
+﻿---
 title: "Variabler"
 order: 1
 difficulty: begynder
@@ -14,7 +14,7 @@ kompetencemaal:
 Ni små opgaver i **én fil** (`Variabler.cs`, namespace `Opgaver`). Arbejd dem igennem én ad gangen nedenfor — hver har sin egen metode, som I kalder fra `Run()`.
 
 :::callout type="tip"
-Læs pensum [Variabler og datatyper](/curriculum/02-variabler-og-datatyper) først. Gem hver løsning med **Gem som løst** under opgaven, når du er logget ind.
+Læs pensum [Variabler og datatyper](/curriculum/02-variabler-og-datatyper) først. Skriv din kode **efter `// TODO`-linjen** i editoren under hver opgave, tryk **Kør** for at teste, og **Gem som løst** når du er logget ind.
 :::
 
 ## Projektopsætning — `Run()`
@@ -59,6 +59,7 @@ Lav en variabel af typen **int** og tildel den værdien **10**. Udskriv variable
 
 :::
 
+:::code-playground
 ```csharp
 public static void Int1()
 {
@@ -68,6 +69,7 @@ public static void Int1()
     // TODO: Lav opgave 1 herunder!
 }
 ```
+:::
 
 :::solution
 
@@ -88,6 +90,7 @@ Lav en variabel af typen **double** med decimalværdien **5,25** (5 og en kvart)
 
 :::
 
+:::code-playground
 ```csharp
 public static void Double1()
 {
@@ -97,6 +100,7 @@ public static void Double1()
     // TODO: Lav opgave 2 herunder!
 }
 ```
+:::
 
 :::solution
 
@@ -117,6 +121,7 @@ Lav en **string** med teksten **Hello, World!** (med udråbstegn). Udskriv varia
 
 :::
 
+:::code-playground
 ```csharp
 public static void Strings1()
 {
@@ -126,6 +131,7 @@ public static void Strings1()
     // TODO: Lav opgave 3 herunder!
 }
 ```
+:::
 
 :::solution
 
@@ -146,6 +152,7 @@ Lav en **bool** og tildel den `true` eller `false`. Udskriv værdien.
 
 :::
 
+:::code-playground
 ```csharp
 public static void Bool1()
 {
@@ -155,6 +162,7 @@ public static void Bool1()
     // TODO: Lav opgave 4 herunder!
 }
 ```
+:::
 
 :::solution
 
@@ -175,6 +183,7 @@ Lav to string-variabler: `"Hello, "` og `"World!"`. Udskriv dem **samlet** med s
 
 :::
 
+:::code-playground
 ```csharp
 public static void StringInterpolation()
 {
@@ -183,6 +192,7 @@ public static void StringInterpolation()
     // TODO: Lav opgave 5 herunder!
 }
 ```
+:::
 
 :::solution
 
@@ -205,6 +215,7 @@ Kombinér de fire strenge til én sætning med interpolation: **Hej med dig!** (
 
 :::
 
+:::code-playground
 ```csharp
 public static void StringInterpolation2()
 {
@@ -224,6 +235,7 @@ public static void StringInterpolation2()
     // TODO: Lav opgave 6 herunder!
 }
 ```
+:::
 
 :::solution
 
@@ -244,6 +256,7 @@ Lav en **float** med værdien **3,14**. Brug suffix **`f`**: `3.14f`. Udskriv va
 
 :::
 
+:::code-playground
 ```csharp
 public static void Float1()
 {
@@ -253,6 +266,7 @@ public static void Float1()
     // TODO: Lav opgave 7 herunder!
 }
 ```
+:::
 
 :::solution
 
@@ -273,6 +287,7 @@ Lav en **char** med det **store** første bogstav i alfabetet (`'A'`). Udskriv d
 
 :::
 
+:::code-playground
 ```csharp
 public static void Char1()
 {
@@ -282,6 +297,7 @@ public static void Char1()
     // TODO: Lav opgave 8 herunder!
 }
 ```
+:::
 
 :::solution
 
@@ -302,6 +318,7 @@ Lav en **decimal** med værdien **100,5**. Brug suffix **`m`**: `100.5m`. Udskri
 
 :::
 
+:::code-playground
 ```csharp
 public static void Decimal1()
 {
@@ -311,6 +328,7 @@ public static void Decimal1()
     // TODO: Lav opgave 9 herunder!
 }
 ```
+:::
 
 :::solution
 

@@ -17,7 +17,16 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
         string? expectedOutput,
         IReadOnlyList<string> extraRefs,
         CancellationToken cancellationToken = default) =>
-        RunAsync(code, expectedOutput, extraRefs, stdinOverride: null, showStdinTraceInOutput: true, cancellationToken);
+        RunAsync(code, expectedOutput, extraRefs, stdinOverride: null, showStdinTraceInOutput: true, wrapExerciseMethod: false, cancellationToken);
+
+    public Task<RunResult> RunAsync(
+        string code,
+        string? expectedOutput,
+        IReadOnlyList<string> extraRefs,
+        IReadOnlyList<string>? stdinOverride,
+        bool showStdinTraceInOutput,
+        CancellationToken cancellationToken = default) =>
+        RunAsync(code, expectedOutput, extraRefs, stdinOverride, showStdinTraceInOutput, wrapExerciseMethod: false, cancellationToken);
 
     public async Task<RunResult> RunAsync(
         string code,
@@ -25,6 +34,7 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
         IReadOnlyList<string> extraRefs,
         IReadOnlyList<string>? stdinOverride,
         bool showStdinTraceInOutput,
+        bool wrapExerciseMethod,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -58,11 +68,13 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
             var references = coreRefs.AddRange(extraMetadata);
             var prepared = PlaygroundSourceBuilder.Prepare(code);
             var stdin = stdinOverride ?? prepared.StdinLines;
-            var source = PlaygroundSourceBuilder.BuildEntryPointSource(
-                prepared.ExecutableCode,
-                stdin,
-                prepared.UsesReadLine,
-                showStdinTraceInOutput);
+            var source = wrapExerciseMethod
+                ? PlaygroundSourceBuilder.BuildExerciseMethodEntryPointSource(code, showStdinTraceInOutput)
+                : PlaygroundSourceBuilder.BuildEntryPointSource(
+                    prepared.ExecutableCode,
+                    stdin,
+                    prepared.UsesReadLine,
+                    showStdinTraceInOutput);
             var tree = CSharpSyntaxTree.ParseText(
                 source,
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));

@@ -1,0 +1,93 @@
+@inject IJSRuntime Js
+
+<CodePlaygroundCore @ref="_editor"
+                    InitialCode="@InitialCode"
+                    WrapExerciseMethod="true"
+                    Title="Skriv din løsning her"
+                    RunLabel="Kør"
+                    ResetLabel="Nulstil"
+                    EmptyOutputHint="Skriv koden efter // TODO-linjen og tryk Kør."
+                    RootClass="exercise-ide-playground"
+                    EditorHostClass="playground-editor-host-exercise"
+                    ShowCopyButton="false">
+    <Footer>
+        <div class="exercise-ide-footer">
+            <button type="button" class="btn btn-primary btn-sm" disabled="@_saving" @onclick="SaveAsync">
+                @(_saving ? "Gemmer…" : _saved ? "Gemt ✓" : "Gem som løst")
+            </button>
+            @if (!string.IsNullOrWhiteSpace(_saveError))
+            {
+                <span class="exercise-ide-save-error">@_saveError</span>
+            }
+        </div>
+    </Footer>
+</CodePlaygroundCore>
+
+@code {
+    [Parameter, EditorRequired] public string ContentSlug { get; set; } = "";
+    [Parameter] public int PartIndex { get; set; }
+    [Parameter, EditorRequired] public string InitialCode { get; set; } = "";
+    [Parameter] public string? SavedCode { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private CodePlaygroundCore? _editor;
+    private bool _saved;
+    private bool _saving;
+    private string? _saveError;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(SavedCode) && _editor is not null)
+            await _editor.SetCodeAsync(SavedCode);
+        _saved = !string.IsNullOrWhiteSpace(SavedCode);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || string.IsNullOrWhiteSpace(SavedCode) || _editor is null)
+            return;
+
+        await _editor.SetCodeAsync(SavedCode);
+        _saved = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_editor is null)
+            return;
+
+        _saving = true;
+        _saveError = null;
+        StateHasChanged();
+
+        try
+        {
+            var code = await _editor.GetCodeAsync();
+            if (string.IsNullOrWhiteSpace(code.Trim()))
+            {
+                _saveError = "Skriv noget kode før du gemmer.";
+                return;
+            }
+
+            var ok = await Js.InvokeAsync<bool>(
+                "gf2ExerciseProgress.savePart",
+                ContentSlug,
+                PartIndex,
+                code);
+
+            if (!ok)
+            {
+                _saveError = "Kunne ikke gemme — log ind og prøv igen.";
+                return;
+            }
+
+            _saved = true;
+            await OnSaved.InvokeAsync();
+        }
+        finally
+        {
+            _saving = false;
+            StateHasChanged();
+        }
+    }
+}

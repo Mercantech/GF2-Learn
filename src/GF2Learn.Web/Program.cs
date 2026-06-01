@@ -23,6 +23,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddSingleton<ContentPreprocessor>();
 builder.Services.AddSingleton<KnowledgeCheckCatalog>();
 builder.Services.AddSingleton<ExerciseCatalog>();
+builder.Services.AddSingleton<ExercisePageBuilder>();
 builder.Services.AddSingleton<MarkdownService>();
 builder.Services.AddSingleton<ContentService>();
 builder.Services.AddSingleton<NavigationService>();

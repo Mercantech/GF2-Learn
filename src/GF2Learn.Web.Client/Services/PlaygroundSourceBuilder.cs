@@ -30,6 +30,104 @@ public static class PlaygroundSourceBuilder
     public static string BuildEntryPointSource(PreparedCode prepared, bool showStdinTraceInOutput = true) =>
         BuildEntryPointSource(prepared.ExecutableCode, prepared.StdinLines, prepared.UsesReadLine, showStdinTraceInOutput);
 
+    public static string BuildExerciseMethodEntryPointSource(string userCode, bool showStdinTraceInOutput = true)
+    {
+        var prepared = Prepare(userCode);
+        var methodCall = ExtractExerciseMethodCall(prepared.ExecutableCode);
+        if (methodCall is null)
+            return BuildEntryPointSource(prepared, showStdinTraceInOutput);
+
+        return BuildExerciseMethodEntryPointSource(
+            prepared.ExecutableCode,
+            methodCall,
+            prepared.StdinLines,
+            prepared.UsesReadLine,
+            showStdinTraceInOutput);
+    }
+
+    internal static string BuildExerciseMethodEntryPointSource(
+        string transformedCode,
+        string methodCall,
+        IReadOnlyList<string> stdinLines,
+        bool usesReadLine,
+        bool showStdinTraceInOutput = true)
+    {
+        var stdinInit = stdinLines.Count == 0
+            ? "Array.Empty<string>()"
+            : $"new string[] {{ {string.Join(", ", stdinLines.Select(l => $"\"{EscapeCSharpString(l)}\""))} }}";
+        var stdinNote = usesReadLine && showStdinTraceInOutput
+            ? """
+                    if (__stdinIdx > 0)
+                        __sb.AppendLine("(Simuleret input: " + string.Join(", ", __stdin.Take(__stdinIdx)) + ")");
+"""
+            : string.Empty;
+
+        var classBody = string.Join("\n", transformedCode.Split('\n').Select(l => "        " + l));
+        return $$"""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public static class __ExerciseCode
+            {
+            {{classBody}}
+            }
+
+            public static class __PlaygroundEntry
+            {
+                private static readonly StringBuilder __sb = new StringBuilder();
+                private static readonly string[] __stdin = {{stdinInit}};
+                private static int __stdinIdx;
+
+                private static void __Emit(object? value) =>
+                    __sb.Append(__Str(value));
+
+                private static void __Emit(string format, params object?[] args) =>
+                    __sb.Append(args.Length == 0 ? format : __Format(format, args));
+
+                private static void __EmitLine() => __sb.AppendLine();
+
+                private static void __EmitLine(object? value) =>
+                    __sb.AppendLine(__Str(value));
+
+                private static void __EmitLine(string format, params object?[] args) =>
+                    __sb.AppendLine(args.Length == 0 ? format : __Format(format, args));
+
+            {{PlaygroundRuntimeHelpers.Source}}
+
+                private static string? __ReadLine()
+                {
+                    if (__stdinIdx >= __stdin.Length)
+                        return string.Empty;
+                    return __stdin[__stdinIdx++];
+                }
+
+                public static string Run()
+                {
+                    __sb.Clear();
+                    __stdinIdx = 0;
+                    try
+                    {
+                        __ExerciseCode.{{methodCall}}
+                    }
+                    catch (global::System.Exception __ex)
+                    {
+                        __sb.AppendLine("Fejl: " + __ex.Message);
+                    }
+            {{stdinNote}}
+                    return __sb.ToString();
+                }
+            }
+            """;
+    }
+
+    private static string? ExtractExerciseMethodCall(string code)
+    {
+        var match = Regex.Match(code, @"public\s+static\s+void\s+(\w+)\s*\(");
+        return match.Success ? $"{match.Groups[1].Value}();" : null;
+    }
+
     public static IReadOnlyList<string> GetSimulatedStdinLines(string userCode) =>
         ParseSimulatedInputFields(userCode).Select(f => f.Value).ToList();
 

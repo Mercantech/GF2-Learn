@@ -26,7 +26,9 @@ else
             {
                 <p class="exercise-progress-summary" hidden aria-live="polite">0 af @_partCount opgavedele gemt som løst</p>
             }
-            <ExerciseContent Item="Item" />
+            <ExerciseContent Item="Item"
+                             SavedParts="_savedParts"
+                             OnProgressChanged="ReloadProgressAsync" />
             @if (_savedParts.Count > 0)
             {
                 <script type="application/json" id="exercise-bootstrap-@Slug">@JsonSerializer.Serialize(_savedParts, JsonOptions)</script>
@@ -62,8 +64,26 @@ else
         if (userSub is null)
             return;
 
+        await LoadSavedPartsAsync(userSub);
+    }
+
+    private async Task ReloadProgressAsync()
+    {
+        var http = HttpContextAccessor.HttpContext;
+        if (http?.User.Identity?.IsAuthenticated != true)
+            return;
+
+        var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? http.User.FindFirstValue("sub");
+        if (userSub is null)
+            return;
+
+        await LoadSavedPartsAsync(userSub);
+        StateHasChanged();
+    }
+
+    private async Task LoadSavedPartsAsync(string userSub) =>
         _savedParts = (await ProgressScope.TryExecuteAsync(
             (svc, ct) => svc.GetAnswersAsync(userSub, Slug, ct),
             fallback: (IReadOnlyList<ExercisePartAnswerDto>)[])).ToList();
-    }
 }

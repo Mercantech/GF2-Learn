@@ -93,7 +93,21 @@
         partIndex: partIndex,
         answerText: answerText
       })
+    }).then(function (response) {
+      return response.ok;
+    }).catch(function () {
+      return false;
     });
+  }
+
+  function markPartComplete(contentSlug, partIndex) {
+    var root = document.querySelector('.exercise-page[data-content-slug="' + contentSlug + '"]');
+    if (!root) return;
+
+    var part = root.querySelector('.exercise-part[data-part-index="' + partIndex + '"]');
+    if (part) part.classList.add("exercise-part-complete");
+
+    updateProgressSummary(root);
   }
 
   function loadAnswers(contentSlug) {
@@ -217,5 +231,9 @@
     wire();
   }
 
-  global.gf2ExerciseProgress = { init: initExerciseProgress };
+  global.gf2ExerciseProgress = {
+    init: initExerciseProgress,
+    savePart: savePart,
+    markPartComplete: markPartComplete
+  };
 })(window);

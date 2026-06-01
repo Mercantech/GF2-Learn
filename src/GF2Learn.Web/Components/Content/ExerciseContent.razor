@@ -1,6 +1,7 @@
 @using GF2Learn.Web.Models
 @inject PlaygroundParser PlaygroundParser
 @inject MarkdownService Markdown
+@inject ExercisePageBuilder ExercisePageBuilder
 
 <div class="markdown-body exercise-content">
     @if (!string.IsNullOrWhiteSpace(Item.YoutubeId))
@@ -9,28 +10,66 @@
             <iframe src="@($"https://www.youtube.com/embed/{Item.YoutubeId}")" title="Video" allowfullscreen loading="lazy"></iframe>
         </div>
     }
-    @for (var i = 0; i < _segments.Count; i++)
+
+    @if (_useInteractiveEditors)
     {
-        var segment = _segments[i];
-        if (segment.IsPlayground && segment.Playground is not null)
+        <ExerciseInteractiveHost ContentSlug="@Item.Slug"
+                               Blocks="_blockTransfers"
+                               SavedParts="_savedPartsForHost"
+                               OnProgressChanged="HandleProgressChanged" />
+    }
+    else
+    {
+        @for (var i = 0; i < _segments.Count; i++)
         {
-            <CodePlayground @key="@($"{Item.Slug}-pg-{i}")"
-                            InitialCode="@segment.Playground.Code"
-                            ExpectedOutput="@segment.Playground.Expected"
-                            Refs="@segment.Playground.Refs" />
-        }
-        else if (!string.IsNullOrWhiteSpace(segment.Html))
-        {
-            @((MarkupString)segment.Html)
+            var segment = _segments[i];
+            if (segment.IsPlayground && segment.Playground is not null)
+            {
+                <CodePlayground @key="@($"{Item.Slug}-pg-{i}")"
+                                InitialCode="@segment.Playground.Code"
+                                ExpectedOutput="@segment.Playground.Expected"
+                                Refs="@segment.Playground.Refs" />
+            }
+            else if (!string.IsNullOrWhiteSpace(segment.Html))
+            {
+                @((MarkupString)segment.Html)
+            }
         }
     }
 </div>
 
 @code {
     [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
+    [Parameter] public IReadOnlyList<ExercisePartAnswerDto> SavedParts { get; set; } = [];
+    [Parameter] public EventCallback OnProgressChanged { get; set; }
 
     private IReadOnlyList<ContentSegment> _segments = [];
+    private IReadOnlyList<GF2Learn.Web.Client.Models.ExerciseBlockTransfer> _blockTransfers = [];
+    private IReadOnlyList<GF2Learn.Web.Client.Models.ExercisePartAnswerDto> _savedPartsForHost = [];
+    private bool _useInteractiveEditors;
 
-    protected override void OnParametersSet() =>
+    protected override void OnParametersSet()
+    {
+        _useInteractiveEditors = Item.Body.Contains(":::code-playground", StringComparison.OrdinalIgnoreCase);
+
+        if (_useInteractiveEditors)
+        {
+            _blockTransfers = ExercisePageBuilder.BuildTransfers(
+                    Item.Body,
+                    Item.Slug,
+                    md => Markdown.ToHtml(md, Item.Slug))
+                .Select(t => new GF2Learn.Web.Client.Models.ExerciseBlockTransfer(
+                    t.Kind, t.PartIndex, t.Primary, t.Secondary))
+                .ToList();
+
+            _savedPartsForHost = SavedParts
+                .Select(p => new GF2Learn.Web.Client.Models.ExercisePartAnswerDto(p.PartIndex, p.AnswerText, p.CompletedAt))
+                .ToList();
+            return;
+        }
+
         _segments = PlaygroundParser.BuildSegments(Item.Body, md => Markdown.ToHtml(md, Item.Slug));
+    }
+
+    private Task HandleProgressChanged() => OnProgressChanged.InvokeAsync();
 }
