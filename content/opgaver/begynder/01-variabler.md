@@ -11,15 +11,15 @@ kompetencemaal:
 
 # Kapitel 1 — Variabler
 
-I dette kapitel arbejder I i et konsolprojekt med mappen **Opgaver**. Opret filen `Variabler.cs` (namespace `Opgaver`) og kald `Variabler.Run()` fra jeres `Program.cs` — eller kør hver metode enkeltvis mens I arbejder.
+Ni små opgaver i **én fil** (`Variabler.cs`, namespace `Opgaver`). Arbejd dem igennem én ad gangen nedenfor — hver har sin egen metode, som I kalder fra `Run()`.
 
 :::callout type="tip"
-Læs pensum [Variabler og datatyper](/curriculum/02-variabler-og-datatyper) først. I `Int1()` er der allerede en vejledende løsning — brug den som skabelon, men **prøv selv** i de øvrige opgaver før I kigger i løsningsforslaget.
+Læs pensum [Variabler og datatyper](/curriculum/02-variabler-og-datatyper) først. Gem hver løsning med **Gem som løst** under opgaven, når du er logget ind.
 :::
 
-## Startkode
+## Projektopsætning — `Run()`
 
-Opret klassen nedenfor i jeres projekt. Udfyld alle `// TODO`-felter.
+Opret klassen og kald alle metoder fra `Run()` (tilføj dem efterhånden som I løser opgaverne):
 
 ```csharp
 using System;
@@ -44,190 +44,49 @@ namespace Opgaver
             Decimal1();
         }
 
-        public static void Int1()
-        {
-            Console.WriteLine("Opgave 1: ");
-            Console.WriteLine("Lav en variabel af typen int og tildel den en værdi af ti!");
-            Console.WriteLine("Udskriv variablen til konsollen.");
-            // TODO: Lav opgave 1 herunder! (Her er en vejledende løsning – prøv selv først!)
-            int number = 10;
-            Console.WriteLine(number);
-        }
-
-        public static void Double1()
-        {
-            Console.WriteLine("Opgave 2: ");
-            Console.WriteLine("Lav en variabel af typen double og tildel den en decimalværdi svarende til 5 og 1/4 (5,25).");
-            Console.WriteLine("Udskriv variablen til konsollen.");
-            // TODO: Lav opgave 2 herunder!
-
-        }
-
-        public static void Strings1()
-        {
-            Console.WriteLine("Opgave 3: ");
-            Console.WriteLine("Lav en variabel af typen string og tildel den en værdi - den skal indeholde teksten 'Hello, World' med et udråbstegn til sidst!");
-            Console.WriteLine("Udskriv variablen til konsollen.");
-            // TODO: Lav opgave 3 herunder!
-        }
-
-        public static void Bool1()
-        {
-            Console.WriteLine("Opgave 4: ");
-            Console.WriteLine("Lav en variabel af typen bool og tildel den en sandhedsværdi (true/false).");
-            Console.WriteLine("Udskriv variablen til konsollen.");
-            // TODO: Lav opgave 4 herunder!
-
-        }
-
-        public static void StringInterpolation()
-        {
-            Console.WriteLine("Opgave 5: ");
-            Console.WriteLine("Lav to string-variabler med 'Hello, ' og 'World!' og udskriv dem samlet med string interpolation.");
-            // TODO: Lav opgave 5 herunder! Tip: brug $"{variabel1}{variabel2}"
-        }
-
-        public static void StringInterpolation2()
-        {
-            Console.WriteLine("Opgave 6: ");
-            Console.WriteLine("Her er fire strenge. Din opgave er at kombinere dem til én sætning ved brug af string interpolation. Sætningen skal blive: Hej med dig!");
-            Console.WriteLine("Strengene er: ");
-            string del1 = "Hej";
-            string del4 = "med";
-            string del3 = "dig";
-            string del2 = "!";
-            Console.WriteLine($"del1: {del1}");
-            Console.WriteLine($"del2: {del2}");
-            Console.WriteLine($"del3: {del3}");
-            Console.WriteLine($"del4: {del4}");
-            Console.WriteLine("Kombiner dem nu til én sætning:");
-
-            // TODO: Lav opgave 6 herunder!
-        }
-
-        public static void Float1()
-        {
-            Console.WriteLine("Opgave 7: ");
-            Console.WriteLine("Lav en variabel af typen float og tildel den en værdi af 3 + 0,14 (brug f-suffix: 3.14f).");
-            Console.WriteLine("Udskriv variablen til konsollen.");
-            // TODO: Lav opgave 7 herunder!
-        }
-
-        public static void Char1()
-        {
-            Console.WriteLine("Opgave 8: ");
-            Console.WriteLine("Lav en variabel af typen char og tildel den en værdi af det første bogstav i alfabetet (Det skal være stort!)");
-            Console.WriteLine("Udskriv variablen til konsollen.");
-            // TODO: Lav opgave 8 herunder!
-        }
-
-        public static void Decimal1()
-        {
-            Console.WriteLine("Opgave 9: ");
-            Console.WriteLine("Lav en variabel af typen decimal og tildel den en værdi af 100,5 (brug m-suffix: 100.5m).");
-            Console.WriteLine("Udskriv variablen til konsollen.");
-            // TODO: Lav opgave 9 herunder!
-        }
+        // Indsæt metoderne fra opgaverne 1–9 herunder i klassen
     }
 }
 ```
 
 ---
 
-## Opgave 1 — `int`
+## Opgave 1 — `int` (`Int1`)
 
 :::exercise level="begynder"
 
-Erklær en **int**-variabel med værdien **10** og udskriv den med `Console.WriteLine`.
+Lav en variabel af typen **int** og tildel den værdien **10**. Udskriv variablen til konsollen.
 
 :::
 
----
-
-## Opgave 2 — `double`
-
-:::exercise level="begynder"
-
-Erklær en **double** med værdien **5,25** (5 og en kvart) og udskriv den.
-
-:::
-
----
-
-## Opgave 3 — `string`
-
-:::exercise level="begynder"
-
-Erklær en **string** med teksten **Hello, World!** (med udråbstegn) og udskriv den.
-
-:::
-
----
-
-## Opgave 4 — `bool`
-
-:::exercise level="begynder"
-
-Erklær en **bool** (`true` eller `false`) og udskriv værdien.
-
-:::
-
----
-
-## Opgave 5 — String interpolation (to strenge)
-
-:::exercise level="begynder"
-
-Opret to strenge: `"Hello, "` og `"World!"`. Udskriv dem **samlet** med string interpolation (`$"..."`).
-
-:::
-
----
-
-## Opgave 6 — String interpolation (fire dele)
-
-:::exercise level="begynder"
-
-Kombinér `del1`, `del2`, `del3` og `del4` til én sætning: **Hej med dig!** (bemærk rækkefølgen af variablerne i startkoden).
-
-:::
-
----
-
-## Opgave 7 — `float`
-
-:::exercise level="begynder"
-
-Erklær en **float** med værdien **3,14** — brug suffix **`f`**: `3.14f`. Udskriv variablen.
-
-:::
-
----
-
-## Opgave 8 — `char`
-
-:::exercise level="begynder"
-
-Erklær en **char** med det **store** første bogstav i alfabetet (`'A'`). Udskriv den.
-
-:::
-
----
-
-## Opgave 9 — `decimal`
-
-:::exercise level="begynder"
-
-Erklær en **decimal** med værdien **100,5** — brug suffix **`m`**: `100.5m`. Udskriv variablen.
-
-:::
-
-:::git-step
-commit: "feat: opgaver kapitel 1 variabler"
-branch: main
-:::
+```csharp
+public static void Int1()
+{
+    Console.WriteLine("Opgave 1: ");
+    Console.WriteLine("Lav en variabel af typen int og tildel den en værdi af ti!");
+    Console.WriteLine("Udskriv variablen til konsollen.");
+    // TODO: Lav opgave 1 herunder!
+}
+```
 
 :::solution
+
+```csharp
+int number = 10;
+Console.WriteLine(number);
+```
+
+:::
+
+---
+
+## Opgave 2 — `double` (`Double1`)
+
+:::exercise level="begynder"
+
+Lav en variabel af typen **double** med decimalværdien **5,25** (5 og en kvart). Udskriv variablen.
+
+:::
 
 ```csharp
 public static void Double1()
@@ -235,37 +94,118 @@ public static void Double1()
     Console.WriteLine("Opgave 2: ");
     Console.WriteLine("Lav en variabel af typen double og tildel den en decimalværdi svarende til 5 og 1/4 (5,25).");
     Console.WriteLine("Udskriv variablen til konsollen.");
-    double tal = 5.25;
-    Console.WriteLine(tal);
+    // TODO: Lav opgave 2 herunder!
 }
+```
 
+:::solution
+
+```csharp
+double tal = 5.25;
+Console.WriteLine(tal);
+```
+
+:::
+
+---
+
+## Opgave 3 — `string` (`Strings1`)
+
+:::exercise level="begynder"
+
+Lav en **string** med teksten **Hello, World!** (med udråbstegn). Udskriv variablen.
+
+:::
+
+```csharp
 public static void Strings1()
 {
     Console.WriteLine("Opgave 3: ");
     Console.WriteLine("Lav en variabel af typen string og tildel den en værdi - den skal indeholde teksten 'Hello, World' med et udråbstegn til sidst!");
     Console.WriteLine("Udskriv variablen til konsollen.");
-    string greeting = "Hello, World!";
-    Console.WriteLine(greeting);
+    // TODO: Lav opgave 3 herunder!
 }
+```
 
+:::solution
+
+```csharp
+string greeting = "Hello, World!";
+Console.WriteLine(greeting);
+```
+
+:::
+
+---
+
+## Opgave 4 — `bool` (`Bool1`)
+
+:::exercise level="begynder"
+
+Lav en **bool** og tildel den `true` eller `false`. Udskriv værdien.
+
+:::
+
+```csharp
 public static void Bool1()
 {
     Console.WriteLine("Opgave 4: ");
     Console.WriteLine("Lav en variabel af typen bool og tildel den en sandhedsværdi (true/false).");
     Console.WriteLine("Udskriv variablen til konsollen.");
-    bool erAktiv = true;
-    Console.WriteLine(erAktiv);
+    // TODO: Lav opgave 4 herunder!
 }
+```
 
+:::solution
+
+```csharp
+bool erAktiv = true;
+Console.WriteLine(erAktiv);
+```
+
+:::
+
+---
+
+## Opgave 5 — String interpolation (`StringInterpolation`)
+
+:::exercise level="begynder"
+
+Lav to string-variabler: `"Hello, "` og `"World!"`. Udskriv dem **samlet** med string interpolation. Tip: `$"{variabel1}{variabel2}"`
+
+:::
+
+```csharp
 public static void StringInterpolation()
 {
     Console.WriteLine("Opgave 5: ");
     Console.WriteLine("Lav to string-variabler med 'Hello, ' og 'World!' og udskriv dem samlet med string interpolation.");
-    string del1 = "Hello, ";
-    string del2 = "World!";
-    Console.WriteLine($"{del1}{del2}");
+    // TODO: Lav opgave 5 herunder!
 }
+```
 
+:::solution
+
+```csharp
+string del1 = "Hello, ";
+string del2 = "World!";
+Console.WriteLine(del1 + del2);
+// eller: Console.WriteLine($"{del1}{del2}");
+```
+
+:::
+
+---
+
+## Opgave 6 — String interpolation, fire dele (`StringInterpolation2`)
+
+:::exercise level="begynder"
+
+Kombinér de fire strenge til én sætning med interpolation: **Hej med dig!** (variabelnavnene er bevidst «blandet» — tænk over rækkefølgen).
+
+:::
+
+```csharp
 public static void StringInterpolation2()
 {
     Console.WriteLine("Opgave 6: ");
@@ -275,42 +215,115 @@ public static void StringInterpolation2()
     string del4 = "med";
     string del3 = "dig";
     string del2 = "!";
-    Console.WriteLine($"del1: {del1}");
-    Console.WriteLine($"del2: {del2}");
-    Console.WriteLine($"del3: {del3}");
-    Console.WriteLine($"del4: {del4}");
+    Console.WriteLine("del1: " + del1);
+    Console.WriteLine("del2: " + del2);
+    Console.WriteLine("del3: " + del3);
+    Console.WriteLine("del4: " + del4);
     Console.WriteLine("Kombiner dem nu til én sætning:");
-    Console.WriteLine($"{del1} {del4} {del3}{del2}");
-}
 
+    // TODO: Lav opgave 6 herunder!
+}
+```
+
+:::solution
+
+```csharp
+Console.WriteLine(del1 + " " + del4 + " " + del3 + del2);
+// eller: Console.WriteLine($"{del1} {del4} {del3}{del2}");
+```
+
+:::
+
+---
+
+## Opgave 7 — `float` (`Float1`)
+
+:::exercise level="begynder"
+
+Lav en **float** med værdien **3,14**. Brug suffix **`f`**: `3.14f`. Udskriv variablen.
+
+:::
+
+```csharp
 public static void Float1()
 {
     Console.WriteLine("Opgave 7: ");
     Console.WriteLine("Lav en variabel af typen float og tildel den en værdi af 3 + 0,14 (brug f-suffix: 3.14f).");
     Console.WriteLine("Udskriv variablen til konsollen.");
-    float piApprox = 3.14f;
-    Console.WriteLine(piApprox);
+    // TODO: Lav opgave 7 herunder!
 }
+```
 
+:::solution
+
+```csharp
+float piApprox = 3.14f;
+Console.WriteLine(piApprox);
+```
+
+:::
+
+---
+
+## Opgave 8 — `char` (`Char1`)
+
+:::exercise level="begynder"
+
+Lav en **char** med det **store** første bogstav i alfabetet (`'A'`). Udskriv den.
+
+:::
+
+```csharp
 public static void Char1()
 {
     Console.WriteLine("Opgave 8: ");
     Console.WriteLine("Lav en variabel af typen char og tildel den en værdi af det første bogstav i alfabetet (Det skal være stort!)");
     Console.WriteLine("Udskriv variablen til konsollen.");
-    char bogstav = 'A';
-    Console.WriteLine(bogstav);
+    // TODO: Lav opgave 8 herunder!
 }
+```
 
+:::solution
+
+```csharp
+char bogstav = 'A';
+Console.WriteLine(bogstav);
+```
+
+:::
+
+---
+
+## Opgave 9 — `decimal` (`Decimal1`)
+
+:::exercise level="begynder"
+
+Lav en **decimal** med værdien **100,5**. Brug suffix **`m`**: `100.5m`. Udskriv variablen.
+
+:::
+
+```csharp
 public static void Decimal1()
 {
     Console.WriteLine("Opgave 9: ");
     Console.WriteLine("Lav en variabel af typen decimal og tildel den en værdi af 100,5 (brug m-suffix: 100.5m).");
     Console.WriteLine("Udskriv variablen til konsollen.");
-    decimal beloeb = 100.5m;
-    Console.WriteLine(beloeb);
+    // TODO: Lav opgave 9 herunder!
 }
 ```
 
+:::solution
+
+```csharp
+decimal beloeb = 100.5m;
+Console.WriteLine(beloeb);
+```
+
+:::
+
+:::git-step
+commit: "feat: opgaver kapitel 1 variabler"
+branch: main
 :::
 
 :::related-pensum
