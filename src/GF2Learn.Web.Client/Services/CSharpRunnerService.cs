@@ -10,7 +10,9 @@ namespace GF2Learn.Web.Client.Services;
 
 public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceResolver)
 {
-    private const int DefaultTimeoutMs = 3000;
+    /// <summary>First WASM compile loads BCL metadata over the network — needs more than a few seconds.</summary>
+    private const int CompileTimeoutMs = 30_000;
+    private const int RunTimeoutMs = 5_000;
 
     public Task<RunResult> RunAsync(
         string code,
@@ -47,13 +49,13 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
         }
 
         var sw = Stopwatch.StartNew();
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(DefaultTimeoutMs);
+        using var compileCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        compileCts.CancelAfter(CompileTimeoutMs);
 
         try
         {
-            var coreRefs = await referenceResolver.GetCoreReferencesAsync(timeoutCts.Token);
-            var extraMetadata = await referenceResolver.GetExtraReferencesAsync(extraRefs, timeoutCts.Token);
+            var coreRefs = await referenceResolver.GetCoreReferencesAsync(compileCts.Token);
+            var extraMetadata = await referenceResolver.GetExtraReferencesAsync(extraRefs, compileCts.Token);
 
             if (coreRefs.IsDefaultOrEmpty)
             {
@@ -89,11 +91,11 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
                     optimizationLevel: OptimizationLevel.Release));
 
             await using var peStream = new MemoryStream();
-            var emitResult = compilation.Emit(peStream, cancellationToken: timeoutCts.Token);
-            sw.Stop();
+            var emitResult = compilation.Emit(peStream, cancellationToken: compileCts.Token);
 
             if (!emitResult.Success)
             {
+                sw.Stop();
                 return new RunResult
                 {
                     Success = false,
@@ -110,7 +112,10 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
             var method = type.GetMethod("Run", BindingFlags.Public | BindingFlags.Static)
                 ?? throw new InvalidOperationException("Kunne ikke finde Run-metoden.");
 
-            var output = InvokeRun(method);
+            using var runCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            runCts.CancelAfter(RunTimeoutMs);
+            var output = await Task.Run(() => InvokeRun(method), runCts.Token);
+            sw.Stop();
             var normalizedOutput = NormalizeOutput(output);
             bool? expectedMatch = string.IsNullOrWhiteSpace(expectedOutput)
                 ? null
@@ -124,13 +129,15 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
                 Elapsed = sw.Elapsed
             };
         }
-        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             sw.Stop();
             return new RunResult
             {
                 Success = false,
-                Error = "Koden kørte for længe (timeout efter 3 sekunder).",
+                Error = compileCts.IsCancellationRequested
+                    ? "Kompilering tog for lang tid (timeout efter 30 sekunder). Prøv igen — første kørsel kan være langsom."
+                    : "Koden kørte for længe (timeout efter 5 sekunder).",
                 Elapsed = sw.Elapsed
             };
         }
@@ -173,6 +180,9 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
 
     private static string NormalizeOutput(string value) =>
         string.Join('\n', value.Replace("\r\n", "\n").Split('\n').Select(l => l.TrimEnd())).Trim();
+
+    public Task WarmupAsync(CancellationToken cancellationToken = default) =>
+        referenceResolver.GetCoreReferencesAsync(cancellationToken);
 
     private static string FormatDiagnostics(IEnumerable<Diagnostic> diagnostics)
     {

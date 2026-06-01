@@ -7,5 +7,7 @@ builder.Services.AddScoped<CSharpRunnerService>();
 builder.Services.AddScoped<PlaygroundReferenceResolver>();
 builder.Services.AddHttpClient("PlaygroundRefs", client =>
     client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+builder.Services.AddHttpClient("GF2LearnApi", client =>
+    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
 await builder.Build().RunAsync();

@@ -64,23 +64,22 @@ public sealed class PlaygroundReferenceResolver(IHttpClientFactory httpClientFac
         CancellationToken cancellationToken)
     {
         var http = httpClientFactory.CreateClient("PlaygroundRefs");
-        var builder = ImmutableArray.CreateBuilder<MetadataReference>();
 
-        foreach (var name in CoreBclAssemblies)
+        var loads = await Task.WhenAll(CoreBclAssemblies.Select(async name =>
         {
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 var bytes = await http.GetByteArrayAsync($"playground/bcl/{name}.dll", cancellationToken);
-                builder.Add(MetadataReference.CreateFromImage(bytes));
+                return MetadataReference.CreateFromImage(bytes);
             }
             catch
             {
-                // Missing or unreachable BCL assembly — continue with others
+                return null;
             }
-        }
+        }));
 
-        return builder.ToImmutable();
+        return loads.Where(r => r is not null).Cast<MetadataReference>().ToImmutableArray();
     }
 
     public async Task<IReadOnlyList<MetadataReference>> GetExtraReferencesAsync(

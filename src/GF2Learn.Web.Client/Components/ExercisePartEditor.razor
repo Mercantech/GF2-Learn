@@ -1,3 +1,6 @@
+@using System.Net
+@using System.Net.Http.Json
+@inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime Js
 
 <CodePlaygroundCore @ref="_editor"
@@ -69,20 +72,47 @@
                 return;
             }
 
-            var ok = await Js.InvokeAsync<bool>(
-                "gf2ExerciseProgress.savePart",
-                ContentSlug,
-                PartIndex,
-                code);
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.PostAsJsonAsync(
+                "/api/progress/exercise",
+                new SaveExercisePartPayload(ContentSlug, PartIndex, code));
 
-            if (!ok)
+            if (response.IsSuccessStatusCode)
             {
-                _saveError = "Kunne ikke gemme — log ind og prøv igen.";
+                _saved = true;
+                await OnSaved.InvokeAsync();
                 return;
             }
 
-            _saved = true;
-            await OnSaved.InvokeAsync();
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                var jsOk = await Js.InvokeAsync<bool>(
+                    "gf2ExerciseProgress.savePart",
+                    ContentSlug,
+                    PartIndex,
+                    code);
+                if (jsOk)
+                {
+                    _saved = true;
+                    await OnSaved.InvokeAsync();
+                    return;
+                }
+            }
+
+            _saveError = response.StatusCode switch
+            {
+                HttpStatusCode.Unauthorized =>
+                    "Du er ikke logget ind — log ind og prøv igen.",
+                HttpStatusCode.ServiceUnavailable =>
+                    "Gem er ikke tilgængelig (database mangler på serveren).",
+                HttpStatusCode.NotFound =>
+                    "Gem-endpoint findes ikke — tjek at serveren er opdateret.",
+                _ => $"Kunne ikke gemme (HTTP {(int)response.StatusCode})."
+            };
+        }
+        catch (Exception)
+        {
+            _saveError = "Kunne ikke gemme — netværksfejl. Prøv igen.";
         }
         finally
         {
@@ -90,4 +120,6 @@
             StateHasChanged();
         }
     }
+
+    private sealed record SaveExercisePartPayload(string ContentSlug, int PartIndex, string? AnswerText);
 }

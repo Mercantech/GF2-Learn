@@ -89,6 +89,7 @@
     private string? _syncedInitialCode;
     private bool? _expectedMatch;
     private TimeSpan? _elapsed;
+    private static int _compilerWarmupStarted;
 
     private string OutputClass => _expectedMatch switch
     {
@@ -117,6 +118,10 @@
             await Js.InvokeVoidAsync("gf2Playground.init", _editorId, InitialCode);
             _editorReady = true;
             _syncedInitialCode = InitialCode;
+
+            if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
+                _ = Runner.WarmupAsync();
+
             return;
         }
 

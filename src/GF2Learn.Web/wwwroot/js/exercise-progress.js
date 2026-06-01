@@ -100,6 +100,26 @@
     });
   }
 
+  /** @returns {Promise<{ ok: boolean, status: number }>} */
+  function savePartWithStatus(contentSlug, partIndex, answerText) {
+    return fetch(apiUrl("/api/progress/exercise"), {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contentSlug: contentSlug,
+        partIndex: partIndex,
+        answerText: answerText
+      })
+    })
+      .then(function (response) {
+        return { ok: response.ok, status: response.status };
+      })
+      .catch(function () {
+        return { ok: false, status: 0 };
+      });
+  }
+
   function markPartComplete(contentSlug, partIndex) {
     var root = document.querySelector('.exercise-page[data-content-slug="' + contentSlug + '"]');
     if (!root) return;
@@ -160,12 +180,12 @@
 
       if (!contentSlug) return;
 
-      savePart(contentSlug, partIndex, answerText).then(function (response) {
-        if (response.ok) {
+      savePartWithStatus(contentSlug, partIndex, answerText).then(function (result) {
+        if (result.ok) {
           updateProgressSummary(root);
           return;
         }
-        if (response.status === 401) showLoginHint(root);
+        if (result.status === 401) showLoginHint(root);
       });
     });
   }
@@ -234,6 +254,7 @@
   global.gf2ExerciseProgress = {
     init: initExerciseProgress,
     savePart: savePart,
+    savePartWithStatus: savePartWithStatus,
     markPartComplete: markPartComplete
   };
 })(window);

@@ -160,7 +160,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     progress.MapPost("/exercise", async (
         SaveExercisePartRequest request,
         ClaimsPrincipal user,
-        IExerciseProgressService progressService,
+        IServiceProvider services,
         CancellationToken cancellationToken) =>
     {
         var userSub = GetUserSub(user);
@@ -170,14 +170,31 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         if (request.PartIndex < 0)
             return Results.BadRequest();
 
-        await progressService.SavePartAsync(
-            userSub,
-            request.ContentSlug,
-            request.PartIndex,
-            request.AnswerText,
-            cancellationToken);
+        var progressService = services.GetService<IExerciseProgressService>();
+        if (progressService is null)
+        {
+            return Results.Problem(
+                detail: "Database er ikke konfigureret (ConnectionStrings:DefaultConnection).",
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
 
-        return Results.NoContent();
+        try
+        {
+            await progressService.SavePartAsync(
+                userSub,
+                request.ContentSlug,
+                request.PartIndex,
+                request.AnswerText,
+                cancellationToken);
+
+            return Results.NoContent();
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(
+                detail: "Kunne ikke gemme opgavesvar: " + ex.Message,
+                statusCode: StatusCodes.Status500InternalServerError);
+        }
     }).DisableAntiforgery();
 }
 
