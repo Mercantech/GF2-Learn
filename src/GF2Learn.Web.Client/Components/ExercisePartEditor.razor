@@ -121,7 +121,6 @@
         _aiBusy = true;
         _aiError = null;
         _aiHint = null;
-        StateHasChanged();
 
         try
         {
@@ -162,7 +161,6 @@
         _aiBusy = true;
         _aiError = null;
         _aiCheck = null;
-        StateHasChanged();
 
         try
         {
@@ -222,6 +220,9 @@
 
     private static string FormatAiPostError(AiPostEnvelope result)
     {
+        if (!string.IsNullOrWhiteSpace(result.Error))
+            return result.Error;
+
         if (result.Status == 401)
             return "Log ind igen for at bruge AI (session udløbet efter deploy).";
 
@@ -358,5 +359,8 @@
 
         [JsonPropertyName("body")]
         public string? Body { get; set; }
+
+        [JsonPropertyName("error")]
+        public string? Error { get; set; }
     }
 }

@@ -63,6 +63,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
 });
 
+builder.Services.AddRequestTimeouts();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
@@ -130,6 +132,7 @@ if (!behindReverseProxy)
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRequestTimeouts();
 app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapMercantecAuthEndpoints();
@@ -240,8 +243,11 @@ exerciseAi.MapPost("/hint", async (
     ExerciseAiRequest request,
     IExerciseAiService ai,
     ExerciseAiContextService contexts,
+    ILogger<ExerciseAiService> logger,
     CancellationToken cancellationToken) =>
 {
+    logger.LogInformation("AI hint: {Slug} del {Part}", request.ContentSlug, request.PartIndex);
+
     if (!ai.IsConfigured)
     {
         return Results.Json(
@@ -267,16 +273,22 @@ exerciseAi.MapPost("/hint", async (
     }
     catch (Exception ex)
     {
+        logger.LogWarning(ex, "AI hint fejlede for {Slug} del {Part}", request.ContentSlug, request.PartIndex);
         return Results.Problem(detail: ex.Message, statusCode: StatusCodes.Status502BadGateway);
     }
-}).DisableAntiforgery();
+})
+.DisableAntiforgery()
+.WithRequestTimeout(TimeSpan.FromMinutes(2));
 
 exerciseAi.MapPost("/check", async (
     ExerciseAiRequest request,
     IExerciseAiService ai,
     ExerciseAiContextService contexts,
+    ILogger<ExerciseAiService> logger,
     CancellationToken cancellationToken) =>
 {
+    logger.LogInformation("AI check: {Slug} del {Part}", request.ContentSlug, request.PartIndex);
+
     if (!ai.IsConfigured)
     {
         return Results.Json(
@@ -302,9 +314,12 @@ exerciseAi.MapPost("/check", async (
     }
     catch (Exception ex)
     {
+        logger.LogWarning(ex, "AI check fejlede for {Slug} del {Part}", request.ContentSlug, request.PartIndex);
         return Results.Problem(detail: ex.Message, statusCode: StatusCodes.Status502BadGateway);
     }
-}).DisableAntiforgery();
+})
+.DisableAntiforgery()
+.WithRequestTimeout(TimeSpan.FromMinutes(2));
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()

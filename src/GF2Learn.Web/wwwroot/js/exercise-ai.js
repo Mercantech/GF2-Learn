@@ -1,50 +1,29 @@
 (function (global) {
-  function apiUrl(path) {
-    var base = document.querySelector("base");
-    var href = base ? base.getAttribute("href") || "/" : "/";
-    if (!href.endsWith("/")) href += "/";
-    return href + path.replace(/^\//, "");
-  }
-
-  /**
-   * POST med browser-cookies. Returnerer JSON-streng så Blazor kan parse body pålideligt.
-   */
-  async function postJson(path, body) {
-    var response = await fetch(apiUrl(path), {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json"
-      },
-      body: JSON.stringify(body)
-    });
-
-    var text = await response.text();
-    return JSON.stringify({
-      ok: response.ok,
-      status: response.status,
-      body: text
-    });
+  function wrap(envelope) {
+    return JSON.stringify(envelope);
   }
 
   async function getStatus() {
-    var response = await fetch(apiUrl("/api/exercise-ai/status"), {
-      credentials: "include",
-      headers: { Accept: "application/json" }
-    });
-    if (!response.ok) return JSON.stringify({ enabled: false, message: "HTTP " + response.status });
-    var text = await response.text();
-    return text;
+    var result = await global.gf2Api.getJson("/api/exercise-ai/status");
+    if (!result.ok) {
+      return JSON.stringify({ enabled: false, message: result.error || "HTTP " + result.status });
+    }
+    return result.body;
+  }
+
+  async function postHint(body) {
+    var result = await global.gf2Api.postJson("/api/exercise-ai/hint", body, 120000);
+    return wrap(result);
+  }
+
+  async function postCheck(body) {
+    var result = await global.gf2Api.postJson("/api/exercise-ai/check", body, 120000);
+    return wrap(result);
   }
 
   global.gf2ExerciseAi = {
     getStatus: getStatus,
-    postHint: function (body) {
-      return postJson("/api/exercise-ai/hint", body);
-    },
-    postCheck: function (body) {
-      return postJson("/api/exercise-ai/check", body);
-    }
+    postHint: postHint,
+    postCheck: postCheck
   };
 })(window);
