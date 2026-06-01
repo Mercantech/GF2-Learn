@@ -1,5 +1,5 @@
 ---
-title: Projekt 3 — Programmering i et enterprise
+title: Programmering i et enterprise
 order: 3
 kompetencemaal:
   - "Kan forbinde til AD via LDAP fra C#"

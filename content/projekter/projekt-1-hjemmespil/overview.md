@@ -1,5 +1,5 @@
 ---
-title: Projekt 1 — Tidsfordrivsspil
+title: Tidsfordrivsspil
 order: 1
 kompetencemaal:
   - "Kan bygge interaktive konsolprogrammer med brugerinput"

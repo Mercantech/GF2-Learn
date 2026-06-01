@@ -271,7 +271,7 @@ catch (Exception ex)
 
 
 :::callout type="info"
-Dette emne forbereder **Projekt 4 — Enterprise**, hvor I arbejder med rigtige enterprise-scenarier mod Active Directory.
+Dette emne forbereder projektforløbet **Programmering i et enterprise**, hvor I arbejder med rigtige enterprise-scenarier mod Active Directory.
 :::
 
 ## Opsummering

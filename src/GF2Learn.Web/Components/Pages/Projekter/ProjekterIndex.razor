@@ -8,9 +8,7 @@
     <div class="project-grid">
         @foreach (var project in Content.GetAll().Where(i => i.Section == ContentSectionType.Projects && i.IsOverview).OrderBy(i => i.Order))
         {
-            var num = project.Order.ToString();
             <a href="@project.Href" class="project-card">
-                <span class="project-num">Project @num</span>
                 <h2>@project.Title</h2>
                 <p>Projektbeskrivelse · Git-aflevering</p>
                 <span class="project-arrow">Se forløb →</span>

@@ -1,5 +1,5 @@
 ---
-title: Projekt 2 — Binær kodeomformer
+title: Binær kodeomformer
 order: 2
 kompetencemaal:
   - "Kan konvertere binær ↔ decimal uden indbyggede konverteringsfunktioner"
