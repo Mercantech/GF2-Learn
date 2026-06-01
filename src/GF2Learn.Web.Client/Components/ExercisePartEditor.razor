@@ -84,6 +84,11 @@
     private string? _aiHint;
     private ExerciseAiCheckResult? _aiCheck;
 
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     protected override void OnParametersSet() =>
         _saved = !string.IsNullOrWhiteSpace(SavedCode);
 
@@ -93,7 +98,8 @@
     {
         try
         {
-            var status = await Js.InvokeAsync<ExerciseAiStatusResponse>("gf2ExerciseAi.getStatus");
+            var raw = await Js.InvokeAsync<string>("gf2ExerciseAi.getStatus");
+            var status = JsonSerializer.Deserialize<ExerciseAiStatusResponse>(raw, JsonOpts);
             _aiEnabled = status?.Enabled == true;
             _aiStatusHint = status?.Enabled == true
                 ? "AI-hjælp"
@@ -120,17 +126,20 @@
         try
         {
             var payload = await BuildAiRequestAsync();
-            var result = await Js.InvokeAsync<AiPostResult>("gf2ExerciseAi.postHint", payload);
-
-            if (result.Ok && result.Data is { ValueKind: JsonValueKind.Object } data)
+            var envelope = await PostAiAsync("gf2ExerciseAi.postHint", payload);
+            if (envelope is null)
             {
-                var hint = JsonSerializer.Deserialize<ExerciseAiHintResponse>(data.GetRawText());
-                _aiHint = hint?.Message;
-                if (!string.IsNullOrWhiteSpace(_aiHint))
-                    return;
+                _aiError = "Kunne ikke hente AI-tip — tomt svar.";
+                return;
             }
 
-            _aiError = FormatAiPostError(result);
+            if (envelope.Ok && TryParseBody(envelope.Body, out ExerciseAiHintResponse? hint) && !string.IsNullOrWhiteSpace(hint?.Message))
+            {
+                _aiHint = hint.Message;
+                return;
+            }
+
+            _aiError = FormatAiPostError(envelope);
         }
         catch (Exception ex)
         {
@@ -158,16 +167,20 @@
         try
         {
             var payload = await BuildAiRequestAsync();
-            var result = await Js.InvokeAsync<AiPostResult>("gf2ExerciseAi.postCheck", payload);
-
-            if (result.Ok && result.Data is { ValueKind: JsonValueKind.Object } data)
+            var envelope = await PostAiAsync("gf2ExerciseAi.postCheck", payload);
+            if (envelope is null)
             {
-                _aiCheck = JsonSerializer.Deserialize<ExerciseAiCheckResult>(data.GetRawText());
-                if (_aiCheck is not null)
-                    return;
+                _aiError = "Kunne ikke tjekke løsningen — tomt svar.";
+                return;
             }
 
-            _aiError = FormatAiPostError(result);
+            if (envelope.Ok && TryParseBody(envelope.Body, out ExerciseAiCheckResult? check) && check is not null)
+            {
+                _aiCheck = check;
+                return;
+            }
+
+            _aiError = FormatAiPostError(envelope);
         }
         catch (Exception ex)
         {
@@ -181,7 +194,33 @@
         }
     }
 
-    private static string FormatAiPostError(AiPostResult result)
+    private async Task<AiPostEnvelope?> PostAiAsync(string jsMethod, object payload)
+    {
+        var raw = await Js.InvokeAsync<string>(jsMethod, payload);
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+
+        return JsonSerializer.Deserialize<AiPostEnvelope>(raw, JsonOpts);
+    }
+
+    private static bool TryParseBody<T>(string? body, out T? value)
+    {
+        value = default;
+        if (string.IsNullOrWhiteSpace(body))
+            return false;
+
+        try
+        {
+            value = JsonSerializer.Deserialize<T>(body, JsonOpts);
+            return value is not null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string FormatAiPostError(AiPostEnvelope result)
     {
         if (result.Status == 401)
             return "Log ind igen for at bruge AI (session udløbet efter deploy).";
@@ -189,28 +228,37 @@
         if (result.Status == 503)
             return "AI er ikke konfigureret på serveren.";
 
-        if (result.Data is { ValueKind: JsonValueKind.Object } data)
+        if (!string.IsNullOrWhiteSpace(result.Body))
         {
-            var detail = TryReadProblemDetail(data);
-            if (!string.IsNullOrWhiteSpace(detail))
-                return detail;
+            if (result.Body.TrimStart().StartsWith('{'))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(result.Body);
+                    if (doc.RootElement.TryGetProperty("detail", out var detail))
+                    {
+                        var text = detail.GetString();
+                        if (!string.IsNullOrWhiteSpace(text))
+                            return text;
+                    }
+                }
+                catch
+                {
+                    // ignore parse errors
+                }
+            }
+            else if (result.Body.Length < 280)
+            {
+                return result.Body;
+            }
         }
 
-        if (!string.IsNullOrWhiteSpace(result.Text) && result.Text.Length < 280)
-            return result.Text;
+        if (result.Ok)
+            return "AI svarede, men svaret kunne ikke læses. Prøv igen.";
 
         return result.Status > 0
             ? $"AI-fejl (HTTP {result.Status})."
             : "AI-fejl — prøv igen.";
-    }
-
-    private static string? TryReadProblemDetail(JsonElement data)
-    {
-        if (data.TryGetProperty("detail", out var detail))
-            return detail.GetString();
-        if (data.TryGetProperty("title", out var title))
-            return title.GetString();
-        return null;
     }
 
     private async Task<ExerciseAiRequestPayload> BuildAiRequestAsync()
@@ -300,7 +348,7 @@
         [property: JsonPropertyName("enabled")] bool Enabled,
         [property: JsonPropertyName("message")] string? Message);
 
-    private sealed class AiPostResult
+    private sealed class AiPostEnvelope
     {
         [JsonPropertyName("ok")]
         public bool Ok { get; set; }
@@ -308,10 +356,7 @@
         [JsonPropertyName("status")]
         public int Status { get; set; }
 
-        [JsonPropertyName("data")]
-        public JsonElement Data { get; set; }
-
-        [JsonPropertyName("text")]
-        public string? Text { get; set; }
+        [JsonPropertyName("body")]
+        public string? Body { get; set; }
     }
 }

@@ -7,7 +7,7 @@
   }
 
   /**
-   * POST med browser-cookies (Mercantec-login). WASM HttpClient sender ofte ikke cookies.
+   * POST med browser-cookies. Returnerer JSON-streng så Blazor kan parse body pålideligt.
    */
   async function postJson(path, body) {
     var response = await fetch(apiUrl(path), {
@@ -21,16 +21,11 @@
     });
 
     var text = await response.text();
-    var data = null;
-    if (text) {
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        data = null;
-      }
-    }
-
-    return { ok: response.ok, status: response.status, data: data, text: text };
+    return JSON.stringify({
+      ok: response.ok,
+      status: response.status,
+      body: text
+    });
   }
 
   async function getStatus() {
@@ -38,8 +33,9 @@
       credentials: "include",
       headers: { Accept: "application/json" }
     });
-    if (!response.ok) return { enabled: false, message: "HTTP " + response.status };
-    return response.json();
+    if (!response.ok) return JSON.stringify({ enabled: false, message: "HTTP " + response.status });
+    var text = await response.text();
+    return text;
   }
 
   global.gf2ExerciseAi = {

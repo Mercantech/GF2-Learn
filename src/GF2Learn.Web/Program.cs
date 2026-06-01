@@ -90,8 +90,16 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         {
             using var scope = app.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<Gf2LearnDbContext>();
+            var pending = (await db.Database.GetPendingMigrationsAsync()).ToList();
+            if (pending.Count > 0)
+                app.Logger.LogInformation("Anvender ventende migrationer: {Migrations}", string.Join(", ", pending));
+
             db.Database.Migrate();
-            app.Logger.LogInformation("Database migration completed.");
+
+            var applied = await db.Database.GetAppliedMigrationsAsync();
+            app.Logger.LogInformation(
+                "Database migration completed. Applied: {Migrations}",
+                string.Join(", ", applied));
             break;
         }
         catch (Exception ex) when (attempt < maxAttempts)
