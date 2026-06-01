@@ -167,6 +167,10 @@ public static class PlaygroundSourceBuilder
         code = Regex.Replace(code, @"\bdouble\.Parse\s*\(", "__ParseDouble(");
         code = Regex.Replace(code, @"\bbool\.TryParse\s*\(", "__TryParseBool(");
         code = Regex.Replace(code, @"\bbool\.Parse\s*\(", "__ParseBool(");
+        code = Regex.Replace(
+            code,
+            @"([^()]+?)\.PadLeft\s*\(\s*(\d+)\s*\)",
+            "__PadLeft($1, $2)");
 
         return (code, stdinLines, usesReadLine);
     }
@@ -179,8 +183,8 @@ public static class PlaygroundSourceBuilder
         var fields = new List<SimulatedStdinField>();
         foreach (Match match in Regex.Matches(
                      userCode,
-                     @"//\s*gf2-input:\s*(.+)$",
-                     RegexOptions.Multiline | RegexOptions.IgnoreCase))
+                     @"(?m)^\s*//\s*gf2-input:\s*(.+)$",
+                     RegexOptions.IgnoreCase))
         {
             var raw = match.Groups[1].Value.Trim();
             if (raw.Length == 0)

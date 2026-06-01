@@ -16,8 +16,13 @@
             <div class="console-app-stdin">
                 <p class="console-app-stdin-label">Simuleret tastatur</p>
                 <p class="console-app-stdin-hint">
-                    Hvert felt svarer til én <code>Console.ReadLine()</code> — variabelnavnet er det I gemmer svaret i.
+                    Programmet pauser ved hvert <code>Console.ReadLine()</code> og venter på tekst fra tastaturet.
+                    Her skriver I svarene på forhånd, i den rækkefølge programmet beder om dem.
                 </p>
+                <ul class="console-app-stdin-legend">
+                    <li><code class="console-app-stdin-var console-app-stdin-var-inline">valg</code> = variablen i koden (fx <code>var valg = Console.ReadLine()</code>)</li>
+                    <li><span class="console-app-stdin-prompt console-app-stdin-prompt-inline">Dit valg:</span> = teksten programmet lige har skrevet med <code>Console.Write</code></li>
+                </ul>
                 <ol class="console-app-stdin-list">
                     @for (var i = 0; i < _stdinFields.Count; i++)
                     {

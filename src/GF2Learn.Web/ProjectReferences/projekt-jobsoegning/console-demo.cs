@@ -1,5 +1,5 @@
 // gf2-setup: var stillinger = new List<string> { "Mercantec | GF2-elev | Ansøgt", "IT A/S | Junior dev | Afventer" };
-// Simuleret tastatur (én linje per ReadLine) — format: // gf2-input: variabelnavn: værdi
+// Simuleret tastatur: én kommentar-linje per ReadLine (variabelnavn + værdi)
 // gf2-input: valg: 2
 // gf2-input: valg: 1
 // gf2-input: firma: NovaTech ApS
@@ -48,7 +48,7 @@ while (true)
         else
         {
             for (var i = 0; i < stillinger.Count; i++)
-                Console.WriteLine((i + 1).ToString().PadLeft(2) + ". " + stillinger[i]);
+                Console.WriteLine((i + 1) + ". " + stillinger[i]);
         }
         Console.WriteLine("--- Total: " + stillinger.Count + " ---");
     }

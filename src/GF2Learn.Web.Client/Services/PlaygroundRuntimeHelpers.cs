@@ -199,6 +199,16 @@ internal static class PlaygroundRuntimeHelpers
             return true;
         }
 
+        private static string __PadLeft(string? s, int width)
+        {
+            s ??= string.Empty;
+            if (s.Length >= width) return s;
+            var pad = width - s.Length;
+            var spaces = new char[pad];
+            for (var i = 0; i < pad; i++) spaces[i] = ' ';
+            return new string(spaces) + s;
+        }
+
         private static string __Str(object? value)
         {
             if (value is null) return string.Empty;

@@ -626,6 +626,33 @@ a:hover { color: var(--accent-bright); }
   border: 1px solid rgba(56, 189, 248, 0.2);
 }
 
+.project-solution-console-intro {
+  margin-bottom: 1rem;
+}
+.project-solution-console-steps {
+  margin: 0.5rem 0 0.75rem;
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.project-solution-console-steps li { margin-bottom: 0.35rem; }
+.project-solution-scenario {
+  margin: 0 0 0.65rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.88rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(56, 189, 248, 0.06);
+  color: var(--text);
+}
+.project-solution-note-muted {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 /* ─── Konsol-program (skjult kildekode, som .exe) ─── */
 .console-app {
   border: 1px solid var(--border-strong);
@@ -705,6 +732,16 @@ a:hover { color: var(--accent-bright); }
   background: rgba(56, 189, 248, 0.1);
   border: none;
 }
+.console-app-stdin-legend {
+  margin: 0 0 0.75rem;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: #a3a3a3;
+  line-height: 1.5;
+}
+.console-app-stdin-legend li { margin-bottom: 0.25rem; }
+.console-app-stdin-var-inline { font-size: 0.75rem; padding: 0.05rem 0.3rem; }
+.console-app-stdin-prompt-inline { font-size: 0.78rem; }
 .console-app-stdin-list {
   margin: 0;
   padding: 0;
