@@ -1,0 +1,30 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <ul class="project-demo-list">
+        @foreach (var b in _books)
+        {
+            <li>
+                <strong>@b.Title</strong> — @(b.Loaned ? "udlånt" : "ledig")
+                @if (!b.Loaned)
+                {
+                    <button type="button" class="btn btn-ghost btn-sm" @onclick="() => b.Loaned = true">Udlån</button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-ghost btn-sm" @onclick="() => b.Loaned = false">Returnér</button>
+                }
+            </li>
+        }
+    </ul>
+</ProjectDemoShell>
+
+@code {
+    private sealed class Book { public string Title { get; set; } = ""; public bool Loaned { get; set; } }
+
+    private readonly List<Book> _books =
+    [
+        new() { Title = "C# for begyndere" },
+        new() { Title = "Clean Code", Loaned = true }
+    ];
+}

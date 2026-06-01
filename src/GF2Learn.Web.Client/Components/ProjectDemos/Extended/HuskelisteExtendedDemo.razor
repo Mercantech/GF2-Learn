@@ -1,0 +1,55 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <div class="project-demo-row">
+        <input class="project-demo-input" @bind="_newTask" placeholder="Ny opgave" />
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
+    </div>
+    <div class="project-demo-row">
+        <select class="project-demo-input" @bind="_filter">
+            <option value="all">Alle</option>
+            <option value="open">Kun åbne</option>
+            <option value="done">Kun færdige</option>
+        </select>
+    </div>
+    <ul class="project-demo-list">
+        @foreach (var (task, index) in Filtered().Select((t, i) => (t, i)))
+        {
+            <li class="@(task.Done ? "done" : null)">
+                <label>
+                    <input type="checkbox" checked="@task.Done" @onchange="() => Toggle(task)" />
+                    @task.Text
+                </label>
+                <button type="button" class="btn btn-ghost btn-sm" @onclick="() => _items.Remove(task)">Slet</button>
+            </li>
+        }
+    </ul>
+</ProjectDemoShell>
+
+@code {
+    private sealed class TaskItem { public string Text { get; set; } = ""; public bool Done { get; set; } }
+
+    private string _newTask = "";
+    private string _filter = "all";
+    private readonly List<TaskItem> _items =
+    [
+        new() { Text = "Læs pensum" },
+        new() { Text = "Øv loops", Done = true }
+    ];
+
+    private void Add()
+    {
+        if (string.IsNullOrWhiteSpace(_newTask)) return;
+        _items.Add(new TaskItem { Text = _newTask.Trim() });
+        _newTask = "";
+    }
+
+    private void Toggle(TaskItem t) => t.Done = !t.Done;
+
+    private IEnumerable<TaskItem> Filtered() => _filter switch
+    {
+        "open" => _items.Where(t => !t.Done),
+        "done" => _items.Where(t => t.Done),
+        _ => _items
+    };
+}

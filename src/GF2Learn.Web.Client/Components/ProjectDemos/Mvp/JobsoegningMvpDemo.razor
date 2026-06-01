@@ -1,0 +1,41 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <div class="project-demo-row">
+        <input class="project-demo-input" @bind="_firma" placeholder="Firma" />
+        <input class="project-demo-input" @bind="_titel" placeholder="Stilling" />
+        <select class="project-demo-input" @bind="_status">
+            <option>Ansøgt</option>
+            <option>Afventer</option>
+            <option>Afvist</option>
+        </select>
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
+    </div>
+    <table class="project-demo-table">
+        <thead><tr><th>Firma</th><th>Stilling</th><th>Status</th></tr></thead>
+        <tbody>
+            @foreach (var j in _jobs)
+            {
+                <tr><td>@j.Firma</td><td>@j.Titel</td><td>@j.Status</td></tr>
+            }
+        </tbody>
+    </table>
+</ProjectDemoShell>
+
+@code {
+    private sealed record Job(string Firma, string Titel, string Status);
+
+    private string _firma = "", _titel = "", _status = "Ansøgt";
+    private readonly List<Job> _jobs =
+    [
+        new("Mercantec", "GF2-elev", "Ansøgt"),
+        new("IT A/S", "Junior dev", "Afventer")
+    ];
+
+    private void Add()
+    {
+        if (string.IsNullOrWhiteSpace(_firma) || string.IsNullOrWhiteSpace(_titel)) return;
+        _jobs.Add(new(_firma.Trim(), _titel.Trim(), _status));
+        _firma = _titel = "";
+    }
+}

@@ -1,0 +1,27 @@
+@using GF2Learn.Web.Models
+
+<section class="project-deliverables">
+    <h2 class="project-solution-heading">Hvad skal I aflevere?</h2>
+    <ul class="deliverable-list">
+        @foreach (var item in Expectations.Items)
+        {
+            <li class="deliverable-item">
+                <span class="deliverable-badge @(item.Required ? "required" : "optional")">
+                    @(item.Required ? "Obligatorisk" : "Valgfri")
+                </span>
+                <strong>@item.Title</strong>
+                <p>@item.Description</p>
+            </li>
+        }
+    </ul>
+    @if (!string.IsNullOrWhiteSpace(Expectations.Notes))
+    {
+        <div class="callout callout-warning project-deliverable-note">
+            <p>@Expectations.Notes</p>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public DeliverableExpectations Expectations { get; set; } = default!;
+}

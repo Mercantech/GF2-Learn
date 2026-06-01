@@ -1,0 +1,55 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <div class="project-demo-tabs">
+        <button type="button" class="btn btn-sm @TabClass("guess")" @onclick='() => _tab = "guess"'>Gæt tal</button>
+        <button type="button" class="btn btn-sm @TabClass("rps")" @onclick='() => _tab = "rps"'>Sten/saks/papir</button>
+    </div>
+
+    @if (_tab == "guess")
+    {
+        <p class="project-demo-hint">Hemmeligt tal 1–100 (demo: 42)</p>
+        <div class="project-demo-row">
+            <input type="number" class="project-demo-input" @bind="_guess" />
+            <button type="button" class="btn btn-primary btn-sm" @onclick="CheckGuess">Gæt</button>
+        </div>
+        @if (_guessMsg is not null) { <p class="project-demo-feedback">@_guessMsg</p> }
+    }
+    else
+    {
+        <div class="project-demo-row">
+            @foreach (var c in new[] { "sten", "saks", "papir" })
+            {
+                <button type="button" class="btn btn-ghost btn-sm" @onclick="() => PlayRps(c)">@c</button>
+            }
+        </div>
+        @if (_rpsMsg is not null) { <p class="project-demo-feedback">@_rpsMsg (score: @_wins–@_losses)</p> }
+    }
+</ProjectDemoShell>
+
+@code {
+    private string _tab = "guess";
+    private int _guess = 50, _wins, _losses;
+    private string? _guessMsg, _rpsMsg;
+    private static readonly Random Rng = new();
+
+    private string TabClass(string t) => _tab == t ? "btn-primary" : "btn-ghost";
+
+    private void CheckGuess()
+    {
+        _guessMsg = _guess == 42 ? "Korrekt!" : _guess < 42 ? "Højere" : "Lavere";
+    }
+
+    private void PlayRps(string p)
+    {
+        var c = new[] { "sten", "saks", "papir" }[Rng.Next(3)];
+        var r = (p, c) switch
+        {
+            var x when x.p == x.c => "uafgjort",
+            ("sten", "saks") or ("saks", "papir") or ("papir", "sten") => "vundet",
+            _ => "tabt"
+        };
+        if (r == "vundet") _wins++; else if (r == "tabt") _losses++;
+        _rpsMsg = $"Du {p}, PC {c} — {r}";
+    }
+}

@@ -25,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="ProjectReferences\**\console-demo.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\content\**\*.*">
       <Link>content\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

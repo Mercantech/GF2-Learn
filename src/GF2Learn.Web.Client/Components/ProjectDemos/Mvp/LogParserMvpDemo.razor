@@ -1,0 +1,28 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <pre class="project-demo-log">@SampleLog</pre>
+    <button type="button" class="btn btn-primary btn-sm" @onclick="Parse">Tæl niveauer</button>
+    @if (_report is not null) { <p class="project-demo-feedback">@_report</p> }
+</ProjectDemoShell>
+
+@code {
+    private const string SampleLog = """
+        [INFO] Server startet
+        [WARN] Disk 80%
+        [ERROR] Login fejlede
+        [INFO] Bruger logget ind
+        [ERROR] Timeout
+        """;
+
+    private string? _report;
+
+    private void Parse()
+    {
+        var lines = SampleLog.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var info = lines.Count(l => l.Contains("[INFO]"));
+        var warn = lines.Count(l => l.Contains("[WARN]"));
+        var error = lines.Count(l => l.Contains("[ERROR]"));
+        _report = $"INFO: {info}, WARN: {warn}, ERROR: {error}";
+    }
+}

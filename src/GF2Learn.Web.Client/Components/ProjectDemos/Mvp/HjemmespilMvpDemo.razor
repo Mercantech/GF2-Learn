@@ -1,0 +1,29 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <h3 class="project-demo-title">Gæt et tal</h3>
+    <p class="project-demo-hint">Hemmeligt tal: 1–100 (demo: 42)</p>
+    <div class="project-demo-row">
+        <input type="number" class="project-demo-input" @bind="_guess" min="1" max="100" />
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Check">Gæt</button>
+    </div>
+    @if (_message is not null)
+    {
+        <p class="project-demo-feedback">@_message (forsøg: @_attempts)</p>
+    }
+</ProjectDemoShell>
+
+@code {
+    private const int Secret = 42;
+    private int _guess = 50;
+    private int _attempts;
+    private string? _message;
+
+    private void Check()
+    {
+        _attempts++;
+        if (_guess == Secret) _message = "Korrekt!";
+        else if (_guess < Secret) _message = "Højere";
+        else _message = "Lavere";
+    }
+}

@@ -27,6 +27,7 @@ builder.Services.AddSingleton<ContentService>();
 builder.Services.AddSingleton<NavigationService>();
 builder.Services.AddSingleton<PlaygroundParser>();
 builder.Services.AddSingleton<RunnableCodeParser>();
+builder.Services.AddSingleton<ProjectSolutionCatalog>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrWhiteSpace(connectionString))

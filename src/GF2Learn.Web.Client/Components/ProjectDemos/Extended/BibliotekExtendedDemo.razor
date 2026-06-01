@@ -1,0 +1,56 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <input class="project-demo-input" @bind="_search" placeholder="Søg titel..." />
+    <div class="project-demo-row">
+        <input class="project-demo-input" @bind="_newTitle" placeholder="Ny bog" />
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
+    </div>
+    <ul class="project-demo-list">
+        @foreach (var b in Filtered())
+        {
+            <li>
+                <strong>@b.Title</strong>
+                @if (b.Loaned) { <span>— udlånt til @b.Borrower</span> }
+                else
+                {
+                    <button type="button" class="btn btn-ghost btn-sm" @onclick="() => Loan(b)">Udlån</button>
+                }
+            </li>
+        }
+    </ul>
+</ProjectDemoShell>
+
+@code {
+    private sealed class Book
+    {
+        public string Title { get; set; } = "";
+        public bool Loaned { get; set; }
+        public string Borrower { get; set; } = "";
+    }
+
+    private string _search = "", _newTitle = "", _borrower = "Elev";
+    private readonly List<Book> _books =
+    [
+        new() { Title = "C# for begyndere" },
+        new() { Title = "Clean Code", Loaned = true, Borrower = "Anna" },
+        new() { Title = "Git handbook" }
+    ];
+
+    private void Add()
+    {
+        if (string.IsNullOrWhiteSpace(_newTitle)) return;
+        _books.Add(new Book { Title = _newTitle.Trim() });
+        _newTitle = "";
+    }
+
+    private void Loan(Book b)
+    {
+        b.Loaned = true;
+        b.Borrower = _borrower;
+    }
+
+    private IEnumerable<Book> Filtered() => string.IsNullOrWhiteSpace(_search)
+        ? _books
+        : _books.Where(b => b.Title.Contains(_search, StringComparison.OrdinalIgnoreCase));
+}

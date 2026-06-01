@@ -1,0 +1,32 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <div class="project-demo-row">
+        <input class="project-demo-input" @bind="_newTask" placeholder="Ny opgave" />
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
+    </div>
+    <ul class="project-demo-list">
+        @for (var i = 0; i < _tasks.Count; i++)
+        {
+            var idx = i;
+            <li>
+                <span>@_tasks[idx]</span>
+                <button type="button" class="btn btn-ghost btn-sm" @onclick="() => Remove(idx)">Slet</button>
+            </li>
+        }
+    </ul>
+</ProjectDemoShell>
+
+@code {
+    private string _newTask = "";
+    private readonly List<string> _tasks = ["Læs pensum", "Øv loops"];
+
+    private void Add()
+    {
+        if (string.IsNullOrWhiteSpace(_newTask)) return;
+        _tasks.Add(_newTask.Trim());
+        _newTask = "";
+    }
+
+    private void Remove(int i) => _tasks.RemoveAt(i);
+}

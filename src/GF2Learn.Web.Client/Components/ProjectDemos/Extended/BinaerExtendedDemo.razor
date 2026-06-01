@@ -1,0 +1,52 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <select class="project-demo-input" @bind="_mode">
+        <option value="b2d">Binær → decimal (4 oktetter)</option>
+        <option value="d2b">Decimal → binær (4 oktetter)</option>
+    </select>
+    <input class="project-demo-input project-demo-input-wide" @bind="_input" />
+    <button type="button" class="btn btn-primary btn-sm" @onclick="Convert">Konvertér</button>
+    @if (_output is not null) { <p class="project-demo-feedback">@_output</p> }
+    @if (_error is not null) { <p class="project-demo-feedback project-demo-error">@_error</p> }
+</ProjectDemoShell>
+
+@code {
+    private string _mode = "b2d";
+    private string _input = "10111011.01001011.10101010.01010101";
+    private string? _output, _error;
+
+    private void Convert()
+    {
+        _error = _output = null;
+        var parts = _input.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length != 4) { _error = "Forvent 4 grupper adskilt af punktum."; return; }
+
+        if (_mode == "b2d")
+        {
+            var decimals = new List<int>();
+            foreach (var p in parts)
+            {
+                if (p.Length != 8 || p.Any(c => c is not ('0' or '1'))) { _error = $"Ugyldig oktet: {p}"; return; }
+                var sum = 0;
+                for (var i = 0; i < 8; i++)
+                    if (p[i] == '1') sum += 1 << (7 - i);
+                decimals.Add(sum);
+            }
+            _output = string.Join(".", decimals);
+        }
+        else
+        {
+            var binParts = new List<string>();
+            foreach (var p in parts)
+            {
+                if (!int.TryParse(p, out var d) || d is < 0 or > 255) { _error = $"Ugyldig decimal: {p}"; return; }
+                var bits = "";
+                var n = d;
+                for (var i = 0; i < 8; i++) { bits = (n % 2) + bits; n /= 2; }
+                binParts.Add(bits.PadLeft(8, '0'));
+            }
+            _output = string.Join(".", binParts);
+        }
+    }
+}

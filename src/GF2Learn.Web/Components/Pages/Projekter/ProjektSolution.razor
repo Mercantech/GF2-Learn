@@ -1,0 +1,67 @@
+@page "/projects/{ProjectSlug}/solution"
+@inject ContentService Content
+@inject ProjectSolutionCatalog SolutionCatalog
+
+<PageTitle>@(Overview?.Title ?? "Projekt") — løsning & aflevering — GF2 Learn</PageTitle>
+
+@if (Overview is null || Solution is null)
+{
+    <p>Projektet blev ikke fundet.</p>
+}
+else
+{
+    <SectionShell Section="ContentSectionType.Projects" Title="Projects" Current="Overview">
+        <header class="page-header">
+            <p class="breadcrumb">
+                <a href="/projects">Projects</a> /
+                <a href="@Overview.Href">@Overview.Title</a> /
+                Løsning & aflevering
+            </p>
+            <h1>@Overview.Title — reference</h1>
+            <p class="page-lead">Det I skal aflevere, og hvordan en løsning kan se ud (konsol + Blazor).</p>
+        </header>
+
+        <div class="callout callout-info project-solution-disclaimer">
+            <p><strong>Undervisningsreference.</strong> Demos viser et muligt niveau — kopier ikke blindt til aflevering uden at forstå koden.</p>
+        </div>
+
+        <ProjectDeliverablesPanel Expectations="Solution.Deliverables" />
+
+        @if (!string.IsNullOrWhiteSpace(Solution.ConsoleDemoCode))
+        {
+            <section class="project-solution-section">
+                <h2 class="project-solution-heading">Konsol-reference (kør udsnit)</h2>
+                <p class="project-solution-note">
+                    Fuld aflevering er et komplet konsolprojekt i GitHub. Her kan I køre et <strong>repræsentativt udsnit</strong> i browseren.
+                </p>
+                <RunnableCodeSnippet Code="@Solution.ConsoleDemoCode" />
+            </section>
+        }
+
+        @if (Solution.MvpBlazorComponent is not null)
+        {
+            <section class="project-solution-section">
+                <h2 class="project-solution-heading">Blazor — grunddemo (MVP)</h2>
+                <DynamicComponent Type="Solution.MvpBlazorComponent" @rendermode="InteractiveWebAssembly" />
+            </section>
+        }
+
+        @if (Solution.ExtendedBlazorComponent is not null)
+        {
+            <section class="project-solution-section">
+                <h2 class="project-solution-heading">Blazor — udvidet reference</h2>
+                <DynamicComponent Type="Solution.ExtendedBlazorComponent" @rendermode="InteractiveWebAssembly" />
+            </section>
+        }
+
+        <p class="project-solution-back">
+            <a href="@Overview.Href" class="btn btn-ghost btn-sm">← Tilbage til projektbeskrivelse</a>
+        </p>
+    </SectionShell>
+}
+
+@code {
+    [Parameter] public string ProjectSlug { get; set; } = "";
+    private ContentItem? Overview => Content.GetProjectOverview(ProjectSlug);
+    private ProjectSolutionInfo? Solution => SolutionCatalog.Get(ProjectSlug);
+}

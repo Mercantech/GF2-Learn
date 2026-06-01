@@ -1,0 +1,48 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <div class="project-demo-row">
+        <label>8-bit binær</label>
+        <input class="project-demo-input" @bind="_binaer" maxlength="8" />
+        <button type="button" class="btn btn-primary btn-sm" @onclick="ToDecimal">→ decimal</button>
+    </div>
+    <div class="project-demo-row">
+        <label>Decimal 0–255</label>
+        <input type="number" class="project-demo-input" @bind="_decimal" min="0" max="255" />
+        <button type="button" class="btn btn-primary btn-sm" @onclick="ToBinaer">→ binær</button>
+    </div>
+    @if (_result is not null) { <p class="project-demo-feedback">@_result</p> }
+</ProjectDemoShell>
+
+@code {
+    private string _binaer = "10111011";
+    private int _decimal = 187;
+    private string? _result;
+
+    private void ToDecimal()
+    {
+        if (_binaer.Length != 8 || _binaer.Any(c => c is not ('0' or '1')))
+        {
+            _result = "Skal være præcis 8 binære cifre.";
+            return;
+        }
+        var sum = 0;
+        for (var i = 0; i < 8; i++)
+            if (_binaer[i] == '1') sum += 1 << (7 - i);
+        _result = $"{_binaer} = {sum}";
+    }
+
+    private void ToBinaer()
+    {
+        if (_decimal is < 0 or > 255) { _result = "0–255"; return; }
+        var bits = "";
+        var n = _decimal;
+        for (var i = 0; i < 8; i++)
+        {
+            bits = (n % 2) + bits;
+            n /= 2;
+        }
+        _binaer = bits.PadLeft(8, '0');
+        _result = $"{_decimal} = {_binaer}";
+    }
+}

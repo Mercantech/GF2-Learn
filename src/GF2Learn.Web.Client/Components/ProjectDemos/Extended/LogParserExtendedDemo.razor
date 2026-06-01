@@ -1,0 +1,41 @@
+@rendermode InteractiveWebAssembly
+
+<ProjectDemoShell>
+    <textarea class="project-demo-textarea" rows="6" @bind="_log"></textarea>
+    <div class="project-demo-row">
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Parse">Analyser</button>
+        <button type="button" class="btn btn-ghost btn-sm" @onclick="Export">Kopiér rapport</button>
+    </div>
+    @if (_report is not null) { <pre class="project-demo-feedback">@_report</pre> }
+</ProjectDemoShell>
+
+@code {
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    private string _log = """
+        [INFO] Server startet
+        [WARN] Disk 80%
+        [ERROR] Login fejlede
+        [INFO] Bruger logget ind
+        [ERROR] Timeout
+        [ERROR] Database langsom
+        """;
+
+    private string? _report;
+
+    private void Parse()
+    {
+        var lines = _log.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var info = lines.Count(l => l.Contains("[INFO]"));
+        var warn = lines.Count(l => l.Contains("[WARN]"));
+        var error = lines.Count(l => l.Contains("[ERROR]"));
+        var errors = lines.Where(l => l.Contains("[ERROR]")).Take(5);
+        _report = $"INFO: {info}, WARN: {warn}, ERROR: {error}\n\nSeneste fejl:\n{string.Join("\n", errors)}";
+    }
+
+    private async Task Export()
+    {
+        if (_report is null) Parse();
+        await Js.InvokeVoidAsync("navigator.clipboard.writeText", _report ?? "");
+    }
+}
