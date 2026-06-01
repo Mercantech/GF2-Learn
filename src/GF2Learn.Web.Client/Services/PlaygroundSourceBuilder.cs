@@ -11,6 +11,8 @@ public static class PlaygroundSourceBuilder
 {
     public sealed record PreparedCode(string ExecutableCode, IReadOnlyList<string> StdinLines, bool UsesReadLine);
 
+    public sealed record SimulatedStdinField(string Value, string? VariableName, string? Prompt);
+
     public static PreparedCode Prepare(string userCode)
     {
         var (setupLines, body) = ExtractSetup(userCode);
@@ -28,7 +30,24 @@ public static class PlaygroundSourceBuilder
     public static string BuildEntryPointSource(PreparedCode prepared, bool showStdinTraceInOutput = true) =>
         BuildEntryPointSource(prepared.ExecutableCode, prepared.StdinLines, prepared.UsesReadLine, showStdinTraceInOutput);
 
-    public static IReadOnlyList<string> GetSimulatedStdinLines(string userCode) => ParseSimulatedInput(userCode);
+    public static IReadOnlyList<string> GetSimulatedStdinLines(string userCode) =>
+        ParseSimulatedInputFields(userCode).Select(f => f.Value).ToList();
+
+    public static IReadOnlyList<SimulatedStdinField> GetSimulatedStdinFields(string userCode)
+    {
+        var (_, body) = ExtractSetup(userCode);
+        var promptsByVar = BuildPromptMap(body);
+        return ParseSimulatedInputFields(userCode)
+            .Select(f =>
+            {
+                if (f.VariableName is null || f.Prompt is not null)
+                    return f;
+                return promptsByVar.TryGetValue(f.VariableName, out var prompt)
+                    ? f with { Prompt = prompt }
+                    : f;
+            })
+            .ToList();
+    }
 
     internal static string BuildEntryPointSource(
         string transformedCode,
@@ -152,9 +171,12 @@ public static class PlaygroundSourceBuilder
         return (code, stdinLines, usesReadLine);
     }
 
-    private static List<string> ParseSimulatedInput(string userCode)
+    private static List<string> ParseSimulatedInput(string userCode) =>
+        ParseSimulatedInputFields(userCode).Select(f => f.Value).ToList();
+
+    private static List<SimulatedStdinField> ParseSimulatedInputFields(string userCode)
     {
-        var stdin = new List<string>();
+        var fields = new List<SimulatedStdinField>();
         foreach (Match match in Regex.Matches(
                      userCode,
                      @"//\s*gf2-input:\s*(.+)$",
@@ -164,19 +186,68 @@ public static class PlaygroundSourceBuilder
             if (raw.Length == 0)
                 continue;
 
+            var named = Regex.Match(raw, @"^(\w+)\s*:\s*(.+)$");
+            if (named.Success)
+            {
+                fields.Add(new SimulatedStdinField(
+                    named.Groups[2].Value.Trim().Trim('"', '\''),
+                    named.Groups[1].Value.Trim(),
+                    null));
+                continue;
+            }
+
             if (raw.Contains(','))
             {
-                stdin.AddRange(raw.Split(',')
+                fields.AddRange(raw.Split(',')
                     .Select(s => s.Trim().Trim('"', '\''))
-                    .Where(s => s.Length > 0));
+                    .Where(s => s.Length > 0)
+                    .Select(v => new SimulatedStdinField(v, null, null)));
             }
             else
             {
-                stdin.Add(raw.Trim('"', '\''));
+                fields.Add(new SimulatedStdinField(raw.Trim('"', '\''), null, null));
             }
         }
 
-        return stdin;
+        return fields;
+    }
+
+    private static Dictionary<string, string> BuildPromptMap(string body)
+    {
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        string? pendingPrompt = null;
+
+        foreach (var line in body.Replace("\r\n", "\n").Split('\n'))
+        {
+            if (Regex.IsMatch(line, @"^\s*//"))
+                continue;
+
+            var write = Regex.Match(line, @"Console\.Write\s*\(\s*""([^""]*)""\s*\)");
+            if (write.Success)
+                pendingPrompt = write.Groups[1].Value.Trim();
+
+            var writeLine = Regex.Match(line, @"Console\.WriteLine\s*\(\s*""([^""]*)""\s*\)\s*;?");
+            if (writeLine.Success)
+                pendingPrompt = writeLine.Groups[1].Value.Trim();
+
+            if (!Regex.IsMatch(line, @"Console\.ReadLine\s*\("))
+                continue;
+
+            var varRead = Regex.Match(line, @"var\s+(\w+)\s*=\s*Console\.ReadLine");
+            if (!varRead.Success)
+            {
+                pendingPrompt = null;
+                continue;
+            }
+
+            var name = varRead.Groups[1].Value;
+            if (pendingPrompt is not null && !map.ContainsKey(name))
+                map[name] = pendingPrompt;
+
+            pendingPrompt = null;
+        }
+
+        return map;
     }
 
     private static string EscapeCSharpString(string value) =>

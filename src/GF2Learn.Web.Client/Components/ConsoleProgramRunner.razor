@@ -16,20 +16,36 @@
             <div class="console-app-stdin">
                 <p class="console-app-stdin-label">Simuleret tastatur</p>
                 <p class="console-app-stdin-hint">
-                    Hver linje svarer til ét <code>Console.ReadLine()</code> i programmet — som når du kører .exe i terminalen.
+                    Hvert felt svarer til én <code>Console.ReadLine()</code> — variabelnavnet er det I gemmer svaret i.
                 </p>
                 <ol class="console-app-stdin-list">
                     @for (var i = 0; i < _stdinFields.Count; i++)
                     {
                         var index = i;
+                        var field = _stdinFields[index];
                         <li>
                             <label class="console-app-stdin-field">
-                                <span class="console-app-stdin-num">@(index + 1)</span>
+                                <span class="console-app-stdin-meta">
+                                    <span class="console-app-stdin-step">@(index + 1)</span>
+                                    @if (!string.IsNullOrWhiteSpace(field.VariableName))
+                                    {
+                                        <code class="console-app-stdin-var">@field.VariableName</code>
+                                    }
+                                    else
+                                    {
+                                        <span class="console-app-stdin-var-fallback">input @(index + 1)</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(field.Prompt))
+                                    {
+                                        <span class="console-app-stdin-prompt">@field.Prompt</span>
+                                    }
+                                </span>
                                 <input type="text"
                                        class="console-app-stdin-input"
-                                       @bind="_stdinFields[index]"
+                                       @bind="field.Value"
                                        @bind:event="oninput"
-                                       disabled="@_running" />
+                                       disabled="@_running"
+                                       aria-label="@GetInputAriaLabel(field, index)" />
                             </label>
                         </li>
                     }
@@ -55,8 +71,8 @@
     [Parameter, EditorRequired] public string Code { get; set; } = "";
     [Parameter] public string WindowTitle { get; set; } = "Konsol-app.exe";
 
-    private readonly List<string> _stdinFields = [];
-    private List<string> _defaultStdin = [];
+    private readonly List<StdinFieldModel> _stdinFields = [];
+    private List<StdinFieldModel> _defaultStdin = [];
     private bool _usesReadLine;
     private string _screenText = "";
     private bool _running;
@@ -70,8 +86,10 @@
 
         var prepared = PlaygroundSourceBuilder.Prepare(Code);
         _usesReadLine = prepared.UsesReadLine;
-        _defaultStdin = prepared.StdinLines.ToList();
-        _stdinFields.AddRange(_defaultStdin);
+        _defaultStdin = PlaygroundSourceBuilder.GetSimulatedStdinFields(Code)
+            .Select(f => new StdinFieldModel(f.Value, f.VariableName, f.Prompt))
+            .ToList();
+        _stdinFields.AddRange(_defaultStdin.Select(CloneField));
         _pendingAutoRun = true;
         _screenText = "Tryk «Start program» for at køre reference-løsningen…";
     }
@@ -94,7 +112,7 @@
 
         try
         {
-            var stdin = _usesReadLine ? (IReadOnlyList<string>)_stdinFields : null;
+            var stdin = _usesReadLine ? (IReadOnlyList<string>)_stdinFields.Select(f => f.Value).ToList() : null;
             var result = await Runner.RunAsync(
                 Code,
                 expectedOutput: null,
@@ -117,6 +135,23 @@
     private void ResetInputs()
     {
         _stdinFields.Clear();
-        _stdinFields.AddRange(_defaultStdin);
+        _stdinFields.AddRange(_defaultStdin.Select(CloneField));
+    }
+
+    private static string GetInputAriaLabel(StdinFieldModel field, int index)
+    {
+        if (!string.IsNullOrWhiteSpace(field.VariableName))
+            return field.VariableName + (field.Prompt is null ? "" : ", " + field.Prompt);
+        return "Input " + (index + 1);
+    }
+
+    private static StdinFieldModel CloneField(StdinFieldModel f) =>
+        new(f.Value, f.VariableName, f.Prompt);
+
+    private sealed class StdinFieldModel(string value, string? variableName, string? prompt)
+    {
+        public string Value { get; set; } = value;
+        public string? VariableName { get; set; } = variableName;
+        public string? Prompt { get; set; } = prompt;
     }
 }

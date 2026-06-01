@@ -1,12 +1,12 @@
 // gf2-setup: var stillinger = new List<string> { "Mercantec | GF2-elev | Ansøgt", "IT A/S | Junior dev | Afventer" };
-// Simuleret tastatur (én linje per ReadLine) — rediger værdierne og kør igen:
-// gf2-input: 2
-// gf2-input: 1
-// gf2-input: NovaTech ApS
-// gf2-input: C# praktikant
-// gf2-input: Ansøgt
-// gf2-input: 2
-// gf2-input: 3
+// Simuleret tastatur (én linje per ReadLine) — format: // gf2-input: variabelnavn: værdi
+// gf2-input: valg: 2
+// gf2-input: valg: 1
+// gf2-input: firma: NovaTech ApS
+// gf2-input: titel: C# praktikant
+// gf2-input: status: Ansøgt
+// gf2-input: valg: 2
+// gf2-input: valg: 3
 
 Console.WriteLine("================================");
 Console.WriteLine("     JOBSØGNING-TRACKER (konsol)");
@@ -36,7 +36,7 @@ while (true)
         var titel = Console.ReadLine()?.Trim() ?? "";
         Console.Write("Status (Ansøgt / Afventer / Afvist): ");
         var status = Console.ReadLine()?.Trim() ?? "Afventer";
-        stillinger.Add($"{firma} | {titel} | {status}");
+        stillinger.Add(firma + " | " + titel + " | " + status);
         Console.WriteLine(">> Tilføjet.");
     }
     else if (valg == "2")
@@ -48,9 +48,9 @@ while (true)
         else
         {
             for (var i = 0; i < stillinger.Count; i++)
-                Console.WriteLine($"{i + 1,2}. {stillinger[i]}");
+                Console.WriteLine((i + 1).ToString().PadLeft(2) + ". " + stillinger[i]);
         }
-        Console.WriteLine($"--- Total: {stillinger.Count} ---");
+        Console.WriteLine("--- Total: " + stillinger.Count + " ---");
     }
     else
     {
