@@ -25,6 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="ProjectReferences\**\*.cs" />
+    <Content Remove="ProjectReferences\**\*.cs" />
     <None Include="ProjectReferences\**\console-demo.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

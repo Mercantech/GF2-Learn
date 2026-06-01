@@ -78,6 +78,8 @@ content/
   projekter/        # projekt-*/overview.md (ét dokument per projekt)
 ```
 
+Reference-løsninger og afleveringskrav: `/projects/{slug}/solution` (Blazor). Konsol-demo-kode i `src/GF2Learn.Web/ProjectReferences/`.
+
 ### Frontmatter
 
 ```yaml
