@@ -1818,17 +1818,69 @@ a:hover { color: var(--accent-bright); }
   color: var(--accent-teal);
 }
 .playground-editor-host-exercise {
-  min-height: 16rem;
-  height: 16rem;
+  min-height: 8.5rem;
+  height: auto;
+  transition: height 0.12s ease-out;
 }
 .exercise-ide-footer {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0.65rem 0.75rem;
   border-top: 1px solid var(--border);
   background: var(--bg-elevated);
+}
+.exercise-ide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.exercise-ai-btn {
+  border-color: rgba(34, 211, 238, 0.35);
+  color: var(--accent-teal);
+}
+.exercise-ai-btn:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.1);
+  border-color: var(--accent-teal);
+}
+.exercise-ai-btn:disabled {
+  opacity: 0.45;
+}
+.exercise-ai-panel {
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.exercise-ai-panel-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.exercise-ai-panel-body {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.exercise-ai-panel-hint {
+  border-color: rgba(34, 211, 238, 0.3);
+}
+.exercise-ai-panel-ok {
+  border-color: rgba(34, 197, 94, 0.4);
+}
+.exercise-ai-panel-ok .exercise-ai-panel-label {
+  color: #4ade80;
+}
+.exercise-ai-panel-warn {
+  border-color: rgba(251, 191, 36, 0.35);
+}
+.exercise-ai-panel-warn .exercise-ai-panel-label {
+  color: #fbbf24;
 }
 .exercise-ide-save-error {
   font-size: 0.82rem;
@@ -1962,15 +2014,16 @@ a:hover { color: var(--accent-bright); }
   color: var(--accent);
 }
 .playground-editor-host {
-  min-height: 14rem;
-  height: 14rem;
+  min-height: 12rem;
+  height: auto;
   max-width: 100%;
   overflow: hidden;
   background: var(--code-bg);
+  transition: height 0.12s ease-out;
 }
 .playground-editor-host-compact {
-  min-height: 10rem;
-  height: 10rem;
+  min-height: 9rem;
+  height: auto;
 }
 .code-playground-readonly .playground-header-unified {
   border-bottom: 1px solid var(--border);

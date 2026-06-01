@@ -3,6 +3,7 @@ using GF2Learn.Web.Auth;
 using GF2Learn.Web.Components;
 using GF2Learn.Web.Data;
 using GF2Learn.Web.Models;
+using GF2Learn.Web.Options;
 using GF2Learn.Web.Services;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,14 @@ builder.Services.AddSingleton<NavigationService>();
 builder.Services.AddSingleton<PlaygroundParser>();
 builder.Services.AddSingleton<RunnableCodeParser>();
 builder.Services.AddSingleton<ProjectSolutionCatalog>();
+builder.Services.AddSingleton<ExerciseAiContextService>();
+
+builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
+builder.Services.AddHttpClient<IExerciseAiService, ExerciseAiService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.openai.com/");
+    client.Timeout = TimeSpan.FromSeconds(90);
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrWhiteSpace(connectionString))
@@ -197,6 +206,83 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         }
     }).DisableAntiforgery();
 }
+
+var exerciseAi = app.MapGroup("/api/exercise-ai").RequireAuthorization();
+
+exerciseAi.MapGet("/status", (IExerciseAiService ai) =>
+    Results.Ok(new ExerciseAiStatusResponse(
+        ai.IsConfigured,
+        ai.IsConfigured ? null : "OpenAI er ikke konfigureret (OpenAi:ApiKey).")));
+
+exerciseAi.MapPost("/hint", async (
+    ExerciseAiRequest request,
+    IExerciseAiService ai,
+    ExerciseAiContextService contexts,
+    CancellationToken cancellationToken) =>
+{
+    if (!ai.IsConfigured)
+    {
+        return Results.Json(
+            new ExerciseAiStatusResponse(false, "OpenAI er ikke konfigureret."),
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+
+    if (string.IsNullOrWhiteSpace(request.StudentCode))
+        return Results.BadRequest();
+
+    var context = contexts.GetPartContext(request.ContentSlug, request.PartIndex);
+    if (context is null)
+        return Results.NotFound();
+
+    try
+    {
+        var hint = await ai.GetHintAsync(
+            context,
+            request.StudentCode,
+            request.ConsoleOutput,
+            cancellationToken);
+        return Results.Ok(hint);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+}).DisableAntiforgery();
+
+exerciseAi.MapPost("/check", async (
+    ExerciseAiRequest request,
+    IExerciseAiService ai,
+    ExerciseAiContextService contexts,
+    CancellationToken cancellationToken) =>
+{
+    if (!ai.IsConfigured)
+    {
+        return Results.Json(
+            new ExerciseAiStatusResponse(false, "OpenAI er ikke konfigureret."),
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+
+    if (string.IsNullOrWhiteSpace(request.StudentCode))
+        return Results.BadRequest();
+
+    var context = contexts.GetPartContext(request.ContentSlug, request.PartIndex);
+    if (context is null)
+        return Results.NotFound();
+
+    try
+    {
+        var check = await ai.CheckSolutionAsync(
+            context,
+            request.StudentCode,
+            request.ConsoleOutput,
+            cancellationToken);
+        return Results.Ok(check);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: StatusCodes.Status502BadGateway);
+    }
+}).DisableAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()

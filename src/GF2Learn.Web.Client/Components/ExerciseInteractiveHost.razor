@@ -1,4 +1,5 @@
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@using System.Net.Http.Json
 @using GF2Learn.Web.Client.Models
 @using GF2Learn.Web.Client.Services
 
@@ -12,7 +13,7 @@
                                 PartIndex="@part.PartIndex"
                                 InitialCode="@part.Code"
                                 SavedCode="@GetSavedCode(part.PartIndex)"
-                                OnSaved="() => NotifySaved(part.PartIndex)" />
+                                OnSaved="() => HandleSavedAsync(part.PartIndex)" />
         </section>
     }
     else if (segment is HtmlSegment html)
@@ -28,16 +29,32 @@
     [Parameter] public EventCallback OnProgressChanged { get; set; }
 
     [Inject] private IJSRuntime Js { get; set; } = default!;
+    [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = default!;
 
     private IReadOnlyList<ExercisePageSegment> _segments = [];
+    private List<ExercisePartAnswerDto> _resolvedParts = [];
 
-    protected override void OnParametersSet() =>
+    protected override void OnParametersSet()
+    {
         _segments = ExerciseSegmentBuilder.Build(Blocks);
+        if (SavedParts.Count > 0)
+            _resolvedParts = SavedParts.ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_resolvedParts.Count > 0)
+            return;
+
+        await ReloadLocalPartsAsync();
+        if (_resolvedParts.Count > 0)
+            StateHasChanged();
+    }
 
     private string? GetSavedCode(int partIndex) =>
-        SavedParts.FirstOrDefault(p => p.PartIndex == partIndex)?.AnswerText;
+        _resolvedParts.FirstOrDefault(p => p.PartIndex == partIndex)?.AnswerText;
 
-    private async Task NotifySaved(int partIndex)
+    private async Task HandleSavedAsync(int partIndex)
     {
         try
         {
@@ -48,6 +65,29 @@
             // Editor shows saved state locally
         }
 
+        await ReloadLocalPartsAsync();
+        StateHasChanged();
         await OnProgressChanged.InvokeAsync();
+    }
+
+    private async Task ReloadLocalPartsAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            var response = await client.GetAsync(
+                $"/api/progress/exercise/{Uri.EscapeDataString(ContentSlug)}");
+
+            if (!response.IsSuccessStatusCode)
+                return;
+
+            var loaded = await response.Content.ReadFromJsonAsync<List<ExercisePartAnswerDto>>();
+            if (loaded is not null)
+                _resolvedParts = loaded;
+        }
+        catch
+        {
+            // Server-rendered SavedParts may still apply on full page load
+        }
     }
 }

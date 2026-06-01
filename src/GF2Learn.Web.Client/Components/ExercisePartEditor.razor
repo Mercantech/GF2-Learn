@@ -5,6 +5,7 @@
 
 <CodePlaygroundCore @ref="_editor"
                     InitialCode="@InitialCode"
+                    SavedCode="@SavedCode"
                     WrapExerciseMethod="true"
                     Title="Skriv din løsning her"
                     RunLabel="Kør"
@@ -15,14 +16,48 @@
                     ShowCopyButton="false">
     <Footer>
         <div class="exercise-ide-footer">
-            <button type="button" class="btn btn-primary btn-sm" disabled="@_saving" @onclick="SaveAsync">
-                @(_saving ? "Gemmer…" : _saved ? "Gemt ✓" : "Gem som løst")
-            </button>
+            <div class="exercise-ide-actions">
+                <button type="button"
+                        class="btn btn-ghost btn-sm exercise-ai-btn"
+                        disabled="@(!_aiEnabled || _aiBusy)"
+                        title="@_aiStatusHint"
+                        @onclick="GetHintAsync">
+                    @(_aiHintLoading ? "Henter tip…" : "AI hjælp mig")
+                </button>
+                <button type="button"
+                        class="btn btn-ghost btn-sm exercise-ai-btn"
+                        disabled="@(!_aiEnabled || _aiBusy)"
+                        title="@_aiStatusHint"
+                        @onclick="CheckSolutionAsync">
+                    @(_aiCheckLoading ? "Tjekker…" : "Er opgaven løst?")
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" disabled="@_saving" @onclick="SaveAsync">
+                    @(_saving ? "Gemmer…" : _saved ? "Gemt ✓" : "Gem som løst")
+                </button>
+            </div>
             @if (!string.IsNullOrWhiteSpace(_saveError))
             {
                 <span class="exercise-ide-save-error">@_saveError</span>
             }
+            @if (!string.IsNullOrWhiteSpace(_aiError))
+            {
+                <span class="exercise-ide-save-error">@_aiError</span>
+            }
         </div>
+        @if (!string.IsNullOrWhiteSpace(_aiHint))
+        {
+            <div class="exercise-ai-panel exercise-ai-panel-hint" role="status">
+                <p class="exercise-ai-panel-label">AI-tip</p>
+                <p class="exercise-ai-panel-body">@_aiHint</p>
+            </div>
+        }
+        @if (_aiCheck is not null)
+        {
+            <div class="exercise-ai-panel @(_aiCheck.IsSolved ? "exercise-ai-panel-ok" : "exercise-ai-panel-warn")" role="status">
+                <p class="exercise-ai-panel-label">@(_aiCheck.IsSolved ? "Opgaven ser løst ud" : "Ikke helt i mål endnu")</p>
+                <p class="exercise-ai-panel-body">@_aiCheck.Feedback</p>
+            </div>
+        }
     </Footer>
 </CodePlaygroundCore>
 
@@ -38,20 +73,139 @@
     private bool _saving;
     private string? _saveError;
 
-    protected override async Task OnParametersSetAsync()
-    {
-        if (!string.IsNullOrWhiteSpace(SavedCode) && _editor is not null)
-            await _editor.SetCodeAsync(SavedCode);
+    private bool _aiEnabled;
+    private bool _aiBusy;
+    private bool _aiHintLoading;
+    private bool _aiCheckLoading;
+    private string? _aiStatusHint;
+    private string? _aiError;
+    private string? _aiHint;
+    private ExerciseAiCheckResult? _aiCheck;
+
+    protected override void OnParametersSet() =>
         _saved = !string.IsNullOrWhiteSpace(SavedCode);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            var status = await client.GetFromJsonAsync<ExerciseAiStatusResponse>("/api/exercise-ai/status");
+            _aiEnabled = status?.Enabled == true;
+            _aiStatusHint = status?.Message ?? "AI-hjælp";
+        }
+        catch
+        {
+            _aiEnabled = false;
+            _aiStatusHint = "AI er ikke tilgængelig";
+        }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task GetHintAsync()
     {
-        if (!firstRender || string.IsNullOrWhiteSpace(SavedCode) || _editor is null)
+        if (_editor is null || !_aiEnabled)
             return;
 
-        await _editor.SetCodeAsync(SavedCode);
-        _saved = true;
+        _aiHintLoading = true;
+        _aiBusy = true;
+        _aiError = null;
+        _aiHint = null;
+        StateHasChanged();
+
+        try
+        {
+            var payload = await BuildAiRequestAsync();
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.PostAsJsonAsync("/api/exercise-ai/hint", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ExerciseAiHintResponse>();
+                _aiHint = result?.Message;
+                return;
+            }
+
+            _aiError = await ReadAiErrorAsync(response);
+        }
+        catch (Exception)
+        {
+            _aiError = "Kunne ikke hente AI-tip — prøv igen.";
+        }
+        finally
+        {
+            _aiHintLoading = false;
+            _aiBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckSolutionAsync()
+    {
+        if (_editor is null || !_aiEnabled)
+            return;
+
+        _aiCheckLoading = true;
+        _aiBusy = true;
+        _aiError = null;
+        _aiCheck = null;
+        StateHasChanged();
+
+        try
+        {
+            var payload = await BuildAiRequestAsync();
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.PostAsJsonAsync("/api/exercise-ai/check", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _aiCheck = await response.Content.ReadFromJsonAsync<ExerciseAiCheckResult>();
+                return;
+            }
+
+            _aiError = await ReadAiErrorAsync(response);
+        }
+        catch (Exception)
+        {
+            _aiError = "Kunne ikke tjekke løsningen — prøv igen.";
+        }
+        finally
+        {
+            _aiCheckLoading = false;
+            _aiBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<ExerciseAiRequestPayload> BuildAiRequestAsync()
+    {
+        var code = await _editor!.GetCodeAsync();
+        return new ExerciseAiRequestPayload(
+            ContentSlug,
+            PartIndex,
+            code,
+            _editor.LastConsoleOutput);
+    }
+
+    private static async Task<string> ReadAiErrorAsync(HttpResponseMessage response)
+    {
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            return "Log ind for at bruge AI-hjælp.";
+
+        if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            return "AI er ikke konfigureret på serveren (manglende API-nøgle).";
+
+        try
+        {
+            var problem = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrWhiteSpace(problem) && problem.Length < 200)
+                return problem;
+        }
+        catch
+        {
+            // ignore
+        }
+
+        return $"AI-fejl (HTTP {(int)response.StatusCode}).";
     }
 
     private async Task SaveAsync()
@@ -122,4 +276,8 @@
     }
 
     private sealed record SaveExercisePartPayload(string ContentSlug, int PartIndex, string? AnswerText);
+    private sealed record ExerciseAiRequestPayload(string ContentSlug, int PartIndex, string StudentCode, string? ConsoleOutput);
+    private sealed record ExerciseAiHintResponse(string Message);
+    private sealed record ExerciseAiCheckResult(bool IsSolved, string Feedback);
+    private sealed record ExerciseAiStatusResponse(bool Enabled, string? Message);
 }

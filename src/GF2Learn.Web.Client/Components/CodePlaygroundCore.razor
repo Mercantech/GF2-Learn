@@ -68,6 +68,8 @@
 
 @code {
     [Parameter, EditorRequired] public string InitialCode { get; set; } = "";
+    /// <summary>Gemt elevkode — bruges ved opstart i stedet for <see cref="InitialCode"/> (nulstil bruger stadig skabelon).</summary>
+    [Parameter] public string? SavedCode { get; set; }
     [Parameter] public string ExpectedOutput { get; set; } = "";
     [Parameter] public IReadOnlyList<string> Refs { get; set; } = Array.Empty<string>();
     [Parameter] public bool WrapExerciseMethod { get; set; }
@@ -105,19 +107,24 @@
         _ => ""
     };
 
+    private string StartupCode =>
+        string.IsNullOrWhiteSpace(SavedCode) ? InitialCode : SavedCode;
+
     protected override void OnParametersSet()
     {
-        if (_syncedInitialCode is null || InitialCode != _syncedInitialCode)
-            _code = InitialCode;
+        var startup = StartupCode;
+        if (_syncedInitialCode is null || startup != _syncedInitialCode)
+            _code = startup;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await Js.InvokeVoidAsync("gf2Playground.init", _editorId, InitialCode);
+            var startup = StartupCode;
+            await Js.InvokeVoidAsync("gf2Playground.init", _editorId, startup);
             _editorReady = true;
-            _syncedInitialCode = InitialCode;
+            _syncedInitialCode = startup;
 
             if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
                 _ = Runner.WarmupAsync();
@@ -125,12 +132,8 @@
             return;
         }
 
-        if (_editorReady && InitialCode != _syncedInitialCode)
-        {
-            await Js.InvokeVoidAsync("gf2Playground.setValue", _editorId, InitialCode);
-            _syncedInitialCode = InitialCode;
-            _code = InitialCode;
-        }
+        if (_editorReady && !string.IsNullOrWhiteSpace(SavedCode) && SavedCode != _syncedInitialCode)
+            await SetCodeAsync(SavedCode);
     }
 
     public async Task<string> GetCodeAsync()
@@ -140,6 +143,11 @@
 
         return await Js.InvokeAsync<string>("gf2Playground.getValue", _editorId);
     }
+
+    public string? LastOutput => string.IsNullOrEmpty(_output) ? null : _output;
+    public string? LastError => string.IsNullOrEmpty(_error) ? null : _error;
+    public string? LastConsoleOutput =>
+        !string.IsNullOrEmpty(_error) ? _error : LastOutput;
 
     public async Task SetCodeAsync(string code)
     {

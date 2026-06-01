@@ -1,5 +1,6 @@
 window.gf2Playground = {
   editors: {},
+  editorOptions: {},
   monacoLoadPromise: null,
   monacoBase: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs",
 
@@ -159,6 +160,40 @@ window.gf2Playground = {
     });
   },
 
+  resolveHeightOptions: function (host, options) {
+    options = options || {};
+    var isExercise = host.classList.contains("playground-editor-host-exercise");
+    var isCompact = host.classList.contains("playground-editor-host-compact");
+
+    return {
+      minLines: options.minLines != null ? options.minLines : (isExercise ? 5 : isCompact ? 6 : 8),
+      maxLines: options.maxLines != null ? options.maxLines : (isExercise ? 36 : isCompact ? 28 : 48),
+      extraLines: options.extraLines != null ? options.extraLines : 1.5,
+      paddingTop: options.paddingTop != null ? options.paddingTop : 12,
+      paddingBottom: options.paddingBottom != null ? options.paddingBottom : 12
+    };
+  },
+
+  updateHeight: function (elementId) {
+    var editor = this.editors[elementId];
+    var host = document.getElementById(elementId);
+    var opts = this.editorOptions[elementId];
+    if (!editor || !host || !opts) return;
+
+    var monaco = window.monaco;
+    var lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
+    var pad = opts.paddingTop + opts.paddingBottom;
+    var extraPx = opts.extraLines * lineHeight;
+    var minPx = opts.minLines * lineHeight + pad;
+    var maxPx = opts.maxLines * lineHeight + pad;
+
+    var contentHeight = editor.getContentHeight();
+    var target = Math.min(maxPx, Math.max(minPx, contentHeight + extraPx));
+
+    host.style.height = target + "px";
+    editor.layout({ width: host.clientWidth, height: target });
+  },
+
   init: async function (elementId, initialCode, options) {
     options = options || {};
     await this.loadMonaco();
@@ -166,12 +201,15 @@ window.gf2Playground = {
     var host = document.getElementById(elementId);
     if (!host || this.editors[elementId]) return;
 
+    var heightOpts = this.resolveHeightOptions(host, options);
+    this.editorOptions[elementId] = heightOpts;
+
     var monaco = window.monaco;
     var editor = monaco.editor.create(host, {
       value: initialCode || "",
       language: "csharp",
       theme: this.resolveTheme(),
-      automaticLayout: true,
+      automaticLayout: false,
       fontFamily: "JetBrains Mono, Consolas, monospace",
       fontSize: 14,
       lineHeight: 22,
@@ -182,7 +220,7 @@ window.gf2Playground = {
       insertSpaces: true,
       readOnly: !!options.readOnly,
       renderLineHighlight: "line",
-      padding: { top: 12, bottom: 12 },
+      padding: { top: heightOpts.paddingTop, bottom: heightOpts.paddingBottom },
       quickSuggestions: { other: true, comments: false, strings: false },
       suggestOnTriggerCharacters: true,
       snippetSuggestions: "top",
@@ -193,8 +231,22 @@ window.gf2Playground = {
       }
     });
 
+    var self = this;
+    editor.onDidContentSizeChange(function () {
+      self.updateHeight(elementId);
+    });
+
+    window.addEventListener("resize", function onResize() {
+      if (!self.editors[elementId]) {
+        window.removeEventListener("resize", onResize);
+        return;
+      }
+      self.updateHeight(elementId);
+    });
+
     this.registerTabSnippets(editor);
     this.editors[elementId] = editor;
+    this.updateHeight(elementId);
   },
 
   getValue: function (elementId) {
@@ -204,7 +256,9 @@ window.gf2Playground = {
 
   setValue: function (elementId, code) {
     var editor = this.editors[elementId];
-    if (editor) editor.setValue(code || "");
+    if (!editor) return;
+    editor.setValue(code || "");
+    this.updateHeight(elementId);
   },
 
   setReadOnly: function (elementId, readOnly) {
@@ -217,6 +271,7 @@ window.gf2Playground = {
     if (!editor) return;
     editor.dispose();
     delete this.editors[elementId];
+    delete this.editorOptions[elementId];
   },
 
   disposeAll: function () {
