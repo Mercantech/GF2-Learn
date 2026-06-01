@@ -27,31 +27,13 @@ else
 
         <ProjectDeliverablesPanel Expectations="Solution.Deliverables" />
 
-        @if (!string.IsNullOrWhiteSpace(Solution.ConsoleDemoCode))
+        @if (HasInteractiveContent)
         {
-            <section class="project-solution-section">
-                <h2 class="project-solution-heading">Konsol-reference (kør udsnit)</h2>
-                <p class="project-solution-note">
-                    Fuld aflevering er et komplet konsolprojekt i GitHub. Her kan I køre et <strong>repræsentativt udsnit</strong> i browseren.
-                </p>
-                <RunnableCodeSnippet Code="@Solution.ConsoleDemoCode" />
-            </section>
-        }
-
-        @if (Solution.MvpBlazorComponent is not null)
-        {
-            <section class="project-solution-section">
-                <h2 class="project-solution-heading">Blazor — grunddemo (MVP)</h2>
-                <DynamicComponent Type="Solution.MvpBlazorComponent" @rendermode="InteractiveWebAssembly" />
-            </section>
-        }
-
-        @if (Solution.ExtendedBlazorComponent is not null)
-        {
-            <section class="project-solution-section">
-                <h2 class="project-solution-heading">Blazor — udvidet reference</h2>
-                <DynamicComponent Type="Solution.ExtendedBlazorComponent" @rendermode="InteractiveWebAssembly" />
-            </section>
+            <ProjectSolutionInteractiveHost
+                Slug="@ProjectSlug"
+                ConsoleCode="@Solution.ConsoleDemoCode"
+                ShowMvp="@(Solution.MvpBlazorComponent is not null)"
+                ShowExtended="@(Solution.ExtendedBlazorComponent is not null)" />
         }
 
         <p class="project-solution-back">
@@ -64,4 +46,9 @@ else
     [Parameter] public string ProjectSlug { get; set; } = "";
     private ContentItem? Overview => Content.GetProjectOverview(ProjectSlug);
     private ProjectSolutionInfo? Solution => SolutionCatalog.Get(ProjectSlug);
+    private bool HasInteractiveContent =>
+        Solution is not null && (
+            !string.IsNullOrWhiteSpace(Solution.ConsoleDemoCode) ||
+            Solution.MvpBlazorComponent is not null ||
+            Solution.ExtendedBlazorComponent is not null);
 }

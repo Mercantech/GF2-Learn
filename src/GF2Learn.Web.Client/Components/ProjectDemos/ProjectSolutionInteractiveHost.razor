@@ -1,0 +1,59 @@
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@using GF2Learn.Web.Client.Components.ProjectDemos.Extended
+@using GF2Learn.Web.Client.Components.ProjectDemos.Mvp
+
+@if (!string.IsNullOrWhiteSpace(ConsoleCode))
+{
+    <section class="project-solution-section">
+        <h2 class="project-solution-heading">Konsol-reference (kør udsnit)</h2>
+        <p class="project-solution-note">
+            Fuld aflevering er et komplet konsolprojekt i GitHub. Her kan I køre et <strong>repræsentativt udsnit</strong> i browseren.
+        </p>
+        <ConsoleCodeRunner Code="@ConsoleCode" />
+    </section>
+}
+
+@if (ShowMvp)
+{
+    <section class="project-solution-section">
+        <h2 class="project-solution-heading">Blazor — grunddemo (MVP)</h2>
+        @RenderMvp()
+    </section>
+}
+
+@if (ShowExtended)
+{
+    <section class="project-solution-section">
+        <h2 class="project-solution-heading">Blazor — udvidet reference</h2>
+        @RenderExtended()
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Slug { get; set; } = "";
+    [Parameter] public string? ConsoleCode { get; set; }
+    [Parameter] public bool ShowMvp { get; set; }
+    [Parameter] public bool ShowExtended { get; set; }
+
+    private RenderFragment RenderMvp() => Slug switch
+    {
+        "projekt-1-hjemmespil" => builder => { builder.OpenComponent<HjemmespilMvpDemo>(0); builder.CloseComponent(); },
+        "projekt-huskeliste" => builder => { builder.OpenComponent<HuskelisteMvpDemo>(0); builder.CloseComponent(); },
+        "projekt-jobsoegning" => builder => { builder.OpenComponent<JobsoegningMvpDemo>(0); builder.CloseComponent(); },
+        "projekt-2-binaer" => builder => { builder.OpenComponent<BinaerMvpDemo>(0); builder.CloseComponent(); },
+        "projekt-bibliotek" => builder => { builder.OpenComponent<BibliotekMvpDemo>(0); builder.CloseComponent(); },
+        "projekt-log-parser" => builder => { builder.OpenComponent<LogParserMvpDemo>(0); builder.CloseComponent(); },
+        _ => builder => { builder.AddContent(0, "Ingen grunddemo for dette projekt."); }
+    };
+
+    private RenderFragment RenderExtended() => Slug switch
+    {
+        "projekt-1-hjemmespil" => builder => { builder.OpenComponent<HjemmespilExtendedDemo>(0); builder.CloseComponent(); },
+        "projekt-huskeliste" => builder => { builder.OpenComponent<HuskelisteExtendedDemo>(0); builder.CloseComponent(); },
+        "projekt-jobsoegning" => builder => { builder.OpenComponent<JobsoegningExtendedDemo>(0); builder.CloseComponent(); },
+        "projekt-2-binaer" => builder => { builder.OpenComponent<BinaerExtendedDemo>(0); builder.CloseComponent(); },
+        "projekt-bibliotek" => builder => { builder.OpenComponent<BibliotekExtendedDemo>(0); builder.CloseComponent(); },
+        "projekt-log-parser" => builder => { builder.OpenComponent<LogParserExtendedDemo>(0); builder.CloseComponent(); },
+        _ => builder => { builder.AddContent(0, "Ingen udvidet demo for dette projekt."); }
+    };
+}

@@ -18,6 +18,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY --from=build /app/publish .
 COPY --from=build /src/content ./content
+COPY --from=build /src/src/GF2Learn.Web/ProjectReferences ./ProjectReferences
 ENV ASPNETCORE_URLS=http://+:8080
 ENV PathBase=
 ENV ContentPath=/app/content
