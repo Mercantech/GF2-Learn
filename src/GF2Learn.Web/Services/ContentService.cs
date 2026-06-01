@@ -7,6 +7,8 @@ namespace GF2Learn.Web.Services;
 
 public sealed class ContentService(IWebHostEnvironment env, IConfiguration config)
 {
+    private IReadOnlyList<ContentItem>? _cache;
+
     private readonly IDeserializer _yaml = new DeserializerBuilder()
         .WithNamingConvention(UnderscoredNamingConvention.Instance)
         .IgnoreUnmatchedProperties()
@@ -31,7 +33,10 @@ public sealed class ContentService(IWebHostEnvironment env, IConfiguration confi
         }
     }
 
-    public IReadOnlyList<ContentItem> GetAll()
+    public IReadOnlyList<ContentItem> GetAll() =>
+        _cache ??= LoadAll();
+
+    private IReadOnlyList<ContentItem> LoadAll()
     {
         var items = new List<ContentItem>();
         items.AddRange(LoadSection(ContentSectionType.Curriculum, Path.Combine(ContentRoot, "pensum")));

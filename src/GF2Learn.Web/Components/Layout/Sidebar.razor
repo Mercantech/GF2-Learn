@@ -42,7 +42,7 @@
     [Inject] private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
     [Inject] private ContentService Content { get; set; } = default!;
     [Inject] private KnowledgeCheckCatalog Catalog { get; set; } = default!;
-    [Inject] private IServiceProvider Services { get; set; } = default!;
+    [Inject] private KnowledgeCheckProgressScope ProgressScope { get; set; } = default!;
 
     private HashSet<string> _completedSlugs = [];
 
@@ -55,10 +55,6 @@
         if (http?.User.Identity?.IsAuthenticated != true)
             return;
 
-        var progressService = Services.GetService<IKnowledgeCheckProgressService>();
-        if (progressService is null)
-            return;
-
         var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? http.User.FindFirstValue("sub");
         if (userSub is null)
@@ -69,7 +65,10 @@
             .Select(i => (i.Slug, Catalog.CountQuestions(i.Body)))
             .ToList();
 
-        var progress = await progressService.GetCurriculumProgressAsync(userSub, chapters);
+        var progress = await ProgressScope.TryExecuteAsync(
+            (svc, ct) => svc.GetCurriculumProgressAsync(userSub, chapters, ct),
+            fallback: (IReadOnlyList<CurriculumChapterProgress>)[]);
+
         _completedSlugs = progress
             .Where(p => p.IsComplete)
             .Select(p => p.ContentSlug)

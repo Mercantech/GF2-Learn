@@ -5,7 +5,7 @@
 @using GF2Learn.Web.Services
 @inject ContentService Content
 @inject IHttpContextAccessor HttpContextAccessor
-@inject IServiceProvider Services
+@inject KnowledgeCheckProgressScope ProgressScope
 
 <PageTitle>@(Item?.Title ?? "Curriculum") — GF2 Learn</PageTitle>
 
@@ -50,15 +50,13 @@ else
         if (http?.User.Identity?.IsAuthenticated != true)
             return;
 
-        var progressService = Services.GetService<IKnowledgeCheckProgressService>();
-        if (progressService is null)
-            return;
-
         var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? http.User.FindFirstValue("sub");
         if (userSub is null)
             return;
 
-        _savedAnswers = (await progressService.GetAnswersAsync(userSub, Slug)).ToList();
+        _savedAnswers = (await ProgressScope.TryExecuteAsync(
+            (svc, ct) => svc.GetAnswersAsync(userSub, Slug, ct),
+            fallback: (IReadOnlyList<KnowledgeCheckAnswerDto>)[])).ToList();
     }
 }

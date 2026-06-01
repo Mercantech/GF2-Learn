@@ -34,6 +34,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddDbContext<Gf2LearnDbContext>(options =>
         options.UseNpgsql(connectionString));
     builder.Services.AddScoped<IKnowledgeCheckProgressService, KnowledgeCheckProgressService>();
+    builder.Services.AddSingleton<KnowledgeCheckProgressScope>();
 }
 
 builder.Services.AddMercantecAuth(builder.Configuration);
