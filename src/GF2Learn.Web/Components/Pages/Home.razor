@@ -90,8 +90,8 @@
         <a href="/projects" class="pathway-card pathway-projekter">
             <div class="pathway-icon">🚀</div>
             <h3>Projects</h3>
-            <p>Byg rigtige programmer over 13 dage — fra Jobsøgning til Enterprise med GitHub-aflevering.</p>
-            <span class="pathway-meta">@ProjectsCount projekter · 13 dage</span>
+            <p>Konsolspil, binær omformer og enterprise AD — med GitHub-aflevering undervejs.</p>
+            <span class="pathway-meta">@ProjectsCount projektforløb</span>
             <span class="pathway-arrow">→</span>
         </a>
     </div>
@@ -163,7 +163,6 @@
     private int CurriculumCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Curriculum);
     private int ExercisesCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Exercises);
     private int ProjectsCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Projects && i.IsOverview);
-
     private static string GetName(System.Security.Claims.ClaimsPrincipal user) =>
         user.Identity?.Name ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "elev";
 }

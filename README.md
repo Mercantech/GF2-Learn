@@ -18,7 +18,7 @@ Central læringsplatform til **Grundforløb 2 programmering** på Mercantec — 
 |---------|---------|
 | **Pensum** | C#-teori og Git |
 | **Opgaver** | Øvelser (begynder / mellem / avanceret) |
-| **Projekter** | 4 projektforløb over 13 dage |
+| **Projekter** | 3 projektforløb (hjemmespil, binær omformer, enterprise AD) |
 
 Pensum, opgaver og projekter er **offentligt tilgængelige**. `/profile` kræver login.
 
@@ -75,7 +75,7 @@ Logout rydder app-cookie og sender brugeren til `https://auth.mercantec.tech/sig
 content/
   pensum/           # *.md — teori
   opgaver/          # begynder/, mellem/, avanceret/
-  projekter/        # projekt-*/overview.md + dag-*.md
+  projekter/        # projekt-*/overview.md (ét dokument per projekt)
 ```
 
 ### Frontmatter

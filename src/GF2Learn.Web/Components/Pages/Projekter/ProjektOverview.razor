@@ -16,18 +16,6 @@ else
             <ContentMeta Item="Overview" />
         </header>
         <MarkdownContent Item="Overview" />
-        <section class="day-list">
-            <h2>Days</h2>
-            <div class="index-list">
-                @foreach (var day in Content.GetAll().Where(i => i.ProjectSlug == ProjectSlug && !i.IsOverview).OrderBy(i => i.Order))
-                {
-                    <a href="@day.Href" class="index-item">
-                        <span class="index-order">@day.Order.ToString("D2")</span>
-                        <strong>@day.Title</strong>
-                    </a>
-                }
-            </div>
-        </section>
     </SectionShell>
 }
 
