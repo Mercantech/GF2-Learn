@@ -62,17 +62,13 @@ public static class PlaygroundSourceBuilder
 """
             : string.Empty;
 
-        var classBody = string.Join("\n", transformedCode.Split('\n').Select(l => "        " + l));
+        // Exercise methods must live in __PlaygroundEntry so transformed __EmitLine calls resolve.
+        var methodBody = string.Join("\n", transformedCode.Split('\n').Select(l => "    " + l));
         return $$"""
             using System;
             using System.Collections.Generic;
             using System.Linq;
             using System.Text;
-
-            public static class __ExerciseCode
-            {
-            {{classBody}}
-            }
 
             public static class __PlaygroundEntry
             {
@@ -96,6 +92,8 @@ public static class PlaygroundSourceBuilder
 
             {{PlaygroundRuntimeHelpers.Source}}
 
+            {{methodBody}}
+
                 private static string? __ReadLine()
                 {
                     if (__stdinIdx >= __stdin.Length)
@@ -109,7 +107,7 @@ public static class PlaygroundSourceBuilder
                     __stdinIdx = 0;
                     try
                     {
-                        __ExerciseCode.{{methodCall}}
+                        {{methodCall}}
                     }
                     catch (global::System.Exception __ex)
                     {
