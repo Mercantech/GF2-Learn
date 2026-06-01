@@ -85,19 +85,34 @@
     protected override void OnParametersSet() =>
         _saved = !string.IsNullOrWhiteSpace(SavedCode);
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await RefreshAiStatusAsync();
+
+    private async Task RefreshAiStatusAsync()
     {
         try
         {
             var client = HttpClientFactory.CreateClient("GF2LearnApi");
-            var status = await client.GetFromJsonAsync<ExerciseAiStatusResponse>("/api/exercise-ai/status");
-            _aiEnabled = status?.Enabled == true;
-            _aiStatusHint = status?.Message ?? "AI-hjælp";
+            using var response = await client.GetAsync("/api/exercise-ai/status");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var status = await response.Content.ReadFromJsonAsync<ExerciseAiStatusResponse>();
+                _aiEnabled = status?.Enabled == true;
+                _aiStatusHint = status?.Enabled == true
+                    ? "AI-hjælp"
+                    : (status?.Message ?? "OpenAI-nøgle mangler på serveren");
+                return;
+            }
+
+            _aiEnabled = false;
+            _aiStatusHint = response.StatusCode == HttpStatusCode.ServiceUnavailable
+                ? "AI er ikke konfigureret på serveren"
+                : $"Kunne ikke kontakte AI-status (HTTP {(int)response.StatusCode})";
         }
         catch
         {
             _aiEnabled = false;
-            _aiStatusHint = "AI er ikke tilgængelig";
+            _aiStatusHint = "Kunne ikke kontakte serveren for AI-status";
         }
     }
 

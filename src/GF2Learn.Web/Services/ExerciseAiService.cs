@@ -39,7 +39,7 @@ public sealed class ExerciseAiService(
 
     private readonly OpenAiOptions _options = options.Value;
 
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(_options.ApiKey);
+    public bool IsConfigured => !string.IsNullOrWhiteSpace(_options.ApiKey?.Trim());
 
     public Task<ExerciseAiHintResponse> GetHintAsync(
         ExercisePartAiContext context,

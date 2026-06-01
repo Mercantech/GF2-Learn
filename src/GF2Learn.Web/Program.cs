@@ -1,12 +1,17 @@
 ﻿using System.Security.Claims;
 using GF2Learn.Web.Auth;
 using GF2Learn.Web.Components;
+using GF2Learn.Web.Configuration;
 using GF2Learn.Web.Data;
 using GF2Learn.Web.Models;
 using GF2Learn.Web.Options;
 using GF2Learn.Web.Services;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+
+EnvFileLoader.TryLoadFromAncestors(AppContext.BaseDirectory);
+if (EnvFileLoader.LoadedPath is null)
+    EnvFileLoader.TryLoadFromAncestors(Directory.GetCurrentDirectory());
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +68,14 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 var app = builder.Build();
+
+var openAiKey = builder.Configuration["OpenAi:ApiKey"];
+if (!string.IsNullOrWhiteSpace(openAiKey))
+    app.Logger.LogInformation("OpenAI er konfigureret (model: {Model}).", builder.Configuration["OpenAi:Model"] ?? "gpt-4o-mini");
+else
+    app.Logger.LogWarning(
+        "OpenAI er IKKE konfigureret. Sæt OpenAi__ApiKey i .env{EnvPath} (genstart appen).",
+        EnvFileLoader.LoadedPath is { } p ? $" ({p})" : " i projektroden");
 
 var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrWhiteSpace(pathBase))
@@ -207,12 +220,13 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     }).DisableAntiforgery();
 }
 
-var exerciseAi = app.MapGroup("/api/exercise-ai").RequireAuthorization();
-
-exerciseAi.MapGet("/status", (IExerciseAiService ai) =>
+app.MapGet("/api/exercise-ai/status", (IExerciseAiService ai) =>
     Results.Ok(new ExerciseAiStatusResponse(
         ai.IsConfigured,
-        ai.IsConfigured ? null : "OpenAI er ikke konfigureret (OpenAi:ApiKey).")));
+        ai.IsConfigured ? null : "OpenAI er ikke konfigureret (sæt OpenAi__ApiKey i .env).")))
+    .AllowAnonymous();
+
+var exerciseAi = app.MapGroup("/api/exercise-ai").RequireAuthorization();
 
 exerciseAi.MapPost("/hint", async (
     ExerciseAiRequest request,
