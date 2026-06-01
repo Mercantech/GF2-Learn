@@ -125,7 +125,7 @@ expected: {"navn":"Ada"}
 
 Manuel test (efter `dotnet run`):
 
-1. Åbn `/exercises/01-hello-world` — vent på WASM-load, tryk **Run**, tjek output mod **Expected**.
+1. Åbn `/exercises/01-variabler` — gennemgå kapitel 1 og løs opgaverne i jeres konsolprojekt.
 2. Indsæt syntaksfejl — compile-fejl vises i output-panelet.
 3. Uendelig løkke — timeout efter 3 sekunder.
 4. JSON med `System.Text.Json` uden ekstra refs — skal virke via BCL.

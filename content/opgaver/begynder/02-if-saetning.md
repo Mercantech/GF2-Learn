@@ -1,6 +1,6 @@
-﻿---
-title: "If Statement"
-order: 3
+---
+title: "If-sætning"
+order: 2
 difficulty: begynder
 related_pensum: [04-betingelser]
 ---
@@ -9,4 +9,13 @@ related_pensum: [04-betingelser]
 
 Læs en alder fra brugeren. Print om brugeren er myndig (18+).
 
+:::
+
+:::git-step
+commit: "feat: if-saetning opgave"
+branch: main
+:::
+
+:::related-pensum
+- 04-betingelser
 :::
