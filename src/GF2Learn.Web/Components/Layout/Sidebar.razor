@@ -12,7 +12,10 @@
     @foreach (var group in Nav.Groups)
     {
         <div class="sidebar-group">
-            <p class="sidebar-group-title">@group.Title</p>
+            @if (!string.IsNullOrWhiteSpace(group.Title))
+            {
+                <p class="sidebar-group-title">@group.Title</p>
+            }
             <ul>
                 @foreach (var item in group.Items)
                 {

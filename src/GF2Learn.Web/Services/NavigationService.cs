@@ -46,6 +46,18 @@ public sealed class NavigationService(ContentService content)
     private static SectionNav BuildProjectsNav(List<ContentItem> items)
     {
         var overviews = items.Where(i => i.IsOverview).OrderBy(i => i.Order).ToList();
+        var hasDayPages = items.Any(i => !i.IsOverview);
+
+        // Ét dokument per projekt → flad liste (undgår gruppetitel + identisk link)
+        if (!hasDayPages)
+        {
+            return new SectionNav
+            {
+                Section = ContentSectionType.Projects,
+                Groups = [new NavGroup { Title = "", Items = overviews }]
+            };
+        }
+
         var groups = overviews.Select(o =>
         {
             var days = items.Where(i => i.ProjectSlug == o.Slug && !i.IsOverview).OrderBy(i => i.Order).ToList();
