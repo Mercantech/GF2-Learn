@@ -48,21 +48,35 @@ public sealed class NavigationService(ContentService content)
         var overviews = items.Where(i => i.IsOverview).OrderBy(i => i.Order).ToList();
         var hasDayPages = items.Any(i => !i.IsOverview);
 
-        // Ét dokument per projekt → flad liste (undgår gruppetitel + identisk link)
         if (!hasDayPages)
-        {
-            return new SectionNav
-            {
-                Section = ContentSectionType.Projects,
-                Groups = [new NavGroup { Title = "", Items = overviews }]
-            };
-        }
+            return BuildProjectsNavByDifficulty(overviews);
 
         var groups = overviews.Select(o =>
         {
             var days = items.Where(i => i.ProjectSlug == o.Slug && !i.IsOverview).OrderBy(i => i.Order).ToList();
             return new NavGroup { Title = o.Title, Items = [o, ..days] };
         }).ToList();
+        return new SectionNav { Section = ContentSectionType.Projects, Groups = groups };
+    }
+
+    private static SectionNav BuildProjectsNavByDifficulty(List<ContentItem> overviews)
+    {
+        var levels = new[] { ("begynder", "Begynder"), ("mellem", "Mellem"), ("avanceret", "Avanceret") };
+        var groups = levels
+            .Select(l => new NavGroup
+            {
+                Title = l.Item2,
+                Items = overviews
+                    .Where(i => string.Equals(i.Difficulty, l.Item1, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(i => i.Order)
+                    .ToList()
+            })
+            .Where(g => g.Items.Count > 0)
+            .ToList();
+
+        if (groups.Count == 0)
+            groups.Add(new NavGroup { Title = "", Items = overviews });
+
         return new SectionNav { Section = ContentSectionType.Projects, Groups = groups };
     }
 }

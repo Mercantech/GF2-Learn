@@ -1,6 +1,7 @@
 ---
 title: Programmering i et enterprise
-order: 3
+order: 90
+difficulty: avanceret
 kompetencemaal:
   - "Kan forbinde til AD via LDAP fra C#"
   - "Kan hente og præsentere brugere og grupper"

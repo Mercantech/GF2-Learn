@@ -18,7 +18,7 @@ Central læringsplatform til **Grundforløb 2 programmering** på Mercantec — 
 |---------|---------|
 | **Pensum** | C#-teori og Git |
 | **Opgaver** | Øvelser (begynder / mellem / avanceret) |
-| **Projekter** | 3 projektforløb (hjemmespil, binær omformer, enterprise AD) |
+| **Projekter** | 7 forløb i tre niveauer (begynder → mellem → avanceret/AD) |
 
 Pensum, opgaver og projekter er **offentligt tilgængelige**. `/profile` kræver login.
 

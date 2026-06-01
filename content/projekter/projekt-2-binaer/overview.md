@@ -1,6 +1,7 @@
 ---
 title: Binær kodeomformer
-order: 2
+order: 40
+difficulty: mellem
 kompetencemaal:
   - "Kan konvertere binær ↔ decimal uden indbyggede konverteringsfunktioner"
   - "Kan arbejde med 8-bit grupper og 4 oktetter"

@@ -503,6 +503,16 @@ a:hover { color: var(--accent-bright); }
 .level-icon { font-size: 1.1rem; }
 
 /* ─── Project cards ─── */
+.project-level { margin-bottom: 2rem; }
+.project-level:last-child { margin-bottom: 0; }
+.project-level-title {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
 .project-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
@@ -533,7 +543,8 @@ a:hover { color: var(--accent-bright); }
   color: var(--accent);
   margin-bottom: 0.35rem;
 }
-.project-card h2 { margin: 0 0 0.35rem; font-size: 1.05rem; font-weight: 600; color: var(--text); }
+.project-card h2,
+.project-card h3 { margin: 0 0 0.35rem; font-size: 1.05rem; font-weight: 600; color: var(--text); }
 .project-card p { margin: 0; color: var(--text-muted); font-size: 0.85rem; flex: 1; }
 .project-arrow { margin-top: 0.75rem; font-size: 0.85rem; font-weight: 500; color: var(--accent); }
 

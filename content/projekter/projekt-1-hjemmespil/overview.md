@@ -1,6 +1,7 @@
 ---
 title: Tidsfordrivsspil
-order: 1
+order: 10
+difficulty: begynder
 kompetencemaal:
   - "Kan bygge interaktive konsolprogrammer med brugerinput"
   - "Kan bruge variabler, metoder og lister i praksis"
