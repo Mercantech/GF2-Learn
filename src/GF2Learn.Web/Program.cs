@@ -6,6 +6,7 @@ using GF2Learn.Web.Data;
 using GF2Learn.Web.Models;
 using GF2Learn.Web.Options;
 using GF2Learn.Web.Services;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,6 +56,13 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddScoped<IExerciseProgressService, ExerciseProgressService>();
     builder.Services.AddSingleton<ExerciseProgressScope>();
 }
+
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"]
+    ?? "/app/data-protection-keys";
+Directory.CreateDirectory(dataProtectionKeysPath);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+    .SetApplicationName("GF2Learn");
 
 builder.Services.AddMercantecAuth(builder.Configuration);
 

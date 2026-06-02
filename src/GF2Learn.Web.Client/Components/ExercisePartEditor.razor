@@ -125,7 +125,8 @@
         try
         {
             var payload = await BuildAiRequestAsync();
-            var envelope = await PostAiAsync("gf2ExerciseAi.postHint", payload);
+            var envelope = await PostAiAsync("gf2ExerciseAi.postHint", payload)
+                ?? await PostAiViaHttpAsync("/api/exercise-ai/hint", payload);
             if (envelope is null)
             {
                 _aiError = "Kunne ikke hente AI-tip — tomt svar.";
@@ -165,7 +166,8 @@
         try
         {
             var payload = await BuildAiRequestAsync();
-            var envelope = await PostAiAsync("gf2ExerciseAi.postCheck", payload);
+            var envelope = await PostAiAsync("gf2ExerciseAi.postCheck", payload)
+                ?? await PostAiViaHttpAsync("/api/exercise-ai/check", payload);
             if (envelope is null)
             {
                 _aiError = "Kunne ikke tjekke løsningen — tomt svar.";
@@ -194,11 +196,41 @@
 
     private async Task<AiPostEnvelope?> PostAiAsync(string jsMethod, object payload)
     {
-        var raw = await Js.InvokeAsync<string>(jsMethod, payload);
-        if (string.IsNullOrWhiteSpace(raw))
-            return null;
+        try
+        {
+            var raw = await Js.InvokeAsync<string>(jsMethod, payload);
+            if (string.IsNullOrWhiteSpace(raw))
+                return null;
 
-        return JsonSerializer.Deserialize<AiPostEnvelope>(raw, JsonOpts);
+            var envelope = JsonSerializer.Deserialize<AiPostEnvelope>(raw, JsonOpts);
+            if (envelope is { Ok: false, Status: 0 })
+                return null;
+            return envelope;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task<AiPostEnvelope?> PostAiViaHttpAsync(string path, ExerciseAiRequestPayload payload)
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.PostAsJsonAsync(path, payload);
+            var body = await response.Content.ReadAsStringAsync();
+            return new AiPostEnvelope
+            {
+                Ok = response.IsSuccessStatusCode,
+                Status = (int)response.StatusCode,
+                Body = body
+            };
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static bool TryParseBody<T>(string? body, out T? value)
@@ -221,7 +253,11 @@
     private static string FormatAiPostError(AiPostEnvelope result)
     {
         if (!string.IsNullOrWhiteSpace(result.Error))
+        {
+            if (result.Error.Contains("Failed to fetch", StringComparison.OrdinalIgnoreCase))
+                return "Netværksfejl mod serveren. Log ud og ind igen efter deploy. Hvis det fortsætter: tjek at du er logget ind, og at proxy-timeout er mindst 120 sek.";
             return result.Error;
+        }
 
         if (result.Status == 401)
             return "Log ind igen for at bruge AI (session udløbet efter deploy).";

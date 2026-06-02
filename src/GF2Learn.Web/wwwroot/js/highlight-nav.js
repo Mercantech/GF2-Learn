@@ -1,5 +1,5 @@
 (function (global) {
-  function onPageUpdated() {
+  function pageUpdated() {
     if (global.gf2Playground && global.gf2Playground.disposeAll) {
       global.gf2Playground.disposeAll();
     }
@@ -14,9 +14,12 @@
 
   function wire() {
     if (global.Blazor && global.Blazor.addEventListener) {
-      global.Blazor.addEventListener("enhancedload", onPageUpdated);
+      global.Blazor.addEventListener("enhancedload", pageUpdated);
     }
   }
+
+  global.gf2Nav = global.gf2Nav || {};
+  global.gf2Nav.pageUpdated = pageUpdated;
 
   wire();
 })(window);

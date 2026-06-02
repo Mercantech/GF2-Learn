@@ -1,4 +1,9 @@
-﻿<CascadingAuthenticationState>
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.JSInterop
+@implements IDisposable
+
+<CascadingAuthenticationState>
     <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
@@ -27,4 +32,40 @@
 
 @code {
     [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    private bool _pendingClientEnhance = true;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        _pendingClientEnhance = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_pendingClientEnhance)
+            return;
+
+        _pendingClientEnhance = false;
+
+        try
+        {
+            await Js.InvokeVoidAsync("gf2Nav.pageUpdated");
+        }
+        catch
+        {
+            // ignore if JS not ready yet
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
 }

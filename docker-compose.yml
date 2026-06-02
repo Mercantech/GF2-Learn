@@ -17,6 +17,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
+    volumes:
+      - dataprotection:/app/data-protection-keys
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,3 +46,4 @@ services:
 
 volumes:
   pgdata:
+  dataprotection:

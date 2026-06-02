@@ -22,13 +22,16 @@ public static class MercantecAuthExtensions
         var authBuilder = services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = MercantecAuthOptions.SchemeName;
+                // Cookie (ikke OAuth) ved manglende auth — API får 401 via OnRedirectToLogin.
+                // /auth/login kalder ChallengeAsync(Mercantec) eksplicit.
+                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
                 options.Cookie.Name = authOptions.CookieName;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.LoginPath = "/auth/login";
                 options.SlidingExpiration = true;
                 options.ExpireTimeSpan = TimeSpan.FromHours(8);
                 options.Events.OnRedirectToLogin = context =>
@@ -148,7 +151,7 @@ public static class MercantecAuthExtensions
 
     private static bool IsApiRequest(HttpRequest request)
     {
-        var path = request.Path.Value ?? string.Empty;
+        var path = (request.PathBase.Value ?? string.Empty) + (request.Path.Value ?? string.Empty);
         return path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/api", StringComparison.OrdinalIgnoreCase);
     }
