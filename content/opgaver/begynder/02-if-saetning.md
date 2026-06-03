@@ -1,6 +1,6 @@
 ---
 title: "If-sætning"
-order: 2
+order: 3
 difficulty: begynder
 related_pensum: [04-betingelser]
 ---
