@@ -180,6 +180,12 @@ window.gf2Playground = {
     var opts = this.editorOptions[elementId];
     if (!editor || !host || !opts) return;
 
+    var width = host.clientWidth;
+    if (width <= 0) {
+      this.scheduleRelayout(elementId);
+      return;
+    }
+
     var monaco = window.monaco;
     var lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
     var pad = opts.paddingTop + opts.paddingBottom;
@@ -191,7 +197,31 @@ window.gf2Playground = {
     var target = Math.min(maxPx, Math.max(minPx, contentHeight + extraPx));
 
     host.style.height = target + "px";
-    editor.layout({ width: host.clientWidth, height: target });
+    editor.layout({ width: width, height: target });
+  },
+
+  scheduleRelayout: function (elementId) {
+    var self = this;
+    var delays = [0, 0, 50, 150, 400];
+    delays.forEach(function (ms, idx) {
+      if (idx === 0) {
+        requestAnimationFrame(function () {
+          self.updateHeight(elementId);
+        });
+        return;
+      }
+      if (idx === 1) {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            self.updateHeight(elementId);
+          });
+        });
+        return;
+      }
+      setTimeout(function () {
+        self.updateHeight(elementId);
+      }, ms);
+    });
   },
 
   isReady: function (elementId) {
@@ -201,8 +231,19 @@ window.gf2Playground = {
   layoutVisible: function () {
     var ids = Object.keys(this.editors);
     for (var i = 0; i < ids.length; i++) {
-      this.updateHeight(ids[i]);
+      this.scheduleRelayout(ids[i]);
     }
+  },
+
+  layoutVisibleDelayed: function () {
+    var self = this;
+    self.layoutVisible();
+    setTimeout(function () {
+      self.layoutVisible();
+    }, 250);
+    setTimeout(function () {
+      self.layoutVisible();
+    }, 600);
   },
 
   init: async function (elementId, initialCode, options) {
@@ -263,7 +304,7 @@ window.gf2Playground = {
 
     this.registerTabSnippets(editor);
     this.editors[elementId] = editor;
-    this.updateHeight(elementId);
+    this.scheduleRelayout(elementId);
   },
 
   getValue: function (elementId) {

@@ -9,7 +9,8 @@
     {
         <section class="exercise-part exercise-part-ide" data-part-index="@part.PartIndex" data-content-slug="@ContentSlug">
             @((MarkupString)part.CardHtml)
-            <ExercisePartEditor ContentSlug="@ContentSlug"
+            <ExercisePartEditor @key="@($"{ContentSlug}-{part.PartIndex}")"
+                                ContentSlug="@ContentSlug"
                                 PartIndex="@part.PartIndex"
                                 InitialCode="@part.Code"
                                 SavedCode="@GetSavedCode(part.PartIndex)"
@@ -49,6 +50,18 @@
         await ReloadLocalPartsAsync();
         if (_resolvedParts.Count > 0)
             StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            await Js.InvokeVoidAsync("gf2Playground.layoutVisibleDelayed");
+        }
+        catch
+        {
+            // JS may not be ready on first paint
+        }
     }
 
     private string? GetSavedCode(int partIndex) =>

@@ -13,7 +13,8 @@
 
     @if (_useInteractiveEditors)
     {
-        <ExerciseInteractiveHost ContentSlug="@Item.Slug"
+        <ExerciseInteractiveHost @key="@Item.Slug"
+                               ContentSlug="@Item.Slug"
                                Blocks="_blockTransfers"
                                SavedParts="_savedPartsForHost"
                                OnProgressChanged="HandleProgressChanged" />

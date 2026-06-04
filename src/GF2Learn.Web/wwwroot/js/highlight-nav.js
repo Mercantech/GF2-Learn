@@ -13,8 +13,8 @@
         if (global.gf2Theme) global.gf2Theme.apply(global.gf2Theme.getMode());
         global.dispatchEvent(new CustomEvent("gf2-enhanced-nav"));
         if (global.gf2Highlight) global.gf2Highlight.process(document);
-        if (global.gf2Playground && global.gf2Playground.layoutVisible) {
-          global.gf2Playground.layoutVisible();
+        if (global.gf2Playground && global.gf2Playground.layoutVisibleDelayed) {
+          global.gf2Playground.layoutVisibleDelayed();
         }
       });
     });

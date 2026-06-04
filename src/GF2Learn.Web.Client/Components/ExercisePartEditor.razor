@@ -6,6 +6,7 @@
 @inject IJSRuntime Js
 
 <CodePlaygroundCore @ref="_editor"
+                    @key="@($"{ContentSlug}-{PartIndex}")"
                     InitialCode="@InitialCode"
                     SavedCode="@SavedCode"
                     WrapExerciseMethod="false"

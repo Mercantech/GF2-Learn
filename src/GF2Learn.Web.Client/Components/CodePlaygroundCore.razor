@@ -139,13 +139,24 @@
             await Js.InvokeVoidAsync("gf2Playground.init", _editorId, startup);
             _editorReady = true;
             _syncedInitialCode = startup;
+            await Js.InvokeVoidAsync("gf2Playground.scheduleRelayout", _editorId);
 
             if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
                 _ = Runner.WarmupAsync();
         }
-        else if (!string.IsNullOrWhiteSpace(SavedCode) && SavedCode != _syncedInitialCode)
+        else
         {
-            await SetCodeAsync(SavedCode);
+            if (!string.IsNullOrWhiteSpace(SavedCode) && SavedCode != _syncedInitialCode)
+                await SetCodeAsync(SavedCode);
+
+            try
+            {
+                await Js.InvokeVoidAsync("gf2Playground.scheduleRelayout", _editorId);
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 
