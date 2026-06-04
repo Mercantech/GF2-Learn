@@ -9,7 +9,12 @@ namespace GF2Learn.Web.Client.Services;
 /// </summary>
 public static class PlaygroundSourceBuilder
 {
-    public sealed record PreparedCode(string ExecutableCode, IReadOnlyList<string> StdinLines, bool UsesReadLine);
+    public sealed record PreparedCode(
+        string ExecutableCode,
+        IReadOnlyList<string> StdinLines,
+        bool UsesReadLine,
+        string TypeDeclarations = "",
+        string RunBody = "");
 
     public sealed record SimulatedStdinField(string Value, string? VariableName, string? Prompt);
 
@@ -20,15 +25,30 @@ public static class PlaygroundSourceBuilder
             ? body
             : string.Join("\n", setupLines) + "\n" + body;
 
-        var (transformed, stdinLines, usesReadLine) = TransformUserCode(executable);
-        return new PreparedCode(transformed, stdinLines, usesReadLine);
+        var (types, runBody) = SplitTypeDeclarations(executable);
+        var (transformedTypes, _, _) = string.IsNullOrWhiteSpace(types)
+            ? (string.Empty, Array.Empty<string>(), false)
+            : TransformUserCode(types);
+        var (transformedRun, stdinLines, usesReadLine) = TransformUserCode(
+            string.IsNullOrWhiteSpace(runBody) ? executable : runBody);
+        var combined = string.IsNullOrWhiteSpace(transformedTypes)
+            ? transformedRun
+            : transformedTypes + "\n\n" + transformedRun;
+        return new PreparedCode(combined, stdinLines, usesReadLine, transformedTypes, transformedRun);
     }
 
     public static string BuildEntryPointSource(string userCode, bool showStdinTraceInOutput = true) =>
         BuildEntryPointSource(Prepare(userCode), showStdinTraceInOutput);
 
     public static string BuildEntryPointSource(PreparedCode prepared, bool showStdinTraceInOutput = true) =>
-        BuildEntryPointSource(prepared.ExecutableCode, prepared.StdinLines, prepared.UsesReadLine, showStdinTraceInOutput);
+        string.IsNullOrWhiteSpace(prepared.TypeDeclarations)
+            ? BuildEntryPointSource(prepared.ExecutableCode, prepared.StdinLines, prepared.UsesReadLine, showStdinTraceInOutput)
+            : BuildEntryPointSourceWithTypes(
+                prepared.TypeDeclarations,
+                prepared.RunBody,
+                prepared.StdinLines,
+                prepared.UsesReadLine,
+                showStdinTraceInOutput);
 
     public static string BuildExerciseMethodEntryPointSource(string userCode, bool showStdinTraceInOutput = true)
     {
@@ -143,6 +163,81 @@ public static class PlaygroundSourceBuilder
                     : f;
             })
             .ToList();
+    }
+
+    internal static string BuildEntryPointSourceWithTypes(
+        string transformedTypes,
+        string transformedRunBody,
+        IReadOnlyList<string> stdinLines,
+        bool usesReadLine,
+        bool showStdinTraceInOutput = true)
+    {
+        var stdinInit = stdinLines.Count == 0
+            ? "Array.Empty<string>()"
+            : $"new string[] {{ {string.Join(", ", stdinLines.Select(l => $"\"{EscapeCSharpString(l)}\""))} }}";
+        var stdinNote = usesReadLine && showStdinTraceInOutput
+            ? """
+                    if (__stdinIdx > 0)
+                        __sb.AppendLine("(Simuleret input: " + string.Join(", ", __stdin.Take(__stdinIdx)) + ")");
+"""
+            : string.Empty;
+
+        var typesIndented = string.Join("\n", transformedTypes.Split('\n').Select(l => "    " + l));
+        var runIndented = string.Join("\n", transformedRunBody.Split('\n').Select(l => "            " + l));
+        return $$"""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public static class __PlaygroundEntry
+            {
+                private static readonly StringBuilder __sb = new StringBuilder();
+                private static readonly string[] __stdin = {{stdinInit}};
+                private static int __stdinIdx;
+
+                private static void __Emit(object? value) =>
+                    __sb.Append(__Str(value));
+
+                private static void __Emit(string format, params object?[] args) =>
+                    __sb.Append(args.Length == 0 ? format : __Format(format, args));
+
+                private static void __EmitLine() => __sb.AppendLine();
+
+                private static void __EmitLine(object? value) =>
+                    __sb.AppendLine(__Str(value));
+
+                private static void __EmitLine(string format, params object?[] args) =>
+                    __sb.AppendLine(args.Length == 0 ? format : __Format(format, args));
+
+            {{PlaygroundRuntimeHelpers.Source}}
+
+            {{typesIndented}}
+
+                private static string? __ReadLine()
+                {
+                    if (__stdinIdx >= __stdin.Length)
+                        return string.Empty;
+                    return __stdin[__stdinIdx++];
+                }
+
+                public static string Run()
+                {
+                    __sb.Clear();
+                    __stdinIdx = 0;
+                    try
+                    {
+            {{runIndented}}
+                    }
+                    catch (global::System.Exception __ex)
+                    {
+                        __sb.AppendLine("Fejl: " + __ex.Message);
+                    }
+            {{stdinNote}}
+                    return __sb.ToString();
+                }
+            }
+            """;
     }
 
     internal static string BuildEntryPointSource(
@@ -352,4 +447,83 @@ public static class PlaygroundSourceBuilder
 
     private static string EscapeCSharpString(string value) =>
         value.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
+
+    /// <summary>
+    /// Splits top-level type declarations (class, struct, record, …) from executable statements
+    /// so types compile inside <see cref="__PlaygroundEntry"/> instead of inside <c>Run()</c>.
+    /// </summary>
+    internal static (string Types, string Body) SplitTypeDeclarations(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return (string.Empty, string.Empty);
+
+        var lines = code.Replace("\r\n", "\n").Split('\n');
+        var typeLines = new List<string>();
+        var bodyLines = new List<string>();
+        var i = 0;
+
+        while (i < lines.Length)
+        {
+            var line = lines[i];
+            if (IsTypeDeclarationStart(line.TrimStart()))
+            {
+                var block = ExtractTypeBlock(lines, ref i);
+                if (typeLines.Count > 0)
+                    typeLines.Add(string.Empty);
+                typeLines.AddRange(block);
+                continue;
+            }
+
+            if (typeLines.Count == 0 && string.IsNullOrWhiteSpace(line))
+            {
+                i++;
+                continue;
+            }
+
+            bodyLines.Add(line);
+            i++;
+        }
+
+        return (string.Join("\n", typeLines).Trim(), string.Join("\n", bodyLines).Trim());
+    }
+
+    private static bool IsTypeDeclarationStart(string trimmedLine) =>
+        Regex.IsMatch(
+            trimmedLine,
+            @"^(?:(?:public|private|internal|protected)\s+)*(?:class|record|struct|enum|interface)\s+\w+",
+            RegexOptions.CultureInvariant);
+
+    private static List<string> ExtractTypeBlock(string[] lines, ref int index)
+    {
+        var block = new List<string>();
+        var braceDepth = 0;
+        var started = false;
+
+        for (; index < lines.Length; index++)
+        {
+            var line = lines[index];
+            block.Add(line);
+
+            foreach (var ch in line)
+            {
+                if (ch == '{')
+                {
+                    braceDepth++;
+                    started = true;
+                }
+                else if (ch == '}')
+                {
+                    braceDepth--;
+                }
+            }
+
+            if (started && braceDepth <= 0)
+            {
+                index++;
+                break;
+            }
+        }
+
+        return block;
+    }
 }

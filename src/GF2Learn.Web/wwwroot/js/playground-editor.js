@@ -102,6 +102,15 @@ window.gf2Playground = {
     monaco.languages.registerCompletionItemProvider("csharp", {
       triggerCharacters: ["."],
       provideCompletionItems: function (model, position) {
+        if (window.gf2CSharpIntellisense && window.gf2CSharpIntellisense.buildSuggestions) {
+          return window.gf2CSharpIntellisense.buildSuggestions(
+            monaco,
+            model,
+            position,
+            snippets
+          );
+        }
+
         var word = model.getWordUntilPosition(position);
         var range = {
           startLineNumber: position.lineNumber,
@@ -304,7 +313,15 @@ window.gf2Playground = {
       padding: { top: heightOpts.paddingTop, bottom: heightOpts.paddingBottom },
       quickSuggestions: { other: true, comments: false, strings: false },
       suggestOnTriggerCharacters: true,
+      wordBasedSuggestions: "off",
+      suggest: {
+        showWords: false,
+        preview: true,
+        filterGraceful: true,
+        localityBonus: true
+      },
       snippetSuggestions: "top",
+      parameterHints: { enabled: true },
       scrollbar: {
         vertical: "auto",
         horizontal: "hidden",

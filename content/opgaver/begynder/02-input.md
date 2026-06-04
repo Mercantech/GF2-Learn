@@ -85,7 +85,6 @@ Lav et program, der gemmer et input som et **decimaltal** og skriver tallet ud. 
 
 :::code-playground
 ```csharp
-// gf2-input: 5.25
 Console.WriteLine("Lav et program som gemmer et input som et decimaltal og skriver tallet ud i konsollen");
 Console.WriteLine("Indtast et decimaltal: ");
 // TODO: Lav opgave 3 herunder! Tip: double d = double.Parse(Console.ReadLine());
