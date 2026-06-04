@@ -323,6 +323,9 @@ window.gf2Playground = {
       requestAnimationFrame(function () {
         self.applyContentHeight(elementId, editor.getContentHeight());
         host.classList.remove("playground-editor-host-loading");
+        if (window.gf2ExercisePage && window.gf2ExercisePage.checkReady) {
+          window.gf2ExercisePage.checkReady();
+        }
         resolve();
       });
     });

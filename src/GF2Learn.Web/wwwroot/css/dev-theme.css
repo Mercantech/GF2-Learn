@@ -1818,6 +1818,75 @@ a:hover { color: var(--accent-bright); }
 .exercise-part-ide {
   overflow: hidden;
 }
+.exercise-page {
+  position: relative;
+}
+.exercise-page-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 14rem;
+  padding: 2rem 1.5rem;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+.exercise-page-loader-text {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text);
+}
+.exercise-page-loader-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.exercise-page--pending .exercise-page-body {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.exercise-page--ready .exercise-page-loader {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.exercise-page--ready .exercise-page-body {
+  opacity: 1;
+  transition: opacity 0.32s ease;
+}
+.exercise-page--timeout .exercise-page-loader-hint::after {
+  content: " — nogle editorer kunne ikke indlæses. Prøv at genindlæse siden.";
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--warning);
+}
+.gf2-spinner {
+  display: inline-block;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: gf2-spin 0.75s linear infinite;
+}
+.gf2-spinner-lg {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-width: 3px;
+}
+@keyframes gf2-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .exercise-ide-playground .playground-title {
   color: var(--accent-teal);
 }
@@ -2043,6 +2112,44 @@ a:hover { color: var(--accent-bright); }
 }
 .playground-editor-host-loading:not(:has(.monaco-editor)) {
   overflow: hidden;
+}
+.playground-editor-host-loading:not(:has(.monaco-editor))::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 45%,
+    transparent 90%
+  );
+  background-size: 200% 100%;
+  animation: gf2-editor-shimmer 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.playground-editor-host-loading:not(:has(.monaco-editor))::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.75rem 0 0 -0.75rem;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: gf2-spin 0.75s linear infinite;
+  pointer-events: none;
+}
+@keyframes gf2-editor-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 .playground-editor-host .monaco-editor,
 .playground-editor-host .monaco-editor-background,

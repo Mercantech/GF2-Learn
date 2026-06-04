@@ -142,6 +142,15 @@
         _monacoMounted = true;
         _syncedInitialCode = StartupCode;
 
+        try
+        {
+            await Js.InvokeVoidAsync("gf2ExercisePage.checkReady");
+        }
+        catch
+        {
+            /* exercise-page-load.js may not be loaded on all hosts */
+        }
+
         if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
             _ = Runner.WarmupAsync();
 

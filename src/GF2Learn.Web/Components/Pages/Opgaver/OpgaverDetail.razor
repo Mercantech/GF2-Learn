@@ -21,14 +21,26 @@ else
             <h1>@Item.Title</h1>
             <ContentMeta Item="Item" />
         </header>
-        <div class="exercise-page" data-content-slug="@Slug">
-            @if (_partCount > 0)
+        <div class="exercise-page @(HasInteractiveEditors ? "exercise-page--pending" : null)"
+             data-content-slug="@Slug"
+             @(HasInteractiveEditors ? "data-exercise-interactive" : null)>
+            @if (HasInteractiveEditors)
             {
-                <p class="exercise-progress-summary" hidden aria-live="polite">0 af @_partCount opgavedele gemt som løst</p>
+                <div class="exercise-page-loader" role="status" aria-live="polite">
+                    <span class="gf2-spinner gf2-spinner-lg" aria-hidden="true"></span>
+                    <p class="exercise-page-loader-text">Indlæser opgave…</p>
+                    <p class="exercise-page-loader-hint">Klargør kodeeditorer</p>
+                </div>
             }
-            <ExerciseContent Item="Item"
-                             SavedParts="_savedParts"
-                             OnProgressChanged="ReloadProgressAsync" />
+            <div class="exercise-page-body">
+                @if (_partCount > 0)
+                {
+                    <p class="exercise-progress-summary" hidden aria-live="polite">0 af @_partCount opgavedele gemt som løst</p>
+                }
+                <ExerciseContent Item="Item"
+                                 SavedParts="_savedParts"
+                                 OnProgressChanged="ReloadProgressAsync" />
+            </div>
             @if (_savedParts.Count > 0)
             {
                 <script type="application/json" id="exercise-bootstrap-@Slug">@JsonSerializer.Serialize(_savedParts, JsonOptions)</script>
@@ -49,6 +61,10 @@ else
     private ContentItem? Item => Content.GetExercise(Slug);
     private List<ExercisePartAnswerDto> _savedParts = [];
     private int _partCount;
+
+    private bool HasInteractiveEditors =>
+        Item is not null
+        && Item.Body.Contains(":::code-playground", StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnParametersSetAsync()
     {
