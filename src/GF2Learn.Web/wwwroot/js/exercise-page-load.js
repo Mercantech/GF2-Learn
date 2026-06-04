@@ -1,8 +1,11 @@
 (function (global) {
   var POLL_MS = 80;
-  var TIMEOUT_MS = 45000;
+  var TIMEOUT_MS = 20000;
+  var EMPTY_HOSTS_GRACE_MS = 12000;
   var pollTimer = null;
   var timeoutTimer = null;
+  var emptyGraceTimer = null;
+  var hostObserver = null;
 
   function pendingPage() {
     return document.querySelector(".exercise-page--pending[data-exercise-interactive]");
@@ -13,16 +16,23 @@
   }
 
   function hostIsReady(host) {
+    if (!host) return false;
+
+    if (host.dataset.editorReady === "1") return true;
+
+    if (host.id && global.gf2Playground && global.gf2Playground.isReady(host.id)) {
+      return true;
+    }
+
     return (
-      host.dataset.editorReady === "1" &&
-      !host.classList.contains("playground-editor-host-loading") &&
-      !!host.querySelector(".monaco-editor")
+      !!host.querySelector(".monaco-editor") &&
+      !host.classList.contains("playground-editor-host-loading")
     );
   }
 
   function allEditorsReady(page) {
     var hosts = hostsIn(page);
-    if (!hosts.length) return true;
+    if (!hosts.length) return false;
     for (var i = 0; i < hosts.length; i++) {
       if (!hostIsReady(hosts[i])) return false;
     }
@@ -48,6 +58,14 @@
       clearTimeout(timeoutTimer);
       timeoutTimer = null;
     }
+    if (emptyGraceTimer) {
+      clearTimeout(emptyGraceTimer);
+      emptyGraceTimer = null;
+    }
+    if (hostObserver) {
+      hostObserver.disconnect();
+      hostObserver = null;
+    }
   }
 
   function checkReady() {
@@ -56,7 +74,26 @@
       stopWatching();
       return;
     }
+
+    var hosts = hostsIn(page);
+    if (hosts.length === 0) return;
+
+    if (emptyGraceTimer) {
+      clearTimeout(emptyGraceTimer);
+      emptyGraceTimer = null;
+    }
+
     if (allEditorsReady(page)) markReady(page);
+  }
+
+  function watchForHosts(page) {
+    if (hostObserver) hostObserver.disconnect();
+
+    var root = page.querySelector(".exercise-page-body") || page;
+    hostObserver = new MutationObserver(function () {
+      checkReady();
+    });
+    hostObserver.observe(root, { childList: true, subtree: true });
   }
 
   function startWatching() {
@@ -64,6 +101,7 @@
     if (!page) return;
 
     page.setAttribute("aria-busy", "true");
+    watchForHosts(page);
     checkReady();
 
     if (!pollTimer) {
@@ -78,6 +116,14 @@
         markReady(p);
       }, TIMEOUT_MS);
     }
+
+    if (!emptyGraceTimer) {
+      emptyGraceTimer = setTimeout(function () {
+        var p = pendingPage();
+        if (!p) return;
+        if (hostsIn(p).length === 0) markReady(p);
+      }, EMPTY_HOSTS_GRACE_MS);
+    }
   }
 
   global.gf2ExercisePage = {
@@ -85,11 +131,15 @@
     startWatching: startWatching
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", startWatching);
-  } else {
+  function boot() {
     startWatching();
   }
 
-  document.addEventListener("gf2-enhanced-nav", startWatching);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("gf2-enhanced-nav", boot);
 })(window);

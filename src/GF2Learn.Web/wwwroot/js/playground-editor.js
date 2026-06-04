@@ -102,13 +102,17 @@ window.gf2Playground = {
     monaco.languages.registerCompletionItemProvider("csharp", {
       triggerCharacters: ["."],
       provideCompletionItems: function (model, position) {
-        if (window.gf2CSharpIntellisense && window.gf2CSharpIntellisense.buildSuggestions) {
-          return window.gf2CSharpIntellisense.buildSuggestions(
-            monaco,
-            model,
-            position,
-            snippets
-          );
+        try {
+          if (window.gf2CSharpIntellisense && window.gf2CSharpIntellisense.buildSuggestions) {
+            return window.gf2CSharpIntellisense.buildSuggestions(
+              monaco,
+              model,
+              position,
+              snippets
+            );
+          }
+        } catch (e) {
+          console.warn("gf2 C# intellisense:", e);
         }
 
         var word = model.getWordUntilPosition(position);
@@ -229,10 +233,19 @@ window.gf2Playground = {
     var target = Math.min(maxPx, Math.max(minPx, measured + extraPx));
     var prev = parseInt(host.style.height, 10);
 
-    if (!isNaN(prev) && Math.abs(prev - target) < 2) return;
+    if (!isNaN(prev) && Math.abs(prev - target) < 2) {
+      host.dataset.editorReady = "1";
+      return;
+    }
 
     host.style.height = target + "px";
     host.dataset.editorReady = "1";
+  },
+
+  markHostReady: function (host) {
+    if (!host) return;
+    host.dataset.editorReady = "1";
+    host.classList.remove("playground-editor-host-loading");
   },
 
   scheduleHeightSync: function (elementId) {
@@ -336,10 +349,13 @@ window.gf2Playground = {
     this.registerTabSnippets(editor);
     this.editors[elementId] = editor;
 
+    self.markHostReady(host);
+    self.applyContentHeight(elementId, editor.getContentHeight());
+
     await new Promise(function (resolve) {
       requestAnimationFrame(function () {
         self.applyContentHeight(elementId, editor.getContentHeight());
-        host.classList.remove("playground-editor-host-loading");
+        self.markHostReady(host);
         if (window.gf2ExercisePage && window.gf2ExercisePage.checkReady) {
           window.gf2ExercisePage.checkReady();
         }

@@ -137,19 +137,25 @@
             return;
         }
 
-        await Js.InvokeVoidAsync("gf2Playground.init", _editorId, StartupCode);
+        try
+        {
+            await Js.InvokeVoidAsync("gf2Playground.init", _editorId, StartupCode);
+        }
+        finally
+        {
+            try
+            {
+                await Js.InvokeVoidAsync("gf2ExercisePage.checkReady");
+            }
+            catch
+            {
+                /* exercise-page-load.js may not be loaded on all hosts */
+            }
+        }
+
         _editorReady = true;
         _monacoMounted = true;
         _syncedInitialCode = StartupCode;
-
-        try
-        {
-            await Js.InvokeVoidAsync("gf2ExercisePage.checkReady");
-        }
-        catch
-        {
-            /* exercise-page-load.js may not be loaded on all hosts */
-        }
 
         if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
             _ = Runner.WarmupAsync();
