@@ -1999,6 +1999,12 @@ a:hover { color: var(--accent-bright); }
 
 .code-playground-interactive {
   background: var(--bg-card);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.exercise-ide-playground {
+  min-width: 0;
 }
 .playground-header {
   display: flex;
@@ -2020,6 +2026,8 @@ a:hover { color: var(--accent-bright); }
 .playground-editor-host {
   position: relative;
   isolation: isolate;
+  box-sizing: border-box;
+  display: block;
   min-height: 12rem;
   height: auto;
   width: 100%;
@@ -2027,6 +2035,19 @@ a:hover { color: var(--accent-bright); }
   overflow: hidden;
   background: var(--code-bg);
   transition: height 0.12s ease-out;
+}
+.playground-editor-host-loading {
+  min-height: 8.5rem;
+}
+.playground-editor-host .monaco-editor,
+.playground-editor-host .monaco-editor-background,
+.playground-editor-host .monaco-editor .overflow-guard {
+  width: 100% !important;
+  max-width: 100%;
+}
+.playground-editor-host .monaco-editor .margin,
+.playground-editor-host .monaco-editor .monaco-scrollable-element {
+  width: 100% !important;
 }
 .playground-editor-host-compact {
   min-height: 9rem;

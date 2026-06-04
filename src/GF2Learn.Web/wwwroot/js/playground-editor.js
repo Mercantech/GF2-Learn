@@ -1,6 +1,7 @@
 window.gf2Playground = {
   editors: {},
   editorOptions: {},
+  resizeObservers: {},
   monacoLoadPromise: null,
   monacoBase: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs",
 
@@ -87,6 +88,7 @@ window.gf2Playground = {
   applyTheme: function () {
     if (!window.monaco || !window.gf2Playground._themeDefined) return;
     window.monaco.editor.setTheme(this.resolveTheme());
+    this.refreshAll();
   },
 
   registerCSharpSupport: function () {
@@ -174,17 +176,48 @@ window.gf2Playground = {
     };
   },
 
-  updateHeight: function (elementId) {
+  hostIsReady: function (host) {
+    if (!host || !host.isConnected) return false;
+    var rect = host.getBoundingClientRect();
+    return rect.width >= 48;
+  },
+
+  waitForHostReady: function (host, maxMs) {
+    var self = this;
+    maxMs = maxMs || 8000;
+    return new Promise(function (resolve) {
+      if (self.hostIsReady(host)) {
+        resolve();
+        return;
+      }
+
+      var settled = false;
+      var finish = function () {
+        if (settled) return;
+        settled = true;
+        if (observer) observer.disconnect();
+        clearTimeout(timer);
+        resolve();
+      };
+
+      var observer = null;
+      if (typeof ResizeObserver !== "undefined") {
+        observer = new ResizeObserver(function () {
+          if (self.hostIsReady(host)) finish();
+        });
+        observer.observe(host);
+        if (host.parentElement) observer.observe(host.parentElement);
+      }
+
+      var timer = setTimeout(finish, maxMs);
+    });
+  },
+
+  applyContentHeight: function (elementId, contentHeight) {
     var editor = this.editors[elementId];
     var host = document.getElementById(elementId);
     var opts = this.editorOptions[elementId];
     if (!editor || !host || !opts) return;
-
-    var width = host.clientWidth;
-    if (width <= 0) {
-      this.scheduleRelayout(elementId);
-      return;
-    }
 
     var monaco = window.monaco;
     var lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
@@ -192,58 +225,52 @@ window.gf2Playground = {
     var extraPx = opts.extraLines * lineHeight;
     var minPx = opts.minLines * lineHeight + pad;
     var maxPx = opts.maxLines * lineHeight + pad;
-
-    var contentHeight = editor.getContentHeight();
-    var target = Math.min(maxPx, Math.max(minPx, contentHeight + extraPx));
+    var measured = contentHeight > 0 ? contentHeight : editor.getContentHeight();
+    var target = Math.min(maxPx, Math.max(minPx, measured + extraPx));
 
     host.style.height = target + "px";
-    editor.layout({ width: width, height: target });
+    host.dataset.editorReady = "1";
   },
 
-  scheduleRelayout: function (elementId) {
+  updateHeight: function (elementId) {
+    var editor = this.editors[elementId];
+    if (!editor) return;
+    this.applyContentHeight(elementId, editor.getContentHeight());
+  },
+
+  attachResizeObserver: function (elementId, host) {
+    this.detachResizeObserver(elementId);
+    if (typeof ResizeObserver === "undefined") return;
+
     var self = this;
-    var delays = [0, 0, 50, 150, 400];
-    delays.forEach(function (ms, idx) {
-      if (idx === 0) {
-        requestAnimationFrame(function () {
-          self.updateHeight(elementId);
-        });
-        return;
-      }
-      if (idx === 1) {
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            self.updateHeight(elementId);
-          });
-        });
-        return;
-      }
-      setTimeout(function () {
-        self.updateHeight(elementId);
-      }, ms);
+    var ro = new ResizeObserver(function () {
+      self.updateHeight(elementId);
     });
+    ro.observe(host);
+    this.resizeObservers[elementId] = ro;
+  },
+
+  detachResizeObserver: function (elementId) {
+    var ro = this.resizeObservers[elementId];
+    if (!ro) return;
+    ro.disconnect();
+    delete this.resizeObservers[elementId];
   },
 
   isReady: function (elementId) {
-    return !!this.editors[elementId];
+    var host = document.getElementById(elementId);
+    return !!this.editors[elementId] && host && host.dataset.editorReady === "1";
   },
 
-  layoutVisible: function () {
+  refreshAll: function () {
     var ids = Object.keys(this.editors);
     for (var i = 0; i < ids.length; i++) {
-      this.scheduleRelayout(ids[i]);
+      this.updateHeight(ids[i]);
     }
   },
 
   layoutVisibleDelayed: function () {
-    var self = this;
-    self.layoutVisible();
-    setTimeout(function () {
-      self.layoutVisible();
-    }, 250);
-    setTimeout(function () {
-      self.layoutVisible();
-    }, 600);
+    this.refreshAll();
   },
 
   init: async function (elementId, initialCode, options) {
@@ -253,21 +280,24 @@ window.gf2Playground = {
     var host = document.getElementById(elementId);
     if (!host) return;
 
-    if (this.editors[elementId]) {
-      this.dispose(elementId);
-    }
-
+    this.dispose(elementId);
     host.textContent = "";
+    host.dataset.editorReady = "0";
+    host.classList.add("playground-editor-host-loading");
+
+    await this.waitForHostReady(host);
 
     var heightOpts = this.resolveHeightOptions(host, options);
     this.editorOptions[elementId] = heightOpts;
 
     var monaco = window.monaco;
+    var self = this;
     var editor = monaco.editor.create(host, {
       value: initialCode || "",
       language: "csharp",
       theme: this.resolveTheme(),
-      automaticLayout: false,
+      automaticLayout: true,
+      fixedOverflowWidgets: true,
       fontFamily: "JetBrains Mono, Consolas, monospace",
       fontSize: 14,
       lineHeight: 22,
@@ -277,7 +307,7 @@ window.gf2Playground = {
       tabSize: 4,
       insertSpaces: true,
       readOnly: !!options.readOnly,
-      renderLineHighlight: "line",
+      renderLineHighlight: "gutter",
       padding: { top: heightOpts.paddingTop, bottom: heightOpts.paddingBottom },
       quickSuggestions: { other: true, comments: false, strings: false },
       suggestOnTriggerCharacters: true,
@@ -289,22 +319,21 @@ window.gf2Playground = {
       }
     });
 
-    var self = this;
-    editor.onDidContentSizeChange(function () {
-      self.updateHeight(elementId);
-    });
-
-    window.addEventListener("resize", function onResize() {
-      if (!self.editors[elementId]) {
-        window.removeEventListener("resize", onResize);
-        return;
-      }
-      self.updateHeight(elementId);
+    editor.onDidContentSizeChange(function (e) {
+      self.applyContentHeight(elementId, e.contentHeight);
     });
 
     this.registerTabSnippets(editor);
     this.editors[elementId] = editor;
-    this.scheduleRelayout(elementId);
+    this.attachResizeObserver(elementId, host);
+
+    await new Promise(function (resolve) {
+      requestAnimationFrame(function () {
+        self.applyContentHeight(elementId, editor.getContentHeight());
+        host.classList.remove("playground-editor-host-loading");
+        resolve();
+      });
+    });
   },
 
   getValue: function (elementId) {
@@ -325,13 +354,23 @@ window.gf2Playground = {
   },
 
   dispose: function (elementId) {
+    this.detachResizeObserver(elementId);
+
     var editor = this.editors[elementId];
-    if (!editor) return;
-    editor.dispose();
-    delete this.editors[elementId];
+    if (editor) {
+      editor.dispose();
+      delete this.editors[elementId];
+    }
+
     delete this.editorOptions[elementId];
+
     var host = document.getElementById(elementId);
-    if (host) host.textContent = "";
+    if (host) {
+      host.textContent = "";
+      host.style.height = "";
+      host.classList.remove("playground-editor-host-loading");
+      delete host.dataset.editorReady;
+    }
   },
 
   disposeAll: function () {

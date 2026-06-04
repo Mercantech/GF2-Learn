@@ -17,7 +17,7 @@
         </div>
     </div>
 
-    <div id="@_editorId" class="playground-editor-host @EditorHostClass"></div>
+    <div id="@_editorId" class="playground-editor-host @EditorHostClass @(_editorReady ? "playground-editor-host-ready" : "playground-editor-host-loading")"></div>
 
     <div class="playground-output-panel">
         <p class="playground-output-label">Output</p>
@@ -139,25 +139,17 @@
             await Js.InvokeVoidAsync("gf2Playground.init", _editorId, startup);
             _editorReady = true;
             _syncedInitialCode = startup;
-            await Js.InvokeVoidAsync("gf2Playground.scheduleRelayout", _editorId);
 
             if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
                 _ = Runner.WarmupAsync();
         }
-        else
+        else if (!string.IsNullOrWhiteSpace(SavedCode) && SavedCode != _syncedInitialCode)
         {
-            if (!string.IsNullOrWhiteSpace(SavedCode) && SavedCode != _syncedInitialCode)
-                await SetCodeAsync(SavedCode);
-
-            try
-            {
-                await Js.InvokeVoidAsync("gf2Playground.scheduleRelayout", _editorId);
-            }
-            catch
-            {
-                // ignore
-            }
+            await SetCodeAsync(SavedCode);
         }
+
+        if (_editorReady)
+            StateHasChanged();
     }
 
     public async Task<string> GetCodeAsync()

@@ -52,18 +52,6 @@
             StateHasChanged();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        try
-        {
-            await Js.InvokeVoidAsync("gf2Playground.layoutVisibleDelayed");
-        }
-        catch
-        {
-            // JS may not be ready on first paint
-        }
-    }
-
     private string? GetSavedCode(int partIndex) =>
         _resolvedParts.FirstOrDefault(p => p.PartIndex == partIndex)?.AnswerText;
 
