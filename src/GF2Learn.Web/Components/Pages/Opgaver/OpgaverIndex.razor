@@ -20,7 +20,7 @@
             <div class="index-list">
                 @foreach (var item in items)
                 {
-                    <a href="@item.Href" class="index-item" data-exercise-slug="@item.Slug">
+                    <a href="@item.Href" class="index-item" data-exercise-slug="@item.Slug" data-enhance-nav="false">
                         <span class="index-order">@item.Order.ToString("D2")</span>
                         <div class="index-item-body"><strong>@item.Title</strong></div>
                         @if (_completedSlugs.Contains(item.Slug))

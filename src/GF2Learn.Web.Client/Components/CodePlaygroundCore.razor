@@ -91,7 +91,6 @@
     private bool _running;
     private bool _editorReady;
     private bool _monacoMounted;
-    private bool _mountInProgress;
     private string? _syncedInitialCode;
     private string _pendingCodeAttr = "";
     private bool? _expectedMatch;
@@ -126,68 +125,27 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await EnsureMonacoMountedAsync();
-
-        if (_monacoMounted
-            && !string.IsNullOrWhiteSpace(SavedCode)
-            && SavedCode != _syncedInitialCode)
+        if (!firstRender || _editorReady)
         {
-            await SetCodeAsync(SavedCode);
-        }
-    }
-
-    private async Task EnsureMonacoMountedAsync()
-    {
-        if (_mountInProgress)
-            return;
-
-        if (await IsMonacoReadyAsync())
-        {
-            if (!_monacoMounted)
+            if (_editorReady
+                && !string.IsNullOrWhiteSpace(SavedCode)
+                && SavedCode != _syncedInitialCode)
             {
-                _monacoMounted = true;
-                _editorReady = true;
-                StateHasChanged();
+                await SetCodeAsync(SavedCode);
             }
 
             return;
         }
 
-        _mountInProgress = true;
-        var becameReady = false;
-        try
-        {
-            await Js.InvokeVoidAsync("gf2Playground.initWhenVisible", _editorId, StartupCode);
-            becameReady = await IsMonacoReadyAsync();
-            _editorReady = becameReady;
-            if (becameReady)
-            {
-                _monacoMounted = true;
-                _syncedInitialCode = StartupCode;
+        await Js.InvokeVoidAsync("gf2Playground.init", _editorId, StartupCode);
+        _editorReady = true;
+        _monacoMounted = true;
+        _syncedInitialCode = StartupCode;
 
-                if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
-                    _ = Runner.WarmupAsync();
-            }
-        }
-        finally
-        {
-            _mountInProgress = false;
-        }
+        if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
+            _ = Runner.WarmupAsync();
 
-        if (becameReady)
-            StateHasChanged();
-    }
-
-    private async Task<bool> IsMonacoReadyAsync()
-    {
-        try
-        {
-            return await Js.InvokeAsync<bool>("gf2Playground.isReady", _editorId);
-        }
-        catch
-        {
-            return false;
-        }
+        StateHasChanged();
     }
 
     private static string EncodePendingCode(string code) =>

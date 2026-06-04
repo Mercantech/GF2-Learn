@@ -85,11 +85,9 @@
     apply: apply
   };
 
-  apply(readMode());
-
   function onReady() {
-    apply(readMode());
     wireToggles();
+    updateToggleUi(readMode());
   }
 
   if (document.readyState === "loading") {
