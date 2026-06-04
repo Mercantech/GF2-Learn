@@ -194,12 +194,29 @@ window.gf2Playground = {
     editor.layout({ width: host.clientWidth, height: target });
   },
 
+  isReady: function (elementId) {
+    return !!this.editors[elementId];
+  },
+
+  layoutVisible: function () {
+    var ids = Object.keys(this.editors);
+    for (var i = 0; i < ids.length; i++) {
+      this.updateHeight(ids[i]);
+    }
+  },
+
   init: async function (elementId, initialCode, options) {
     options = options || {};
     await this.loadMonaco();
 
     var host = document.getElementById(elementId);
-    if (!host || this.editors[elementId]) return;
+    if (!host) return;
+
+    if (this.editors[elementId]) {
+      this.dispose(elementId);
+    }
+
+    host.textContent = "";
 
     var heightOpts = this.resolveHeightOptions(host, options);
     this.editorOptions[elementId] = heightOpts;
@@ -272,6 +289,8 @@ window.gf2Playground = {
     editor.dispose();
     delete this.editors[elementId];
     delete this.editorOptions[elementId];
+    var host = document.getElementById(elementId);
+    if (host) host.textContent = "";
   },
 
   disposeAll: function () {

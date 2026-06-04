@@ -41,10 +41,23 @@
         Navigation.LocationChanged += OnLocationChanged;
     }
 
-    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         _pendingClientEnhance = true;
-        _ = InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(async () =>
+        {
+            try
+            {
+                // Ryd gamle Monaco-instanser før ny side renderes (undgår «flyvende» kode).
+                await Js.InvokeVoidAsync("gf2Nav.prepareNavigation");
+            }
+            catch
+            {
+                // ignore if JS not ready yet
+            }
+
+            StateHasChanged();
+        });
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -56,7 +69,7 @@
 
         try
         {
-            await Js.InvokeVoidAsync("gf2Nav.pageUpdated");
+            await Js.InvokeVoidAsync("gf2Nav.enhancePage");
         }
         catch
         {

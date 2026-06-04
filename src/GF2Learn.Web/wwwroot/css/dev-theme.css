@@ -1813,6 +1813,10 @@ a:hover { color: var(--accent-bright); }
   margin: 0;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   border-top: none;
+  overflow: hidden;
+}
+.exercise-part-ide {
+  overflow: hidden;
 }
 .exercise-ide-playground .playground-title {
   color: var(--accent-teal);
@@ -2014,8 +2018,11 @@ a:hover { color: var(--accent-bright); }
   color: var(--accent);
 }
 .playground-editor-host {
+  position: relative;
+  isolation: isolate;
   min-height: 12rem;
   height: auto;
+  width: 100%;
   max-width: 100%;
   overflow: hidden;
   background: var(--code-bg);

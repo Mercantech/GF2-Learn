@@ -31,6 +31,7 @@
       var pre = code.parentElement;
       if (!pre || pre.dataset.codeEnhanced) return;
       if (pre.closest(".code-playground")) return;
+      if (pre.closest(".landing-code-window")) return;
       pre.dataset.codeEnhanced = "1";
 
       var lang = langLabel(code);
@@ -71,6 +72,7 @@
   function highlightCode(code) {
     var hljs = global.hljs;
     if (!hljs) return;
+    if (code.closest(".landing-code-window")) return;
 
     code.classList.remove("hljs");
     code.removeAttribute("data-highlighted");

@@ -119,21 +119,34 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        var startup = StartupCode;
+        var needsInit = firstRender || !_editorReady;
+
+        if (!needsInit)
         {
-            var startup = StartupCode;
+            try
+            {
+                needsInit = !await Js.InvokeAsync<bool>("gf2Playground.isReady", _editorId);
+            }
+            catch
+            {
+                needsInit = true;
+            }
+        }
+
+        if (needsInit)
+        {
             await Js.InvokeVoidAsync("gf2Playground.init", _editorId, startup);
             _editorReady = true;
             _syncedInitialCode = startup;
 
             if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
                 _ = Runner.WarmupAsync();
-
-            return;
         }
-
-        if (_editorReady && !string.IsNullOrWhiteSpace(SavedCode) && SavedCode != _syncedInitialCode)
+        else if (!string.IsNullOrWhiteSpace(SavedCode) && SavedCode != _syncedInitialCode)
+        {
             await SetCodeAsync(SavedCode);
+        }
     }
 
     public async Task<string> GetCodeAsync()
