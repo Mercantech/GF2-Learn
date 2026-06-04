@@ -1,14 +1,13 @@
 (function (global) {
-  var POLL_MS = 80;
-  var TIMEOUT_MS = 20000;
-  var EMPTY_HOSTS_GRACE_MS = 12000;
+  var POLL_MS = 100;
+  var FORCE_READY_MS = 8000;
+
   var pollTimer = null;
-  var timeoutTimer = null;
-  var emptyGraceTimer = null;
+  var forceTimer = null;
   var hostObserver = null;
 
   function pendingPage() {
-    return document.querySelector(".exercise-page--pending[data-exercise-interactive]");
+    return document.querySelector(".exercise-page.exercise-page--pending");
   }
 
   function hostsIn(page) {
@@ -17,13 +16,10 @@
 
   function hostIsReady(host) {
     if (!host) return false;
-
     if (host.dataset.editorReady === "1") return true;
-
     if (host.id && global.gf2Playground && global.gf2Playground.isReady(host.id)) {
       return true;
     }
-
     return (
       !!host.querySelector(".monaco-editor") &&
       !host.classList.contains("playground-editor-host-loading")
@@ -39,12 +35,17 @@
     return true;
   }
 
-  function markReady(page) {
+  function markReady(page, timedOut) {
+    if (!page || !page.classList.contains("exercise-page--pending")) return;
+
+    if (timedOut) page.classList.add("exercise-page--timeout");
     page.classList.remove("exercise-page--pending");
     page.classList.add("exercise-page--ready");
     page.removeAttribute("aria-busy");
+
     var loader = page.querySelector(".exercise-page-loader");
     if (loader) loader.setAttribute("aria-hidden", "true");
+
     stopWatching();
     global.dispatchEvent(new CustomEvent("gf2-exercise-page-ready"));
   }
@@ -54,13 +55,9 @@
       clearInterval(pollTimer);
       pollTimer = null;
     }
-    if (timeoutTimer) {
-      clearTimeout(timeoutTimer);
-      timeoutTimer = null;
-    }
-    if (emptyGraceTimer) {
-      clearTimeout(emptyGraceTimer);
-      emptyGraceTimer = null;
+    if (forceTimer) {
+      clearTimeout(forceTimer);
+      forceTimer = null;
     }
     if (hostObserver) {
       hostObserver.disconnect();
@@ -72,23 +69,17 @@
     var page = pendingPage();
     if (!page) {
       stopWatching();
-      return;
+      return true;
     }
-
-    var hosts = hostsIn(page);
-    if (hosts.length === 0) return;
-
-    if (emptyGraceTimer) {
-      clearTimeout(emptyGraceTimer);
-      emptyGraceTimer = null;
+    if (allEditorsReady(page)) {
+      markReady(page, false);
+      return true;
     }
-
-    if (allEditorsReady(page)) markReady(page);
+    return false;
   }
 
   function watchForHosts(page) {
     if (hostObserver) hostObserver.disconnect();
-
     var root = page.querySelector(".exercise-page-body") || page;
     hostObserver = new MutationObserver(function () {
       checkReady();
@@ -97,38 +88,32 @@
   }
 
   function startWatching() {
+    stopWatching();
+
     var page = pendingPage();
     if (!page) return;
 
     page.setAttribute("aria-busy", "true");
     watchForHosts(page);
-    checkReady();
+    if (checkReady()) return;
 
-    if (!pollTimer) {
-      pollTimer = setInterval(checkReady, POLL_MS);
-    }
+    pollTimer = setInterval(checkReady, POLL_MS);
 
-    if (!timeoutTimer) {
-      timeoutTimer = setTimeout(function () {
-        var p = pendingPage();
-        if (!p) return;
-        p.classList.add("exercise-page--timeout");
-        markReady(p);
-      }, TIMEOUT_MS);
-    }
+    forceTimer = setTimeout(function () {
+      var p = pendingPage();
+      if (p) markReady(p, true);
+    }, FORCE_READY_MS);
+  }
 
-    if (!emptyGraceTimer) {
-      emptyGraceTimer = setTimeout(function () {
-        var p = pendingPage();
-        if (!p) return;
-        if (hostsIn(p).length === 0) markReady(p);
-      }, EMPTY_HOSTS_GRACE_MS);
-    }
+  function release() {
+    var page = pendingPage();
+    if (page) markReady(page, false);
   }
 
   global.gf2ExercisePage = {
     checkReady: checkReady,
-    startWatching: startWatching
+    startWatching: startWatching,
+    release: release
   };
 
   function boot() {

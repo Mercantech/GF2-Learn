@@ -23,7 +23,7 @@ else
         </header>
         <div class="exercise-page @(HasInteractiveEditors ? "exercise-page--pending" : null)"
              data-content-slug="@Slug"
-             @(HasInteractiveEditors ? "data-exercise-interactive" : null)>
+             data-exercise-interactive="@(HasInteractiveEditors ? "" : null)">
             @if (HasInteractiveEditors)
             {
                 <div class="exercise-page-loader" role="status" aria-live="polite">

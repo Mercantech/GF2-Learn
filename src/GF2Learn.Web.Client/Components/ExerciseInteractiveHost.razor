@@ -52,6 +52,21 @@
             StateHasChanged();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        try
+        {
+            await Js.InvokeVoidAsync("gf2ExercisePage.startWatching");
+        }
+        catch
+        {
+            /* script may not be loaded */
+        }
+    }
+
     private string? GetSavedCode(int partIndex) =>
         _resolvedParts.FirstOrDefault(p => p.PartIndex == partIndex)?.AnswerText;
 
