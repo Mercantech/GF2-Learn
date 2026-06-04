@@ -2038,6 +2038,11 @@ a:hover { color: var(--accent-bright); }
 }
 .playground-editor-host-loading {
   min-height: 8.5rem;
+  color: transparent;
+  caret-color: transparent;
+}
+.playground-editor-host-loading:not(:has(.monaco-editor)) {
+  overflow: hidden;
 }
 .playground-editor-host .monaco-editor,
 .playground-editor-host .monaco-editor-background,

@@ -251,7 +251,7 @@ window.gf2Playground = {
 
   isReady: function (elementId) {
     var host = document.getElementById(elementId);
-    return !!this.editors[elementId] && host && host.dataset.editorReady === "1";
+    return !!this.editors[elementId] && host && host.dataset.editorReady === "1" && this.hostHasEditor(host);
   },
 
   refreshAll: function () {
@@ -299,7 +299,8 @@ window.gf2Playground = {
       tabSize: 4,
       insertSpaces: true,
       readOnly: !!options.readOnly,
-      renderLineHighlight: "gutter",
+      lineNumbers: "on",
+      renderLineHighlight: "line",
       padding: { top: heightOpts.paddingTop, bottom: heightOpts.paddingBottom },
       quickSuggestions: { other: true, comments: false, strings: false },
       suggestOnTriggerCharacters: true,
@@ -327,36 +328,91 @@ window.gf2Playground = {
     });
   },
 
-  initLazy: async function (elementId, initialCode, options) {
-    var host = document.getElementById(elementId);
-    if (!host || this.editors[elementId]) return;
+  hostHasEditor: function (host) {
+    return !!host && !!host.querySelector(".monaco-editor");
+  },
 
-    this.detachLazyObserver(elementId);
-    var self = this;
+  isVisible: function (host) {
+    if (!host || !host.isConnected) return false;
+    var rect = host.getBoundingClientRect();
+    return rect.width >= 48 && rect.bottom > -40 && rect.top < window.innerHeight + 200;
+  },
+
+  initWhenVisible: async function (elementId, initialCode, options) {
+    var host = document.getElementById(elementId);
+    if (!host) return;
+    if (this.isReady(elementId) && this.hostHasEditor(host)) return;
+
     options = options || {};
+    var self = this;
+
+    if (this.isVisible(host)) {
+      await this.init(elementId, initialCode, options);
+      return;
+    }
 
     if (typeof IntersectionObserver === "undefined") {
-      return this.init(elementId, initialCode, options);
+      await this.init(elementId, initialCode, options);
+      return;
     }
 
-    var io = new IntersectionObserver(
-      function (entries) {
-        var entry = entries[0];
-        if (!entry || !entry.isIntersecting) return;
-        self.detachLazyObserver(elementId);
-        self.init(elementId, initialCode, options);
-      },
-      { rootMargin: "120px 0px", threshold: 0.01 }
-    );
+    this.detachLazyObserver(elementId);
 
-    io.observe(host);
-    this.lazyObservers[elementId] = io;
+    await new Promise(function (resolve) {
+      var io = new IntersectionObserver(
+        function (entries) {
+          var entry = entries[0];
+          if (!entry || !entry.isIntersecting) return;
+          self.detachLazyObserver(elementId);
+          self.init(elementId, initialCode, options).then(resolve);
+        },
+        { rootMargin: "200px 0px", threshold: 0.01 }
+      );
+      io.observe(host);
+      self.lazyObservers[elementId] = io;
+    });
+  },
 
-    var rect = host.getBoundingClientRect();
-    if (rect.top < window.innerHeight + 120 && rect.bottom > -120) {
-      self.detachLazyObserver(elementId);
-      return this.init(elementId, initialCode, options);
+  disposeStale: function () {
+    var self = this;
+    var ids = Object.keys(this.editors);
+    for (var i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      var host = document.getElementById(id);
+      if (!host || !document.body.contains(host)) {
+        self.dispose(id);
+      }
     }
+
+    var lazyIds = Object.keys(this.lazyObservers);
+    for (var j = 0; j < lazyIds.length; j++) {
+      var lazyId = lazyIds[j];
+      var lazyHost = document.getElementById(lazyId);
+      if (!lazyHost || !document.body.contains(lazyHost)) {
+        self.detachLazyObserver(lazyId);
+      }
+    }
+  },
+
+  decodePendingCode: function (encoded) {
+    if (!encoded) return "";
+    try {
+      var binary = atob(encoded);
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return new TextDecoder("utf-8").decode(bytes);
+    } catch (e) {
+      return "";
+    }
+  },
+
+  ensureMounted: function () {
+    var self = this;
+    document.querySelectorAll(".playground-editor-host").forEach(function (host) {
+      if (!host.id || self.hostHasEditor(host)) return;
+      var code = self.decodePendingCode(host.dataset.pendingCode);
+      if (code) self.initWhenVisible(host.id, code);
+    });
   },
 
   getValue: function (elementId) {
@@ -401,6 +457,10 @@ window.gf2Playground = {
     var ids = Object.keys(this.editors);
     for (var i = 0; i < ids.length; i++) {
       this.dispose(ids[i]);
+    }
+    var lazyIds = Object.keys(this.lazyObservers);
+    for (var j = 0; j < lazyIds.length; j++) {
+      this.detachLazyObserver(lazyIds[j]);
     }
   }
 };

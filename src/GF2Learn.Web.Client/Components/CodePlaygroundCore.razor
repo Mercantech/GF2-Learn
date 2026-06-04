@@ -17,7 +17,9 @@
         </div>
     </div>
 
-    <div id="@_editorId" class="playground-editor-host @EditorHostClass @(_editorReady ? "playground-editor-host-ready" : "playground-editor-host-loading")"></div>
+    <div id="@_editorId"
+         class="playground-editor-host @EditorHostClass @(_monacoMounted ? "playground-editor-host-ready" : "playground-editor-host-loading")"
+         data-pending-code="@_pendingCodeAttr"></div>
 
     <div class="playground-output-panel">
         <p class="playground-output-label">Output</p>
@@ -88,7 +90,10 @@
     private string _error = "";
     private bool _running;
     private bool _editorReady;
+    private bool _monacoMounted;
+    private bool _mountInProgress;
     private string? _syncedInitialCode;
+    private string _pendingCodeAttr = "";
     private bool? _expectedMatch;
     private TimeSpan? _elapsed;
     private static int _compilerWarmupStarted;
@@ -115,33 +120,78 @@
         var startup = StartupCode;
         if (_syncedInitialCode is null || startup != _syncedInitialCode)
             _code = startup;
+
+        _pendingCodeAttr = EncodePendingCode(startup);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        await EnsureMonacoMountedAsync();
+
+        if (_monacoMounted
+            && !string.IsNullOrWhiteSpace(SavedCode)
+            && SavedCode != _syncedInitialCode)
         {
-            if (_editorReady
-                && !string.IsNullOrWhiteSpace(SavedCode)
-                && SavedCode != _syncedInitialCode)
+            await SetCodeAsync(SavedCode);
+        }
+    }
+
+    private async Task EnsureMonacoMountedAsync()
+    {
+        if (_mountInProgress)
+            return;
+
+        if (await IsMonacoReadyAsync())
+        {
+            if (!_monacoMounted)
             {
-                await SetCodeAsync(SavedCode);
+                _monacoMounted = true;
+                _editorReady = true;
+                StateHasChanged();
             }
 
             return;
         }
 
-        if (_editorReady)
-            return;
+        _mountInProgress = true;
+        var becameReady = false;
+        try
+        {
+            await Js.InvokeVoidAsync("gf2Playground.initWhenVisible", _editorId, StartupCode);
+            becameReady = await IsMonacoReadyAsync();
+            _editorReady = becameReady;
+            if (becameReady)
+            {
+                _monacoMounted = true;
+                _syncedInitialCode = StartupCode;
 
-        var startup = StartupCode;
-        await Js.InvokeVoidAsync("gf2Playground.initLazy", _editorId, startup);
-        _editorReady = true;
-        _syncedInitialCode = startup;
+                if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
+                    _ = Runner.WarmupAsync();
+            }
+        }
+        finally
+        {
+            _mountInProgress = false;
+        }
 
-        if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
-            _ = Runner.WarmupAsync();
+        if (becameReady)
+            StateHasChanged();
     }
+
+    private async Task<bool> IsMonacoReadyAsync()
+    {
+        try
+        {
+            return await Js.InvokeAsync<bool>("gf2Playground.isReady", _editorId);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string EncodePendingCode(string code) =>
+        Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
 
     public async Task<string> GetCodeAsync()
     {

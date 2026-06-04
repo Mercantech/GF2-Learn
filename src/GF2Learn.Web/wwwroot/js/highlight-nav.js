@@ -1,8 +1,8 @@
 (function (global) {
-  /** Kør FØR ny side renderes (rydder gamle Monaco-instanser). */
+  /** Fjern kun Monaco-instanser hvis DOM-host er væk (undgå at slette nye editorer efter routing). */
   function prepareNavigation() {
-    if (global.gf2Playground && global.gf2Playground.disposeAll) {
-      global.gf2Playground.disposeAll();
+    if (global.gf2Playground && global.gf2Playground.disposeStale) {
+      global.gf2Playground.disposeStale();
     }
   }
 
@@ -13,6 +13,9 @@
         if (global.gf2Theme) global.gf2Theme.apply(global.gf2Theme.getMode());
         global.dispatchEvent(new CustomEvent("gf2-enhanced-nav"));
         if (global.gf2Highlight) global.gf2Highlight.process(document);
+        if (global.gf2Playground && global.gf2Playground.ensureMounted) {
+          global.gf2Playground.ensureMounted();
+        }
         if (global.gf2Playground && global.gf2Playground.refreshAll) {
           global.gf2Playground.refreshAll();
         }
