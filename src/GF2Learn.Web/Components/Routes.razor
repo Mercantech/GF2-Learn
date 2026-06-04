@@ -34,8 +34,6 @@
     [Inject] private NavigationManager Navigation { get; set; } = default!;
     [Inject] private IJSRuntime Js { get; set; } = default!;
 
-    private bool _pendingClientEnhance = true;
-
     protected override void OnInitialized()
     {
         Navigation.LocationChanged += OnLocationChanged;
@@ -43,29 +41,36 @@
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        _pendingClientEnhance = true;
-        _ = InvokeAsync(async () =>
-        {
-            try
-            {
-                // Ryd gamle Monaco-instanser før ny side renderes (undgår «flyvende» kode).
-                await Js.InvokeVoidAsync("gf2Nav.prepareNavigation");
-            }
-            catch
-            {
-                // ignore if JS not ready yet
-            }
+        _ = InvokeAsync(HandleNavigationAsync);
+    }
 
-            StateHasChanged();
-        });
+    private async Task HandleNavigationAsync()
+    {
+        try
+        {
+            await Js.InvokeVoidAsync("gf2Nav.prepareNavigation");
+        }
+        catch
+        {
+            // ignore if JS not ready yet
+        }
+
+        await Task.Delay(80);
+
+        try
+        {
+            await Js.InvokeVoidAsync("gf2Nav.enhancePage");
+        }
+        catch
+        {
+            // ignore if JS not ready yet
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_pendingClientEnhance)
+        if (!firstRender)
             return;
-
-        _pendingClientEnhance = false;
 
         try
         {

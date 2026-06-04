@@ -1,7 +1,8 @@
 window.gf2Playground = {
   editors: {},
   editorOptions: {},
-  resizeObservers: {},
+  lazyObservers: {},
+  heightSyncScheduled: {},
   monacoLoadPromise: null,
   monacoBase: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs",
 
@@ -184,32 +185,22 @@ window.gf2Playground = {
 
   waitForHostReady: function (host, maxMs) {
     var self = this;
-    maxMs = maxMs || 8000;
+    maxMs = maxMs || 2000;
     return new Promise(function (resolve) {
       if (self.hostIsReady(host)) {
         resolve();
         return;
       }
 
-      var settled = false;
-      var finish = function () {
-        if (settled) return;
-        settled = true;
-        if (observer) observer.disconnect();
-        clearTimeout(timer);
-        resolve();
-      };
-
-      var observer = null;
-      if (typeof ResizeObserver !== "undefined") {
-        observer = new ResizeObserver(function () {
-          if (self.hostIsReady(host)) finish();
-        });
-        observer.observe(host);
-        if (host.parentElement) observer.observe(host.parentElement);
-      }
-
-      var timer = setTimeout(finish, maxMs);
+      var attempts = 0;
+      var maxAttempts = Math.ceil(maxMs / 50);
+      var timer = setInterval(function () {
+        attempts++;
+        if (self.hostIsReady(host) || attempts >= maxAttempts) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 50);
     });
   },
 
@@ -227,34 +218,35 @@ window.gf2Playground = {
     var maxPx = opts.maxLines * lineHeight + pad;
     var measured = contentHeight > 0 ? contentHeight : editor.getContentHeight();
     var target = Math.min(maxPx, Math.max(minPx, measured + extraPx));
+    var prev = parseInt(host.style.height, 10);
+
+    if (!isNaN(prev) && Math.abs(prev - target) < 2) return;
 
     host.style.height = target + "px";
     host.dataset.editorReady = "1";
   },
 
-  updateHeight: function (elementId) {
-    var editor = this.editors[elementId];
-    if (!editor) return;
-    this.applyContentHeight(elementId, editor.getContentHeight());
-  },
-
-  attachResizeObserver: function (elementId, host) {
-    this.detachResizeObserver(elementId);
-    if (typeof ResizeObserver === "undefined") return;
-
+  scheduleHeightSync: function (elementId) {
+    if (this.heightSyncScheduled[elementId]) return;
+    this.heightSyncScheduled[elementId] = true;
     var self = this;
-    var ro = new ResizeObserver(function () {
-      self.updateHeight(elementId);
+    requestAnimationFrame(function () {
+      delete self.heightSyncScheduled[elementId];
+      var editor = self.editors[elementId];
+      if (!editor) return;
+      self.applyContentHeight(elementId, editor.getContentHeight());
     });
-    ro.observe(host);
-    this.resizeObservers[elementId] = ro;
   },
 
-  detachResizeObserver: function (elementId) {
-    var ro = this.resizeObservers[elementId];
-    if (!ro) return;
-    ro.disconnect();
-    delete this.resizeObservers[elementId];
+  updateHeight: function (elementId) {
+    this.scheduleHeightSync(elementId);
+  },
+
+  detachLazyObserver: function (elementId) {
+    var io = this.lazyObservers[elementId];
+    if (!io) return;
+    io.disconnect();
+    delete this.lazyObservers[elementId];
   },
 
   isReady: function (elementId) {
@@ -320,12 +312,11 @@ window.gf2Playground = {
     });
 
     editor.onDidContentSizeChange(function (e) {
-      self.applyContentHeight(elementId, e.contentHeight);
+      self.scheduleHeightSync(elementId);
     });
 
     this.registerTabSnippets(editor);
     this.editors[elementId] = editor;
-    this.attachResizeObserver(elementId, host);
 
     await new Promise(function (resolve) {
       requestAnimationFrame(function () {
@@ -334,6 +325,38 @@ window.gf2Playground = {
         resolve();
       });
     });
+  },
+
+  initLazy: async function (elementId, initialCode, options) {
+    var host = document.getElementById(elementId);
+    if (!host || this.editors[elementId]) return;
+
+    this.detachLazyObserver(elementId);
+    var self = this;
+    options = options || {};
+
+    if (typeof IntersectionObserver === "undefined") {
+      return this.init(elementId, initialCode, options);
+    }
+
+    var io = new IntersectionObserver(
+      function (entries) {
+        var entry = entries[0];
+        if (!entry || !entry.isIntersecting) return;
+        self.detachLazyObserver(elementId);
+        self.init(elementId, initialCode, options);
+      },
+      { rootMargin: "120px 0px", threshold: 0.01 }
+    );
+
+    io.observe(host);
+    this.lazyObservers[elementId] = io;
+
+    var rect = host.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 120 && rect.bottom > -120) {
+      self.detachLazyObserver(elementId);
+      return this.init(elementId, initialCode, options);
+    }
   },
 
   getValue: function (elementId) {
@@ -354,7 +377,8 @@ window.gf2Playground = {
   },
 
   dispose: function (elementId) {
-    this.detachResizeObserver(elementId);
+    this.detachLazyObserver(elementId);
+    delete this.heightSyncScheduled[elementId];
 
     var editor = this.editors[elementId];
     if (editor) {
