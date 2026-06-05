@@ -50,6 +50,22 @@ public static class PlaygroundSourceBuilder
                 prepared.UsesReadLine,
                 showStdinTraceInOutput);
 
+    public static string BuildInteractiveEntryPointSource(PreparedCode prepared) =>
+        string.IsNullOrWhiteSpace(prepared.TypeDeclarations)
+            ? BuildEntryPointSource(
+                prepared.ExecutableCode,
+                prepared.StdinLines,
+                prepared.UsesReadLine,
+                showStdinTraceInOutput: false,
+                useInteractiveStdin: true)
+            : BuildEntryPointSourceWithTypes(
+                prepared.TypeDeclarations,
+                prepared.RunBody,
+                prepared.StdinLines,
+                prepared.UsesReadLine,
+                showStdinTraceInOutput: false,
+                useInteractiveStdin: true);
+
     public static string BuildExerciseMethodEntryPointSource(string userCode, bool showStdinTraceInOutput = true)
     {
         var prepared = Prepare(userCode);
@@ -170,12 +186,13 @@ public static class PlaygroundSourceBuilder
         string transformedRunBody,
         IReadOnlyList<string> stdinLines,
         bool usesReadLine,
-        bool showStdinTraceInOutput = true)
+        bool showStdinTraceInOutput = true,
+        bool useInteractiveStdin = false)
     {
         var stdinInit = stdinLines.Count == 0
             ? "Array.Empty<string>()"
             : $"new string[] {{ {string.Join(", ", stdinLines.Select(l => $"\"{EscapeCSharpString(l)}\""))} }}";
-        var stdinNote = usesReadLine && showStdinTraceInOutput
+        var stdinNote = usesReadLine && showStdinTraceInOutput && !useInteractiveStdin
             ? """
                     if (__stdinIdx > 0)
                         __sb.AppendLine("(Simuleret input: " + string.Join(", ", __stdin.Take(__stdinIdx)) + ")");
@@ -216,9 +233,7 @@ public static class PlaygroundSourceBuilder
 
                 private static string? __ReadLine()
                 {
-                    if (__stdinIdx >= __stdin.Length)
-                        return string.Empty;
-                    return __stdin[__stdinIdx++];
+            {{ReadLineBody(useInteractiveStdin)}}
                 }
 
                 public static string Run()
@@ -237,6 +252,7 @@ public static class PlaygroundSourceBuilder
                     return __sb.ToString();
                 }
             }
+            {{StdinHookSource(useInteractiveStdin)}}
             """;
     }
 
@@ -244,12 +260,13 @@ public static class PlaygroundSourceBuilder
         string transformedCode,
         IReadOnlyList<string> stdinLines,
         bool usesReadLine,
-        bool showStdinTraceInOutput = true)
+        bool showStdinTraceInOutput = true,
+        bool useInteractiveStdin = false)
     {
         var stdinInit = stdinLines.Count == 0
             ? "Array.Empty<string>()"
             : $"new string[] {{ {string.Join(", ", stdinLines.Select(l => $"\"{EscapeCSharpString(l)}\""))} }}";
-        var stdinNote = usesReadLine && showStdinTraceInOutput
+        var stdinNote = usesReadLine && showStdinTraceInOutput && !useInteractiveStdin
             ? """
                     if (__stdinIdx > 0)
                         __sb.AppendLine("(Simuleret input: " + string.Join(", ", __stdin.Take(__stdinIdx)) + ")");
@@ -287,9 +304,7 @@ public static class PlaygroundSourceBuilder
 
                 private static string? __ReadLine()
                 {
-                    if (__stdinIdx >= __stdin.Length)
-                        return string.Empty;
-                    return __stdin[__stdinIdx++];
+            {{ReadLineBody(useInteractiveStdin)}}
                 }
 
                 public static string Run()
@@ -308,8 +323,30 @@ public static class PlaygroundSourceBuilder
                     return __sb.ToString();
                 }
             }
+            {{StdinHookSource(useInteractiveStdin)}}
             """;
     }
+
+    private static string ReadLineBody(bool useInteractiveStdin) =>
+        useInteractiveStdin
+            ? "return __StdinHook.ReadLine();"
+            : """
+                    if (__stdinIdx >= __stdin.Length)
+                        return string.Empty;
+                    return __stdin[__stdinIdx++];
+            """;
+
+    private static string StdinHookSource(bool useInteractiveStdin) =>
+        useInteractiveStdin
+            ? """
+
+            public static class __StdinHook
+            {
+                public static Func<string?>? Provider;
+                public static string ReadLine() => Provider?.Invoke() ?? string.Empty;
+            }
+            """
+            : string.Empty;
 
     /// <summary>
     /// Strips playground directives and returns setup lines plus the visible snippet body.

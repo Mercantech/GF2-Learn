@@ -6,41 +6,47 @@
 <div class="code-playground code-playground-interactive @RootClass">
     <div class="playground-header">
         <span class="playground-title">@Title</span>
-        <div class="playground-toolbar">
-            <button type="button" class="btn btn-primary btn-sm" disabled="@_running" @onclick="RunAsync">
-                @(_running ? "Kører…" : RunLabel)
-            </button>
-            <button type="button" class="btn btn-ghost btn-sm" disabled="@_running" @onclick="ResetCodeAsync">@ResetLabel</button>
-            @if (ShowCopyButton)
-            {
-                <button type="button" class="btn btn-ghost btn-sm" @onclick="CopyCodeAsync">Kopier</button>
-            }
-        </div>
+        @if (ShowRunToolbar)
+        {
+            <div class="playground-toolbar">
+                <button type="button" class="btn btn-primary btn-sm" disabled="@_running" @onclick="RunAsync">
+                    @(_running ? "Kører…" : RunLabel)
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" disabled="@_running" @onclick="ResetCodeAsync">@ResetLabel</button>
+                @if (ShowCopyButton)
+                {
+                    <button type="button" class="btn btn-ghost btn-sm" @onclick="CopyCodeAsync">Kopier</button>
+                }
+            </div>
+        }
     </div>
 
     <div id="@_editorId"
          class="playground-editor-host @EditorHostClass @(_monacoMounted ? "playground-editor-host-ready" : "playground-editor-host-loading")"
          data-pending-code="@_pendingCodeAttr"></div>
 
-    <div class="playground-output-panel">
-        <p class="playground-output-label">Output</p>
-        @if (_running)
-        {
-            <p class="playground-output-muted">Kører kode…</p>
-        }
-        else if (!string.IsNullOrEmpty(_error))
-        {
-            <pre class="playground-output playground-output-error">@_error</pre>
-        }
-        else if (!string.IsNullOrEmpty(_output))
-        {
-            <pre class="playground-output @OutputClass">@_output</pre>
-        }
-        else
-        {
-            <p class="playground-output-muted">@EmptyOutputHint</p>
-        }
-    </div>
+    @if (ShowOutputPanel)
+    {
+        <div class="playground-output-panel">
+            <p class="playground-output-label">Output</p>
+            @if (_running)
+            {
+                <p class="playground-output-muted">Kører kode…</p>
+            }
+            else if (!string.IsNullOrEmpty(_error))
+            {
+                <pre class="playground-output playground-output-error">@_error</pre>
+            }
+            else if (!string.IsNullOrEmpty(_output))
+            {
+                <pre class="playground-output @OutputClass">@_output</pre>
+            }
+            else
+            {
+                <p class="playground-output-muted">@EmptyOutputHint</p>
+            }
+        </div>
+    }
 
     @if (!string.IsNullOrWhiteSpace(ExpectedOutput))
     {
@@ -83,6 +89,8 @@
     [Parameter] public string RootClass { get; set; } = "";
     [Parameter] public string EditorHostClass { get; set; } = "";
     [Parameter] public bool ShowCopyButton { get; set; } = true;
+    [Parameter] public bool ShowRunToolbar { get; set; } = true;
+    [Parameter] public bool ShowOutputPanel { get; set; } = true;
     [Parameter] public bool EnableCtrlSave { get; set; }
     [Parameter] public EventCallback OnCtrlSave { get; set; }
     [Parameter] public RenderFragment? Footer { get; set; }

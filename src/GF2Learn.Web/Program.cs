@@ -55,6 +55,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddSingleton<KnowledgeCheckProgressScope>();
     builder.Services.AddScoped<IExerciseProgressService, ExerciseProgressService>();
     builder.Services.AddSingleton<ExerciseProgressScope>();
+    builder.Services.AddScoped<IPlaygroundProjectService, PlaygroundProjectService>();
 }
 
 var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"]
@@ -260,6 +261,130 @@ if (!string.IsNullOrWhiteSpace(connectionString))
                 statusCode: StatusCodes.Status500InternalServerError);
         }
     }).DisableAntiforgery();
+
+    var playground = app.MapGroup("/api/playground").RequireAuthorization();
+
+    playground.MapGet("/projects", async (
+        ClaimsPrincipal user,
+        IPlaygroundProjectService service,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var projects = await service.ListProjectsAsync(userSub, cancellationToken);
+        return Results.Ok(projects);
+    });
+
+    playground.MapPost("/projects", async (
+        CreatePlaygroundProjectRequest request,
+        ClaimsPrincipal user,
+        IPlaygroundProjectService service,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        try
+        {
+            var project = await service.CreateProjectAsync(userSub, request.Name, cancellationToken);
+            return Results.Created($"/api/playground/projects/{project.Id}", project);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Problem(detail: ex.Message, statusCode: StatusCodes.Status400BadRequest);
+        }
+    }).DisableAntiforgery();
+
+    playground.MapGet("/projects/{projectId:guid}", async (
+        Guid projectId,
+        ClaimsPrincipal user,
+        IPlaygroundProjectService service,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var project = await service.GetProjectAsync(userSub, projectId, cancellationToken);
+        return project is null ? Results.NotFound() : Results.Ok(project);
+    });
+
+    playground.MapPatch("/projects/{projectId:guid}", async (
+        Guid projectId,
+        RenamePlaygroundProjectRequest request,
+        ClaimsPrincipal user,
+        IPlaygroundProjectService service,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var project = await service.RenameProjectAsync(userSub, projectId, request.Name, cancellationToken);
+        return project is null ? Results.NotFound() : Results.Ok(project);
+    }).DisableAntiforgery();
+
+    playground.MapDelete("/projects/{projectId:guid}", async (
+        Guid projectId,
+        ClaimsPrincipal user,
+        IPlaygroundProjectService service,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var deleted = await service.DeleteProjectAsync(userSub, projectId, cancellationToken);
+        return deleted ? Results.NoContent() : Results.NotFound();
+    });
+
+    playground.MapPut("/projects/{projectId:guid}/files", async (
+        Guid projectId,
+        SavePlaygroundFilesRequest request,
+        ClaimsPrincipal user,
+        IPlaygroundProjectService service,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var project = await service.SaveFilesAsync(userSub, projectId, request.Files, cancellationToken);
+        return project is null ? Results.BadRequest() : Results.Ok(project);
+    }).DisableAntiforgery();
+
+    playground.MapPost("/projects/{projectId:guid}/files", async (
+        Guid projectId,
+        CreatePlaygroundFileRequest request,
+        ClaimsPrincipal user,
+        IPlaygroundProjectService service,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var file = await service.AddFileAsync(userSub, projectId, request.FileName, request.Content, cancellationToken);
+        return file is null ? Results.BadRequest() : Results.Ok(file);
+    }).DisableAntiforgery();
+
+    playground.MapDelete("/projects/{projectId:guid}/files/{fileId:long}", async (
+        Guid projectId,
+        long fileId,
+        ClaimsPrincipal user,
+        IPlaygroundProjectService service,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var deleted = await service.DeleteFileAsync(userSub, projectId, fileId, cancellationToken);
+        return deleted ? Results.NoContent() : Results.BadRequest();
+    });
 }
 
 app.MapGet("/api/exercise-ai/status", (IExerciseAiService ai) =>

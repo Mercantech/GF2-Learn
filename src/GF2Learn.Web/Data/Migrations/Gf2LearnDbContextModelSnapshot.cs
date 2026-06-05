@@ -92,6 +92,85 @@ partial class Gf2LearnDbContextModelSnapshot : ModelSnapshot
 
                 b.ToTable("exercise_answers", (string)null);
             });
+
+        modelBuilder.Entity("GF2Learn.Web.Models.PlaygroundFile", b =>
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                b.Property<string>("Content")
+                    .HasMaxLength(64000)
+                    .HasColumnType("character varying(64000)");
+
+                b.Property<string>("FileName")
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.Property<Guid>("ProjectId")
+                    .HasColumnType("uuid");
+
+                b.Property<int>("SortOrder")
+                    .HasColumnType("integer");
+
+                b.Property<DateTimeOffset>("UpdatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ProjectId", "FileName")
+                    .IsUnique();
+
+                b.ToTable("playground_files", (string)null);
+            });
+
+        modelBuilder.Entity("GF2Learn.Web.Models.PlaygroundProject", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
+
+                b.Property<DateTimeOffset>("CreatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.Property<DateTimeOffset>("UpdatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("UserSub")
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("UserSub");
+
+                b.ToTable("playground_projects", (string)null);
+            });
+
+        modelBuilder.Entity("GF2Learn.Web.Models.PlaygroundFile", b =>
+            {
+                b.HasOne("GF2Learn.Web.Models.PlaygroundProject", "Project")
+                    .WithMany("Files")
+                    .HasForeignKey("ProjectId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Project");
+            });
+
+        modelBuilder.Entity("GF2Learn.Web.Models.PlaygroundProject", b =>
+            {
+                b.Navigation("Files");
+            });
 #pragma warning restore 612, 618
     }
 }

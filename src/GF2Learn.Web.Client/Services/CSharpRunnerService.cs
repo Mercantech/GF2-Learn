@@ -181,6 +181,139 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
     private static string NormalizeOutput(string value) =>
         string.Join('\n', value.Replace("\r\n", "\n").Split('\n').Select(l => l.TrimEnd())).Trim();
 
+    public async Task<RunResult> RunProjectAsync(
+        IReadOnlyList<ProjectSourceFile> files,
+        CancellationToken cancellationToken = default)
+    {
+        if (files.Count == 0)
+        {
+            return new RunResult
+            {
+                Success = false,
+                Error = "Projektet har ingen filer."
+            };
+        }
+
+        var entry = files.FirstOrDefault(f =>
+            f.FileName.Equals("Program.cs", StringComparison.OrdinalIgnoreCase))
+            ?? files[0];
+
+        var sw = Stopwatch.StartNew();
+        using var compileCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        compileCts.CancelAfter(CompileTimeoutMs);
+
+        try
+        {
+            var coreRefs = await referenceResolver.GetCoreReferencesAsync(compileCts.Token);
+            if (coreRefs.IsDefaultOrEmpty)
+            {
+                return new RunResult
+                {
+                    Success = false,
+                    Error = "Kunne ikke indlæse C#-runtime. Genindlæs siden og prøv igen.",
+                    Elapsed = sw.Elapsed
+                };
+            }
+
+            var prepared = PlaygroundSourceBuilder.Prepare(entry.Content);
+            PlaygroundStdinBridge.Reset();
+            foreach (var line in prepared.StdinLines)
+                PlaygroundStdinBridge.Enqueue(line);
+
+            var entrySource = PlaygroundSourceBuilder.BuildInteractiveEntryPointSource(prepared);
+            var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
+            var trees = new List<SyntaxTree>
+            {
+                CSharpSyntaxTree.ParseText(entrySource, parseOptions, path: entry.FileName)
+            };
+
+            foreach (var file in files.Where(f => !ReferenceEquals(f, entry)))
+            {
+                if (string.IsNullOrWhiteSpace(file.Content))
+                    continue;
+
+                trees.Add(CSharpSyntaxTree.ParseText(file.Content, parseOptions, path: file.FileName));
+            }
+
+            var compilation = CSharpCompilation.Create(
+                $"PlaygroundProject_{Guid.NewGuid():N}",
+                trees,
+                coreRefs,
+                new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    concurrentBuild: false,
+                    optimizationLevel: OptimizationLevel.Release));
+
+            await using var peStream = new MemoryStream();
+            var emitResult = compilation.Emit(peStream, cancellationToken: compileCts.Token);
+
+            if (!emitResult.Success)
+            {
+                sw.Stop();
+                return new RunResult
+                {
+                    Success = false,
+                    Error = FormatDiagnostics(emitResult.Diagnostics),
+                    Elapsed = sw.Elapsed
+                };
+            }
+
+            peStream.Position = 0;
+            var assembly = Assembly.Load(peStream.ToArray());
+            WireStdinHook(assembly);
+
+            var type = assembly.GetType("__PlaygroundEntry")
+                ?? throw new InvalidOperationException("Kunne ikke finde entry point.");
+
+            var method = type.GetMethod("Run", BindingFlags.Public | BindingFlags.Static)
+                ?? throw new InvalidOperationException("Kunne ikke finde Run-metoden.");
+
+            using var runCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            runCts.CancelAfter(TimeSpan.FromMinutes(2));
+            var output = await Task.Run(() => InvokeRun(method), runCts.Token);
+            sw.Stop();
+
+            return new RunResult
+            {
+                Success = true,
+                Output = NormalizeOutput(output),
+                Elapsed = sw.Elapsed
+            };
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            sw.Stop();
+            return new RunResult
+            {
+                Success = false,
+                Error = compileCts.IsCancellationRequested
+                    ? "Kompilering tog for lang tid."
+                    : "Koden kørte for længe.",
+                Elapsed = sw.Elapsed
+            };
+        }
+        catch (Exception ex)
+        {
+            sw.Stop();
+            return new RunResult
+            {
+                Success = false,
+                Error = FormatExceptionMessage(ex),
+                Elapsed = sw.Elapsed
+            };
+        }
+    }
+
+    private static void WireStdinHook(Assembly assembly)
+    {
+        var hook = assembly.GetType("__StdinHook");
+        if (hook is null)
+            return;
+
+        var field = hook.GetField("Provider", BindingFlags.Public | BindingFlags.Static);
+        field?.SetValue(null, (Func<string?>)PlaygroundStdinBridge.ReadLineSync);
+    }
+
     public Task WarmupAsync(CancellationToken cancellationToken = default) =>
         referenceResolver.GetCoreReferencesAsync(cancellationToken);
 

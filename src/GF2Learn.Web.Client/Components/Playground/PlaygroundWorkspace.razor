@@ -1,0 +1,516 @@
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@using System.Net.Http.Json
+@using GF2Learn.Web.Client.Models
+@using GF2Learn.Web.Client.Services
+@implements IDisposable
+@inject IHttpClientFactory HttpClientFactory
+@inject CSharpRunnerService Runner
+@inject IJSRuntime Js
+
+<div class="playground-workspace">
+    <header class="playground-toolbar">
+        <div class="playground-toolbar-left">
+            <a href="/" class="playground-home-link" title="Til forsiden">GF2<span>Learn</span></a>
+            <span class="playground-toolbar-divider" aria-hidden="true"></span>
+            <label class="playground-toolbar-label" for="playground-project-select">Projekt</label>
+            <select id="playground-project-select"
+                    class="playground-project-select"
+                    disabled="@_busy"
+                    @bind="_selectedProjectId"
+                    @bind:after="OnProjectChangedAsync">
+                @foreach (var project in _projects)
+                {
+                    <option value="@project.Id">@project.Name</option>
+                }
+            </select>
+            <button type="button" class="btn btn-ghost btn-sm" disabled="@_busy" @onclick="CreateProjectAsync">Nyt projekt</button>
+        </div>
+        <div class="playground-toolbar-right">
+            <button type="button" class="btn btn-primary btn-sm" disabled="@_running || _busy" @onclick="RunAsync">
+                @(_running ? "Kører…" : "Kør")
+            </button>
+            <button type="button"
+                    class="btn btn-ghost btn-sm"
+                    disabled="@_saving || _busy"
+                    title="Gem løsning (Ctrl+S)"
+                    @onclick="SaveAsync">
+                @(_saving ? "Gemmer…" : _dirty ? "Gem løsning *" : "Gem løsning")
+            </button>
+            <button type="button" class="theme-toggle" data-theme-toggle title="Skift tema" aria-label="Skift tema">
+                <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+            </button>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(_statusError))
+    {
+        <p class="playground-status-error" role="alert">@_statusError</p>
+    }
+
+    @if (_loading)
+    {
+        <div class="playground-loading" role="status">
+            <span class="gf2-spinner gf2-spinner-lg" aria-hidden="true"></span>
+            <p>Indlæser playground…</p>
+        </div>
+    }
+    else if (_activeProject is not null)
+    {
+        <div class="playground-main">
+            <aside class="playground-sidebar">
+                <div class="playground-sidebar-header">
+                    <span>Filer</span>
+                    <button type="button" class="btn btn-ghost btn-sm" disabled="@_busy" @onclick="AddFileAsync">+ Fil</button>
+                </div>
+                <ul class="playground-file-list">
+                    @foreach (var file in _activeProject.Files.OrderBy(f => f.SortOrder).ThenBy(f => f.FileName))
+                    {
+                        <li class="playground-file-item @(file.Id == _activeFileId ? "active" : "")">
+                            <button type="button" class="playground-file-btn" @onclick="() => SelectFileAsync(file.Id)">
+                                @file.FileName
+                                @if (_dirtyFiles.Contains(file.Id))
+                                {
+                                    <span class="playground-file-dirty" aria-label="Ikke gemt">*</span>
+                                }
+                            </button>
+                            @if (_activeProject.Files.Count > 1)
+                            {
+                                <button type="button"
+                                        class="playground-file-delete"
+                                        title="Slet fil"
+                                        disabled="@_busy"
+                                        @onclick="() => DeleteFileAsync(file.Id)">×</button>
+                            }
+                        </li>
+                    }
+                </ul>
+            </aside>
+
+            <section class="playground-editor-pane">
+                @if (_activeFile is not null)
+                {
+                    <div class="playground-editor-tab">@_activeFile.FileName</div>
+                    <CodePlaygroundCore @ref="_editor"
+                                        @key="@($"pg-{_activeProject.Id}-{_activeFileId}")"
+                                        InitialCode="@_activeFileContent"
+                                        ShowRunToolbar="false"
+                                        ShowOutputPanel="false"
+                                        ShowCopyButton="false"
+                                        EnableCtrlSave="true"
+                                        OnCtrlSave="SaveAsync"
+                                        RootClass="playground-ide-full"
+                                        EditorHostClass="playground-editor-host-exercise playground-editor-host-full"
+                                        Title=""
+                                        RunLabel="Kør"
+                                        ResetLabel="Nulstil"
+                                        EmptyOutputHint="" />
+                }
+            </section>
+        </div>
+
+        <PlaygroundTerminal Lines="_terminalLines"
+                            IsRunning="_running"
+                            WaitingForInput="_waitingForInput"
+                            InputValue="_terminalInput"
+                            InputValueChanged="OnTerminalInputChanged"
+                            OnSubmitInput="SubmitTerminalInputAsync" />
+    }
+</div>
+
+@code {
+    private CodePlaygroundCore? _editor;
+    private List<PlaygroundProjectSummaryDto> _projects = [];
+    private PlaygroundProjectDetailDto? _activeProject;
+    private Guid _selectedProjectId;
+    private long? _activeFileId;
+    private string _activeFileContent = "";
+    private readonly Dictionary<long, string> _fileBuffers = new();
+    private readonly HashSet<long> _dirtyFiles = new();
+    private List<string> _terminalLines = [];
+    private string _terminalInput = "";
+    private bool _loading = true;
+    private bool _busy;
+    private bool _running;
+    private bool _saving;
+    private bool _waitingForInput;
+    private string? _statusError;
+    private TaskCompletionSource<string?>? _stdinTcs;
+
+    private bool _dirty => _dirtyFiles.Count > 0;
+    private PlaygroundFileDto? _activeFile =>
+        _activeProject?.Files.FirstOrDefault(f => f.Id == _activeFileId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        PlaygroundStdinBridge.InputRequested += OnInputRequested;
+        await LoadProjectsAsync();
+        _ = Runner.WarmupAsync();
+    }
+
+    private async Task LoadProjectsAsync()
+    {
+        _loading = true;
+        _statusError = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            var response = await client.GetAsync("/api/playground/projects");
+            if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+            {
+                _statusError = "Database er ikke konfigureret på serveren.";
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _statusError = "Kunne ikke hente projekter.";
+                return;
+            }
+
+            _projects = await response.Content.ReadFromJsonAsync<List<PlaygroundProjectSummaryDto>>() ?? [];
+
+            if (_projects.Count == 0)
+            {
+                await CreateProjectAsync();
+                return;
+            }
+
+            _selectedProjectId = _projects[0].Id;
+            await LoadProjectAsync(_selectedProjectId);
+        }
+        catch
+        {
+            _statusError = "Netværksfejl — kunne ikke indlæse playground.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task LoadProjectAsync(Guid projectId)
+    {
+        _busy = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            var response = await client.GetAsync($"/api/playground/projects/{projectId}");
+            if (!response.IsSuccessStatusCode)
+            {
+                _statusError = "Kunne ikke hente projekt.";
+                return;
+            }
+
+            _activeProject = await response.Content.ReadFromJsonAsync<PlaygroundProjectDetailDto>();
+            _fileBuffers.Clear();
+            _dirtyFiles.Clear();
+
+            if (_activeProject?.Files.Count > 0)
+            {
+                foreach (var file in _activeProject.Files)
+                    _fileBuffers[file.Id] = file.Content ?? "";
+
+                _activeFileId = _activeProject.Files.OrderBy(f => f.SortOrder).First().Id;
+                _activeFileContent = _fileBuffers[_activeFileId.Value];
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task OnProjectChangedAsync()
+    {
+        if (_selectedProjectId == Guid.Empty)
+            return;
+
+        await FlushActiveEditorAsync();
+        await LoadProjectAsync(_selectedProjectId);
+    }
+
+    private async Task CreateProjectAsync()
+    {
+        _busy = true;
+        _statusError = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.PostAsJsonAsync("/api/playground/projects", new { name = (string?)null });
+            if (!response.IsSuccessStatusCode)
+            {
+                _statusError = "Kunne ikke oprette projekt.";
+                return;
+            }
+
+            var created = await response.Content.ReadFromJsonAsync<PlaygroundProjectDetailDto>();
+            if (created is null)
+                return;
+
+            _projects.Insert(0, new PlaygroundProjectSummaryDto(created.Id, created.Name, created.UpdatedAt, created.Files.Count));
+            _selectedProjectId = created.Id;
+            _activeProject = created;
+            _fileBuffers.Clear();
+            _dirtyFiles.Clear();
+
+            foreach (var file in created.Files)
+                _fileBuffers[file.Id] = file.Content ?? "";
+
+            _activeFileId = created.Files.FirstOrDefault()?.Id;
+            _activeFileContent = _activeFileId is long id ? _fileBuffers[id] : "";
+        }
+        finally
+        {
+            _busy = false;
+            _loading = false;
+        }
+    }
+
+    private async Task SelectFileAsync(long fileId)
+    {
+        if (_activeFileId == fileId)
+            return;
+
+        await FlushActiveEditorAsync();
+        _activeFileId = fileId;
+        _activeFileContent = _fileBuffers.GetValueOrDefault(fileId, "");
+    }
+
+    private async Task FlushActiveEditorAsync()
+    {
+        if (_editor is null || _activeFileId is null)
+            return;
+
+        var code = await _editor.GetCodeAsync();
+        var previous = _fileBuffers.GetValueOrDefault(_activeFileId.Value, "");
+        _fileBuffers[_activeFileId.Value] = code;
+
+        if (code != previous)
+            _dirtyFiles.Add(_activeFileId.Value);
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_activeProject is null)
+            return;
+
+        _saving = true;
+        _statusError = null;
+        await FlushActiveEditorAsync();
+
+        try
+        {
+            var files = _activeProject.Files
+                .OrderBy(f => f.SortOrder)
+                .Select((f, index) => new SavePlaygroundFileItem(
+                    f.Id,
+                    f.FileName,
+                    _fileBuffers.GetValueOrDefault(f.Id, f.Content ?? ""),
+                    index))
+                .ToList();
+
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.PutAsJsonAsync(
+                $"/api/playground/projects/{_activeProject.Id}/files",
+                new { files });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _statusError = "Kunne ikke gemme filer.";
+                return;
+            }
+
+            _activeProject = await response.Content.ReadFromJsonAsync<PlaygroundProjectDetailDto>();
+            _dirtyFiles.Clear();
+
+            if (_activeProject is not null)
+            {
+                foreach (var file in _activeProject.Files)
+                    _fileBuffers[file.Id] = file.Content ?? "";
+            }
+        }
+        catch
+        {
+            _statusError = "Netværksfejl ved gem.";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task RunAsync()
+    {
+        if (_activeProject is null)
+            return;
+
+        _running = true;
+        _waitingForInput = false;
+        _terminalLines = ["Kører program…"];
+        _statusError = null;
+        await FlushActiveEditorAsync();
+
+        try
+        {
+            var sources = _activeProject.Files
+                .OrderBy(f => f.SortOrder)
+                .Select(f => new ProjectSourceFile(
+                    f.FileName,
+                    _fileBuffers.GetValueOrDefault(f.Id, f.Content ?? "")))
+                .ToList();
+
+            var result = await Runner.RunProjectAsync(sources);
+
+            _terminalLines = [];
+            if (result.Success)
+            {
+                if (!string.IsNullOrWhiteSpace(result.Output))
+                {
+                    foreach (var line in result.Output.Split('\n'))
+                        _terminalLines.Add(line);
+                }
+                else
+                {
+                    _terminalLines.Add("(intet output)");
+                }
+
+                if (result.Elapsed is { } elapsed)
+                    _terminalLines.Add($"— Færdig på {elapsed.TotalMilliseconds:F0} ms");
+            }
+            else
+            {
+                foreach (var line in (result.Error ?? "Ukendt fejl").Split('\n'))
+                    _terminalLines.Add(line);
+            }
+        }
+        catch (Exception ex)
+        {
+            _terminalLines = [$"Fejl: {ex.Message}"];
+        }
+        finally
+        {
+            _running = false;
+            _waitingForInput = false;
+            _stdinTcs = null;
+        }
+    }
+
+    private void OnInputRequested(TaskCompletionSource<string?> tcs)
+    {
+        _stdinTcs = tcs;
+        _waitingForInput = true;
+        _terminalLines.Add("Venter på input…");
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnTerminalInputChanged(string value) => _terminalInput = value;
+
+    private Task SubmitTerminalInputAsync()
+    {
+        var line = _terminalInput;
+        _terminalInput = "";
+        _terminalLines.Add($"> {line}");
+
+        if (_waitingForInput && _stdinTcs is not null)
+        {
+            _waitingForInput = false;
+            _stdinTcs.TrySetResult(line);
+            _stdinTcs = null;
+        }
+        else
+        {
+            PlaygroundStdinBridge.Enqueue(line);
+            if (_activeFileId is long id)
+                _dirtyFiles.Add(id);
+        }
+
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task AddFileAsync()
+    {
+        if (_activeProject is null)
+            return;
+
+        var baseName = "Class";
+        var index = 1;
+        string candidate;
+        do
+        {
+            candidate = index == 1 ? $"{baseName}.cs" : $"{baseName}{index}.cs";
+            index++;
+        }
+        while (_activeProject.Files.Any(f => f.FileName.Equals(candidate, StringComparison.OrdinalIgnoreCase)));
+
+        _busy = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.PostAsJsonAsync(
+                $"/api/playground/projects/{_activeProject.Id}/files",
+                new { fileName = candidate, content = "// Ny fil\n" });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _statusError = "Kunne ikke oprette fil.";
+                return;
+            }
+
+            var file = await response.Content.ReadFromJsonAsync<PlaygroundFileDto>();
+            if (file is null)
+                return;
+
+            _activeProject = _activeProject with
+            {
+                Files = _activeProject.Files.Append(file).ToList()
+            };
+            _fileBuffers[file.Id] = file.Content ?? "";
+            await SelectFileAsync(file.Id);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DeleteFileAsync(long fileId)
+    {
+        if (_activeProject is null || _activeProject.Files.Count <= 1)
+            return;
+
+        _busy = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.DeleteAsync(
+                $"/api/playground/projects/{_activeProject.Id}/files/{fileId}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _statusError = "Kunne ikke slette fil.";
+                return;
+            }
+
+            _fileBuffers.Remove(fileId);
+            _dirtyFiles.Remove(fileId);
+            var remaining = _activeProject.Files.Where(f => f.Id != fileId).ToList();
+            _activeProject = _activeProject with { Files = remaining };
+
+            if (_activeFileId == fileId)
+            {
+                _activeFileId = remaining.FirstOrDefault()?.Id;
+                _activeFileContent = _activeFileId is long id ? _fileBuffers.GetValueOrDefault(id, "") : "";
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        PlaygroundStdinBridge.InputRequested -= OnInputRequested;
+    }
+}

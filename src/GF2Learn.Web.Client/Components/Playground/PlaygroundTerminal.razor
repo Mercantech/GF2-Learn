@@ -1,0 +1,41 @@
+<div class="playground-terminal">
+    <div class="playground-terminal-header">
+        <span>Terminal</span>
+        @if (IsRunning)
+        {
+            <span class="playground-terminal-status">Kører…</span>
+        }
+        else if (WaitingForInput)
+        {
+            <span class="playground-terminal-status playground-terminal-status-wait">Venter på input</span>
+        }
+    </div>
+    <pre class="playground-terminal-output">@string.Join("\n", Lines)</pre>
+    <form class="playground-terminal-input-row" @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
+        <span class="playground-terminal-prompt">&gt;</span>
+        <input type="text"
+               class="playground-terminal-input"
+               placeholder="@(WaitingForInput ? "Indtast svar og tryk Enter…" : "Konsol-input (kan tastes før eller under kørsel)…")"
+               disabled="@(IsRunning && !WaitingForInput)"
+               @bind="InputValue"
+               @bind:event="oninput" />
+        <button type="submit" class="btn btn-ghost btn-sm" disabled="@(IsRunning && !WaitingForInput)">Send</button>
+    </form>
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<string> Lines { get; set; } = [];
+    [Parameter] public bool IsRunning { get; set; }
+    [Parameter] public bool WaitingForInput { get; set; }
+    [Parameter] public string InputValue { get; set; } = "";
+    [Parameter] public EventCallback<string> InputValueChanged { get; set; }
+    [Parameter] public EventCallback OnSubmitInput { get; set; }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(InputValue))
+            return;
+
+        await OnSubmitInput.InvokeAsync();
+    }
+}
