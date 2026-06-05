@@ -202,15 +202,15 @@ Console.WriteLine("Brug int.TryParse — spørg indtil brugeren indtaster et gyl
 :::solution
 
 ```csharp
-int tal;
+int number;
 while (true)
 {
     Console.Write("Indtast et tal: ");
-    if (int.TryParse(Console.ReadLine(), out tal))
+    if (int.TryParse(Console.ReadLine(), out number))
         break;
     Console.WriteLine("Ugyldigt tal");
 }
-Console.WriteLine($"Du indtastede {tal}");
+Console.WriteLine($"Du indtastede {number}");
 ```
 
 :::
@@ -261,7 +261,7 @@ finally
 
 :::exercise level="begynder"
 
-Lav en metode **`UdskrivKvotient(int a, int b)`** med try/catch omkring divisionen. Kald metoden med to input-tal.
+Lav en metode **`PrintQuotient(int a, int b)`** med try/catch omkring divisionen. Kald metoden med to input-tal.
 
 :::
 
@@ -278,7 +278,7 @@ Console.WriteLine("Lav en metode med try/catch omkring division.");
 :::solution
 
 ```csharp
-void UdskrivKvotient(int a, int b)
+void PrintQuotient(int a, int b)
 {
     try
     {
@@ -294,7 +294,7 @@ Console.Write("Tæller: ");
 int a = int.Parse(Console.ReadLine()!);
 Console.Write("Nævner: ");
 int b = int.Parse(Console.ReadLine()!);
-UdskrivKvotient(a, b);
+PrintQuotient(a, b);
 ```
 
 :::

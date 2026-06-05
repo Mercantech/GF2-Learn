@@ -128,11 +128,11 @@ Console.WriteLine("Bed brugeren om at indtaste sit navn og et tal. Udskriv navne
 
 ```csharp
 Console.Write("Navn: ");
-string navn = Console.ReadLine()!;
+string name = Console.ReadLine()!;
 Console.Write("Antal: ");
-int antal = int.Parse(Console.ReadLine()!);
-for (int i = 0; i < antal; i++)
-    Console.WriteLine(navn);
+int count = int.Parse(Console.ReadLine()!);
+for (int i = 0; i < count; i++)
+    Console.WriteLine(name);
 ```
 
 :::
@@ -182,7 +182,7 @@ Brug et loop til at udskrive **alle bogstaver** i dit navn (ét bogstav pr. linj
 Console.WriteLine("Opgave 6:");
 Console.WriteLine("Brug et loop til at udskrive alle bogstaverne i dit navn (ét bogstav pr. linje).");
 Console.WriteLine("Navnet skal være gemt i en string variabel.");
-string navn = "Mads";
+string name = "Mads";
 // TODO: Lav opgave 6 herunder!
 ```
 :::
@@ -190,9 +190,9 @@ string navn = "Mads";
 :::solution
 
 ```csharp
-string navn = "Mads";
-for (int i = 0; i < navn.Length; i++)
-    Console.WriteLine(navn[i]);
+string name = "Mads";
+for (int i = 0; i < name.Length; i++)
+    Console.WriteLine(name[i]);
 ```
 
 :::
@@ -220,14 +220,14 @@ Console.WriteLine("Brug et loop til at tælle, hvor mange gange bogstavet 'a' op
 
 ```csharp
 Console.Write("Tekst: ");
-string tekst = Console.ReadLine()!.ToLower();
-int antal = 0;
-for (int i = 0; i < tekst.Length; i++)
+string text = Console.ReadLine()!.ToLower();
+int count = 0;
+for (int i = 0; i < text.Length; i++)
 {
-    if (tekst[i] == 'a')
-        antal++;
+    if (text[i] == 'a')
+        count++;
 }
-Console.WriteLine($"Bogstavet 'a' forekommer {antal} gang(e).");
+Console.WriteLine($"Bogstavet 'a' forekommer {count} gang(e).");
 ```
 
 :::
@@ -324,15 +324,15 @@ Console.WriteLine("Brug et loop, så brugeren kan gætte indtil det rigtige tal 
 :::solution
 
 ```csharp
-int hemmeligt = 7;
-int gæt;
+int secretNumber = 7;
+int guess;
 do
 {
     Console.Write("Gæt et tal (1-10): ");
-    gæt = int.Parse(Console.ReadLine()!);
-    if (gæt != hemmeligt)
+    guess = int.Parse(Console.ReadLine()!);
+    if (guess != secretNumber)
         Console.WriteLine("Forkert — prøv igen!");
-} while (gæt != hemmeligt);
+} while (guess != secretNumber);
 Console.WriteLine("Rigtigt!");
 ```
 
@@ -406,9 +406,9 @@ double a = double.Parse(Console.ReadLine()!);
 Console.Write("Andet tal: ");
 double b = double.Parse(Console.ReadLine()!);
 Console.Write("Regneart (+, -, *, /): ");
-string tegn = Console.ReadLine()!.Trim();
+string operatorSymbol = Console.ReadLine()!.Trim();
 
-switch (tegn)
+switch (operatorSymbol)
 {
     case "+":
         Console.WriteLine(a + b);

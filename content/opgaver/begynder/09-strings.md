@@ -42,10 +42,10 @@ Console.WriteLine("Udskriv længde, ToUpper og ToLower.");
 
 ```csharp
 Console.Write("Tekst: ");
-string tekst = Console.ReadLine()!;
-Console.WriteLine($"Længde: {tekst.Length}");
-Console.WriteLine(tekst.ToUpper());
-Console.WriteLine(tekst.ToLower());
+string text = Console.ReadLine()!;
+Console.WriteLine($"Længde: {text.Length}");
+Console.WriteLine(text.ToUpper());
+Console.WriteLine(text.ToLower());
 ```
 
 :::
@@ -73,9 +73,9 @@ Console.WriteLine("Brug Contains og StartsWith.");
 
 ```csharp
 Console.Write("Tekst: ");
-string tekst = Console.ReadLine()!;
-Console.WriteLine(tekst.Contains("C#") ? "Indeholder C#" : "Indeholder ikke C#");
-Console.WriteLine(tekst.StartsWith("GF") ? "Starter med GF" : "Starter ikke med GF");
+string text = Console.ReadLine()!;
+Console.WriteLine(text.Contains("C#") ? "Indeholder C#" : "Indeholder ikke C#");
+Console.WriteLine(text.StartsWith("GF") ? "Starter med GF" : "Starter ikke med GF");
 ```
 
 :::
@@ -103,9 +103,9 @@ Console.WriteLine("Brug Substring til start og slut af streng.");
 
 ```csharp
 Console.Write("Tekst: ");
-string tekst = Console.ReadLine()!;
-Console.WriteLine(tekst.Substring(0, 3));
-Console.WriteLine(tekst.Substring(tekst.Length - 4));
+string text = Console.ReadLine()!;
+Console.WriteLine(text.Substring(0, 3));
+Console.WriteLine(text.Substring(text.Length - 4));
 ```
 
 :::
@@ -133,10 +133,10 @@ Console.WriteLine("Split på komma og udskriv hvert navn.");
 
 ```csharp
 Console.Write("Navne (komma-separeret): ");
-string linje = Console.ReadLine()!;
-string[] navne = linje.Split(',');
-foreach (string navn in navne)
-    Console.WriteLine(navn.Trim());
+string line = Console.ReadLine()!;
+string[] names = line.Split(',');
+foreach (string name in names)
+    Console.WriteLine(name.Trim());
 ```
 
 :::
@@ -164,8 +164,8 @@ Console.WriteLine("Erstat mellemrum med underscore.");
 
 ```csharp
 Console.Write("Tekst: ");
-string tekst = Console.ReadLine()!;
-Console.WriteLine(tekst.Replace(" ", "_"));
+string text = Console.ReadLine()!;
+Console.WriteLine(text.Replace(" ", "_"));
 ```
 
 :::
@@ -193,9 +193,9 @@ Console.WriteLine("Brug Trim på input.");
 
 ```csharp
 Console.Write("Tekst: ");
-string rodet = Console.ReadLine()!;
-string ren = rodet.Trim();
-Console.WriteLine($"'{ren}' har længde {ren.Length}");
+string rawInput = Console.ReadLine()!;
+string trimmed = rawInput.Trim();
+Console.WriteLine($"'{trimmed}' har længde {trimmed.Length}");
 ```
 
 :::
@@ -223,14 +223,14 @@ Console.WriteLine("Tæl bogstavet 'a' (case-insensitive).");
 
 ```csharp
 Console.Write("Tekst: ");
-string tekst = Console.ReadLine()!.ToLower();
-int antal = 0;
-for (int i = 0; i < tekst.Length; i++)
+string text = Console.ReadLine()!.ToLower();
+int count = 0;
+for (int i = 0; i < text.Length; i++)
 {
-    if (tekst[i] == 'a')
-        antal++;
+    if (text[i] == 'a')
+        count++;
 }
-Console.WriteLine($"Antal 'a': {antal}");
+Console.WriteLine($"Antal 'a': {count}");
 ```
 
 :::
@@ -259,9 +259,9 @@ Console.WriteLine("Tjek om e-mail indeholder @ og . efter @.");
 ```csharp
 Console.Write("E-mail: ");
 string email = Console.ReadLine()!.Trim();
-int at = email.IndexOf('@');
-bool gyldig = at > 0 && email.IndexOf('.', at + 1) > at;
-Console.WriteLine(gyldig ? "Gyldig e-mail" : "Ugyldig e-mail");
+int atIndex = email.IndexOf('@');
+bool isValid = atIndex > 0 && email.IndexOf('.', atIndex + 1) > atIndex;
+Console.WriteLine(isValid ? "Gyldig e-mail" : "Ugyldig e-mail");
 ```
 
 :::

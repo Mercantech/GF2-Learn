@@ -68,8 +68,8 @@ Console.WriteLine("Udskriv variablen til konsollen.");
 :::solution
 
 ```csharp
-double tal = 5.25;
-Console.WriteLine(tal);
+double value = 5.25;
+Console.WriteLine(value);
 ```
 
 :::
@@ -124,8 +124,8 @@ Console.WriteLine("Udskriv variablen til konsollen.");
 :::solution
 
 ```csharp
-bool erAktiv = true;
-Console.WriteLine(erAktiv);
+bool isActive = true;
+Console.WriteLine(isActive);
 ```
 
 :::
@@ -151,10 +151,10 @@ Console.WriteLine("Lav to string-variabler med 'Hello, ' og 'World!' og udskriv 
 :::solution
 
 ```csharp
-string del1 = "Hello, ";
-string del2 = "World!";
-Console.WriteLine(del1 + del2);
-// eller: Console.WriteLine($"{del1}{del2}");
+string part1 = "Hello, ";
+string part2 = "World!";
+Console.WriteLine(part1 + part2);
+// eller: Console.WriteLine($"{part1}{part2}");
 ```
 
 :::
@@ -174,14 +174,14 @@ Kombinér de fire strenge til én sætning med interpolation: **Hej med dig!** (
 Console.WriteLine("Opgave 6: ");
 Console.WriteLine("Her er fire strenge. Din opgave er at kombinere dem til én sætning ved brug af string interpolation. Sætningen skal blive: Hej med dig!");
 Console.WriteLine("Strengene er: ");
-string del1 = "Hej";
-string del4 = "med";
-string del3 = "dig";
-string del2 = "!";
-Console.WriteLine("del1: " + del1);
-Console.WriteLine("del2: " + del2);
-Console.WriteLine("del3: " + del3);
-Console.WriteLine("del4: " + del4);
+string part1 = "Hej";
+string part4 = "med";
+string part3 = "dig";
+string part2 = "!";
+Console.WriteLine("part1: " + part1);
+Console.WriteLine("part2: " + part2);
+Console.WriteLine("part3: " + part3);
+Console.WriteLine("part4: " + part4);
 Console.WriteLine("Kombiner dem nu til én sætning:");
 
 // TODO: Lav opgave 6 herunder!
@@ -191,8 +191,8 @@ Console.WriteLine("Kombiner dem nu til én sætning:");
 :::solution
 
 ```csharp
-Console.WriteLine(del1 + " " + del4 + " " + del3 + del2);
-// eller: Console.WriteLine($"{del1} {del4} {del3}{del2}");
+Console.WriteLine(part1 + " " + part4 + " " + part3 + part2);
+// eller: Console.WriteLine($"{part1} {part4} {part3}{part2}");
 ```
 
 :::
@@ -247,8 +247,8 @@ Console.WriteLine("Udskriv variablen til konsollen.");
 :::solution
 
 ```csharp
-char bogstav = 'A';
-Console.WriteLine(bogstav);
+char letter = 'A';
+Console.WriteLine(letter);
 ```
 
 :::
@@ -275,8 +275,8 @@ Console.WriteLine("Udskriv variablen til konsollen.");
 :::solution
 
 ```csharp
-decimal beloeb = 100.5m;
-Console.WriteLine(beloeb);
+decimal amount = 100.5m;
+Console.WriteLine(amount);
 ```
 
 :::

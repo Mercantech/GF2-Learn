@@ -61,15 +61,15 @@ Lav et program, der gemmer et input som et **heltal** og skriver tallet ud.
 // gf2-input: 42
 Console.WriteLine("Lav et program som gemmer et input som et tal og skriver tallet ud i konsollen");
 Console.WriteLine("Indtast et tal: ");
-// TODO: Lav opgave 2 herunder! Tip: int tal = int.Parse(Console.ReadLine());
+// TODO: Lav opgave 2 herunder! Tip: int number = int.Parse(Console.ReadLine());
 ```
 :::
 
 :::solution
 
 ```csharp
-int tal = int.Parse(Console.ReadLine()!);
-Console.WriteLine(tal);
+int number = int.Parse(Console.ReadLine()!);
+Console.WriteLine(number);
 ```
 
 :::
@@ -157,12 +157,12 @@ Console.WriteLine("Eksempel: Hej, jeg hedder X, er X år gammel og kommer fra X!
 
 ```csharp
 Console.Write("Navn: ");
-string navn = Console.ReadLine()!;
+string name = Console.ReadLine()!;
 Console.Write("Alder: ");
-int alder = int.Parse(Console.ReadLine()!);
+int age = int.Parse(Console.ReadLine()!);
 Console.Write("Hjemby: ");
-string hjemby = Console.ReadLine()!;
-Console.WriteLine($"Hej, jeg hedder {navn}, er {alder} år gammel og kommer fra {hjemby}!");
+string hometown = Console.ReadLine()!;
+Console.WriteLine($"Hej, jeg hedder {name}, er {age} år gammel og kommer fra {hometown}!");
 ```
 
 :::
@@ -194,10 +194,10 @@ Console.WriteLine("Tip: BMI beregnes som vægt divideret med højde i anden (BMI
 
 ```csharp
 Console.Write("Vægt (kg): ");
-double vaegt = double.Parse(Console.ReadLine()!);
+double weight = double.Parse(Console.ReadLine()!);
 Console.Write("Højde (m): ");
-double hoejde = double.Parse(Console.ReadLine()!);
-double bmi = vaegt / (hoejde * hoejde);
+double height = double.Parse(Console.ReadLine()!);
+double bmi = weight / (height * height);
 Console.WriteLine($"Din BMI er {bmi:F2}");
 ```
 

@@ -50,12 +50,12 @@ Console.WriteLine("Menu: 1=Tilføj, 2=Vis, 3=Afslut");
 ```csharp
 List<string> todos = new List<string>();
 
-void VisMenu()
+void ShowMenu()
 {
     Console.WriteLine("1) Tilføj  2) Vis  3) Afslut");
 }
 
-void UdskrivListe()
+void PrintList()
 {
     if (todos.Count == 0)
     {
@@ -68,18 +68,18 @@ void UdskrivListe()
 
 while (true)
 {
-    VisMenu();
+    ShowMenu();
     Console.Write("Valg: ");
-    string valg = Console.ReadLine()!.Trim();
-    if (valg == "3") break;
-    if (valg == "1")
+    string choice = Console.ReadLine()!.Trim();
+    if (choice == "3") break;
+    if (choice == "1")
     {
         Console.Write("Opgave: ");
         todos.Add(Console.ReadLine()!.Trim());
     }
-    else if (valg == "2")
+    else if (choice == "2")
     {
-        UdskrivListe();
+        PrintList();
     }
     else
     {
@@ -115,30 +115,30 @@ Console.WriteLine("Svar på 3 spørgsmål (se TODO).");
 :::solution
 
 ```csharp
-string[] spoergsmaal =
+string[] questions =
 {
     "Hvad er 2 + 2?",
     "Hovedstad i Frankrig?",
     "Hvilket sprog lærer du på GF2?"
 };
-string[] rigtige = { "4", "Paris", "C#" };
+string[] correctAnswers = { "4", "Paris", "C#" };
 
-int point = 0;
-for (int i = 0; i < spoergsmaal.Length; i++)
+int score = 0;
+for (int i = 0; i < questions.Length; i++)
 {
-    Console.WriteLine(spoergsmaal[i]);
-    string svar = Console.ReadLine()!.Trim();
-    if (svar.Equals(rigtige[i], StringComparison.OrdinalIgnoreCase))
+    Console.WriteLine(questions[i]);
+    string answer = Console.ReadLine()!.Trim();
+    if (answer.Equals(correctAnswers[i], StringComparison.OrdinalIgnoreCase))
     {
-        point++;
+        score++;
         Console.WriteLine("Rigtigt!");
     }
     else
     {
-        Console.WriteLine($"Forkert — rigtigt svar: {rigtige[i]}");
+        Console.WriteLine($"Forkert — rigtigt svar: {correctAnswers[i]}");
     }
 }
-Console.WriteLine($"Du fik {point} af {spoergsmaal.Length}");
+Console.WriteLine($"Du fik {score} af {questions.Length}");
 ```
 
 :::
@@ -173,29 +173,29 @@ Console.WriteLine("Mini-projekt 3: Indkøb med total");
 :::solution
 
 ```csharp
-Dictionary<string, double> indkoeb = new Dictionary<string, double>();
+Dictionary<string, double> shoppingList = new Dictionary<string, double>();
 
 while (true)
 {
     Console.Write("Vare (eller stop): ");
-    string vare = Console.ReadLine()!.Trim();
-    if (vare.Equals("stop", StringComparison.OrdinalIgnoreCase))
+    string item = Console.ReadLine()!.Trim();
+    if (item.Equals("stop", StringComparison.OrdinalIgnoreCase))
         break;
 
     Console.Write("Pris: ");
-    if (!double.TryParse(Console.ReadLine(), out double pris))
+    if (!double.TryParse(Console.ReadLine(), out double price))
     {
         Console.WriteLine("Ugyldig pris — springer over.");
         continue;
     }
-    indkoeb[vare] = pris;
+    shoppingList[item] = price;
 }
 
 double total = 0;
-foreach (var linje in indkoeb)
+foreach (var entry in shoppingList)
 {
-    Console.WriteLine($"{linje.Key}: {linje.Value:F2} kr.");
-    total += linje.Value;
+    Console.WriteLine($"{entry.Key}: {entry.Value:F2} kr.");
+    total += entry.Value;
 }
 Console.WriteLine($"Total: {total:F2} kr.");
 ```
@@ -210,9 +210,9 @@ Console.WriteLine($"Total: {total:F2} kr.");
 
 Lav et **klasseregister**:
 
-- Klasse **`Elev`** med **navn**, **alder** og **email**
-- Metode **`Udskriv()`** på klassen
-- Gem **3 elever** i en **`List<Elev>`** (input fra bruger)
+- Klasse **`Student`** med **navn**, **alder** og **email**
+- Metode **`Print()`** på klassen
+- Gem **3 elever** i en **`List<Student>`** (input fra bruger)
 - Valider **alder** (positiv) og **email** (indeholder `@`)
 
 :::
@@ -236,32 +236,32 @@ Console.WriteLine("Mini-projekt 4: Klasseregister");
 :::solution
 
 ```csharp
-class Elev
+class Student
 {
-    public string Navn { get; set; } = "";
-    public int Alder { get; set; }
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
     public string Email { get; set; } = "";
 
-    public void Udskriv()
+    public void Print()
     {
-        Console.WriteLine($"{Navn}, {Alder} år — {Email}");
+        Console.WriteLine($"{Name}, {Age} år — {Email}");
     }
 }
 
-bool ErGyldigEmail(string email) =>
+bool IsValidEmail(string email) =>
     !string.IsNullOrWhiteSpace(email) && email.Contains('@');
 
-List<Elev> klasse = new List<Elev>();
+List<Student> students = new List<Student>();
 for (int i = 0; i < 3; i++)
 {
     Console.Write($"Navn elev {i + 1}: ");
-    string navn = Console.ReadLine()!.Trim();
+    string name = Console.ReadLine()!.Trim();
 
-    int alder;
+    int age;
     while (true)
     {
         Console.Write("Alder: ");
-        if (int.TryParse(Console.ReadLine(), out alder) && alder > 0)
+        if (int.TryParse(Console.ReadLine(), out age) && age > 0)
             break;
         Console.WriteLine("Alder skal være et positivt tal.");
     }
@@ -271,17 +271,17 @@ for (int i = 0; i < 3; i++)
     {
         Console.Write("E-mail: ");
         email = Console.ReadLine()!.Trim();
-        if (ErGyldigEmail(email))
+        if (IsValidEmail(email))
             break;
         Console.WriteLine("E-mail skal indeholde @.");
     }
 
-    klasse.Add(new Elev { Navn = navn, Alder = alder, Email = email });
+    students.Add(new Student { Name = name, Age = age, Email = email });
 }
 
 Console.WriteLine("Klasseliste:");
-foreach (Elev e in klasse)
-    e.Udskriv();
+foreach (Student student in students)
+    student.Print();
 ```
 
 :::

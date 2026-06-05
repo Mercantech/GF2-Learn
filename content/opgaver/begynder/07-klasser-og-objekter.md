@@ -43,12 +43,12 @@ Console.WriteLine("Opret et objekt af klassen og udskriv informationen.");
 ```csharp
 class Person
 {
-    public string Navn { get; set; } = "";
-    public int Alder { get; set; }
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
 }
 
-Person person = new Person { Navn = "Emma", Alder = 17 };
-Console.WriteLine($"{person.Navn} er {person.Alder} år");
+Person person = new Person { Name = "Emma", Age = 17 };
+Console.WriteLine($"{person.Name} er {person.Age} år");
 ```
 
 :::
@@ -75,17 +75,17 @@ Console.WriteLine("Opret to forskellige bil-objekter og udskriv deres informatio
 :::solution
 
 ```csharp
-class Bil
+class Car
 {
-    public string Maerke { get; set; } = "";
+    public string Brand { get; set; } = "";
     public string Model { get; set; } = "";
-    public int Aargang { get; set; }
+    public int Year { get; set; }
 }
 
-Bil bil1 = new Bil { Maerke = "Toyota", Model = "Yaris", Aargang = 2019 };
-Bil bil2 = new Bil { Maerke = "VW", Model = "ID.3", Aargang = 2022 };
-Console.WriteLine($"{bil1.Maerke} {bil1.Model} ({bil1.Aargang})");
-Console.WriteLine($"{bil2.Maerke} {bil2.Model} ({bil2.Aargang})");
+Car car1 = new Car { Brand = "Toyota", Model = "Yaris", Year = 2019 };
+Car car2 = new Car { Brand = "VW", Model = "ID.3", Year = 2022 };
+Console.WriteLine($"{car1.Brand} {car1.Model} ({car1.Year})");
+Console.WriteLine($"{car2.Brand} {car2.Model} ({car2.Year})");
 ```
 
 :::
@@ -112,13 +112,13 @@ Console.WriteLine("Opret et cirkel-objekt og udskriv radiusen.");
 :::solution
 
 ```csharp
-class Cirkel
+class Circle
 {
     public double Radius { get; set; }
 }
 
-Cirkel c = new Cirkel { Radius = 4.5 };
-Console.WriteLine($"Radius: {c.Radius}");
+Circle circle = new Circle { Radius = 4.5 };
+Console.WriteLine($"Radius: {circle.Radius}");
 ```
 
 :::
@@ -147,16 +147,16 @@ Console.WriteLine("Opret et student-objekt og sæt/udskriv alle properties.");
 ```csharp
 class Student
 {
-    public string Navn { get; set; } = "";
-    public int Alder { get; set; }
-    public char Karakter { get; set; }
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
+    public char GradeLetter { get; set; }
 }
 
-Student s = new Student();
-s.Navn = "Noah";
-s.Alder = 18;
-s.Karakter = 'B';
-Console.WriteLine($"{s.Navn}, {s.Alder} år, karakter {s.Karakter}");
+Student student = new Student();
+student.Name = "Noah";
+student.Age = 18;
+student.GradeLetter = 'B';
+Console.WriteLine($"{student.Name}, {student.Age} år, karakter {student.GradeLetter}");
 ```
 
 :::
@@ -183,15 +183,15 @@ Console.WriteLine("Tilføj en read-only property 'Areal' der beregner længde * 
 :::solution
 
 ```csharp
-class Rektangel
+class Rectangle
 {
-    public double Laengde { get; set; }
-    public double Bredde { get; set; }
-    public double Areal => Laengde * Bredde;
+    public double Length { get; set; }
+    public double Width { get; set; }
+    public double Area => Length * Width;
 }
 
-Rektangel r = new Rektangel { Laengde = 5, Bredde = 3 };
-Console.WriteLine($"Areal: {r.Areal}");
+Rectangle rectangle = new Rectangle { Length = 5, Width = 3 };
+Console.WriteLine($"Areal: {rectangle.Area}");
 ```
 
 :::
@@ -218,13 +218,13 @@ Console.WriteLine("Saldoen må ikke være negativ (brug set-metoden).");
 :::solution
 
 ```csharp
-class BankKonto
+class BankAccount
 {
-    public string Kontonummer { get; set; } = "";
-    private decimal _saldo;
-    public decimal Saldo
+    public string AccountNumber { get; set; } = "";
+    private decimal _balance;
+    public decimal Balance
     {
-        get => _saldo;
+        get => _balance;
         set
         {
             if (value < 0)
@@ -232,16 +232,16 @@ class BankKonto
                 Console.WriteLine("Saldo kan ikke være negativ.");
                 return;
             }
-            _saldo = value;
+            _balance = value;
         }
     }
 }
 
-BankKonto konto = new BankKonto { Kontonummer = "DK001" };
-konto.Saldo = 500;
-Console.WriteLine($"Saldo: {konto.Saldo}");
-konto.Saldo = -100;
-Console.WriteLine($"Saldo efter forsøg: {konto.Saldo}");
+BankAccount account = new BankAccount { AccountNumber = "DK001" };
+account.Balance = 500;
+Console.WriteLine($"Saldo: {account.Balance}");
+account.Balance = -100;
+Console.WriteLine($"Saldo efter forsøg: {account.Balance}");
 ```
 
 :::
@@ -267,20 +267,20 @@ Console.WriteLine("Lav en klasse kaldet 'Hund' med navn og race og en constructo
 :::solution
 
 ```csharp
-class Hund
+class Dog
 {
-    public string Navn { get; }
-    public string Race { get; }
+    public string Name { get; }
+    public string Breed { get; }
 
-    public Hund(string navn, string race)
+    public Dog(string name, string breed)
     {
-        Navn = navn;
-        Race = race;
+        Name = name;
+        Breed = breed;
     }
 }
 
-Hund hund = new Hund("Balder", "Labrador");
-Console.WriteLine($"{hund.Navn} er en {hund.Race}");
+Dog dog = new Dog("Balder", "Labrador");
+Console.WriteLine($"{dog.Name} er en {dog.Breed}");
 ```
 
 :::
@@ -307,29 +307,29 @@ Console.WriteLine("Lav både fuld constructor og default constructor.");
 :::solution
 
 ```csharp
-class Bog
+class Book
 {
-    public string Titel { get; set; } = "";
-    public string Forfatter { get; set; } = "";
-    public int AntalSider { get; set; }
+    public string Title { get; set; } = "";
+    public string Author { get; set; } = "";
+    public int PageCount { get; set; }
 
-    public Bog() { }
+    public Book() { }
 
-    public Bog(string titel, string forfatter, int antalSider)
+    public Book(string title, string author, int pageCount)
     {
-        Titel = titel;
-        Forfatter = forfatter;
-        AntalSider = antalSider;
+        Title = title;
+        Author = author;
+        PageCount = pageCount;
     }
 }
 
-Bog b1 = new Bog("1984", "George Orwell", 328);
-Bog b2 = new Bog();
-b2.Titel = "Kort bog";
-b2.Forfatter = "Ukendt";
-b2.AntalSider = 50;
-Console.WriteLine($"{b1.Titel} — {b1.Forfatter}");
-Console.WriteLine($"{b2.Titel} — {b2.AntalSider} sider");
+Book book1 = new Book("1984", "George Orwell", 328);
+Book book2 = new Book();
+book2.Title = "Kort bog";
+book2.Author = "Ukendt";
+book2.PageCount = 50;
+Console.WriteLine($"{book1.Title} — {book1.Author}");
+Console.WriteLine($"{book2.Title} — {book2.PageCount} sider");
 ```
 
 :::
@@ -355,24 +355,24 @@ Console.WriteLine("Lav en klasse 'Punkt' med x og y og to constructors (x,y og k
 :::solution
 
 ```csharp
-class Punkt
+class Point
 {
     public int X { get; }
     public int Y { get; }
 
-    public Punkt(int x, int y)
+    public Point(int x, int y)
     {
         X = x;
         Y = y;
     }
 
-    public Punkt(int x) : this(x, 0) { }
+    public Point(int x) : this(x, 0) { }
 }
 
-Punkt p1 = new Punkt(3, 7);
-Punkt p2 = new Punkt(5);
-Console.WriteLine($"p1: ({p1.X}, {p1.Y})");
-Console.WriteLine($"p2: ({p2.X}, {p2.Y})");
+Point point1 = new Point(3, 7);
+Point point2 = new Point(5);
+Console.WriteLine($"p1: ({point1.X}, {point1.Y})");
+Console.WriteLine($"p2: ({point2.X}, {point2.Y})");
 ```
 
 :::
@@ -398,13 +398,13 @@ Console.WriteLine("Lav en klasse 'Lommeregner' med en method der returnerer summ
 :::solution
 
 ```csharp
-class Lommeregner
+class Calculator
 {
     public int Sum(int a, int b) => a + b;
 }
 
-Lommeregner calc = new Lommeregner();
-Console.WriteLine(calc.Sum(14, 28));
+Calculator calculator = new Calculator();
+Console.WriteLine(calculator.Sum(14, 28));
 ```
 
 :::
@@ -430,17 +430,17 @@ Console.WriteLine("Lav en klasse 'Cirkel' med radius og methods for areal og omk
 :::solution
 
 ```csharp
-class Cirkel
+class Circle
 {
     public double Radius { get; set; }
 
-    public double BeregnAreal() => Math.PI * Radius * Radius;
-    public double BeregnOmkreds() => 2 * Math.PI * Radius;
+    public double CalculateArea() => Math.PI * Radius * Radius;
+    public double CalculateCircumference() => 2 * Math.PI * Radius;
 }
 
-Cirkel c = new Cirkel { Radius = 3 };
-Console.WriteLine($"Areal: {c.BeregnAreal():F2}");
-Console.WriteLine($"Omkreds: {c.BeregnOmkreds():F2}");
+Circle circle = new Circle { Radius = 3 };
+Console.WriteLine($"Areal: {circle.CalculateArea():F2}");
+Console.WriteLine($"Omkreds: {circle.CalculateCircumference():F2}");
 ```
 
 :::
@@ -468,17 +468,17 @@ Console.WriteLine("Tilføj IntroduceYourself() der udskriver navn og alder.");
 ```csharp
 class Person
 {
-    public string Navn { get; set; } = "";
-    public int Alder { get; set; }
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
 
     public void IntroduceYourself()
     {
-        Console.WriteLine($"Hej, jeg hedder {Navn} og er {Alder} år gammel");
+        Console.WriteLine($"Hej, jeg hedder {Name} og er {Age} år gammel");
     }
 }
 
-Person p = new Person { Navn = "Sofia", Alder = 19 };
-p.IntroduceYourself();
+Person person = new Person { Name = "Sofia", Age = 19 };
+person.IntroduceYourself();
 ```
 
 :::
@@ -504,21 +504,21 @@ Console.WriteLine("Base-klasse Dyr og derived klasse Hund med race.");
 :::solution
 
 ```csharp
-class Dyr
+class Animal
 {
-    public string Navn { get; set; } = "";
-    public int Alder { get; set; }
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
 }
 
-class Hund : Dyr
+class Dog : Animal
 {
-    public string Race { get; set; } = "";
+    public string Breed { get; set; } = "";
 }
 
-Dyr dyr = new Dyr { Navn = "Fugl", Alder = 2 };
-Hund hund = new Hund { Navn = "Max", Alder = 4, Race = "Schæfer" };
-Console.WriteLine($"{dyr.Navn}, {dyr.Alder} år");
-Console.WriteLine($"{hund.Navn} ({hund.Race}), {hund.Alder} år");
+Animal animal = new Animal { Name = "Fugl", Age = 2 };
+Dog dog = new Dog { Name = "Max", Age = 4, Breed = "Schæfer" };
+Console.WriteLine($"{animal.Name}, {animal.Age} år");
+Console.WriteLine($"{dog.Name} ({dog.Breed}), {dog.Age} år");
 ```
 
 :::
@@ -544,24 +544,24 @@ Console.WriteLine("Base Køretøj og derived Bil med antal døre og udskriv-meto
 :::solution
 
 ```csharp
-class Koeretoej
+class Vehicle
 {
-    public string Maerke { get; set; } = "";
-    public int Aargang { get; set; }
+    public string Brand { get; set; } = "";
+    public int Year { get; set; }
 }
 
-class Bil : Koeretoej
+class Car : Vehicle
 {
-    public int AntalDoere { get; set; }
+    public int DoorCount { get; set; }
 
-    public void UdskrivInfo()
+    public void PrintInfo()
     {
-        Console.WriteLine($"{Maerke} ({Aargang}), {AntalDoere} døre");
+        Console.WriteLine($"{Brand} ({Year}), {DoorCount} døre");
     }
 }
 
-Bil bil = new Bil { Maerke = "Ford", Aargang = 2020, AntalDoere = 5 };
-bil.UdskrivInfo();
+Car car = new Car { Brand = "Ford", Year = 2020, DoorCount = 5 };
+car.PrintInfo();
 ```
 
 :::
@@ -591,14 +591,14 @@ Console.WriteLine("- Validering og metoder til info og skift email");
 ```csharp
 class Person
 {
-    public string Navn { get; set; } = "";
-    public string Telefon { get; set; } = "";
-    private int _alder;
+    public string Name { get; set; } = "";
+    public string Phone { get; set; } = "";
+    private int _age;
     private string _email = "";
 
-    public int Alder
+    public int Age
     {
-        get => _alder;
+        get => _age;
         set
         {
             if (value <= 0)
@@ -606,39 +606,39 @@ class Person
                 Console.WriteLine("Alder skal være positiv.");
                 return;
             }
-            _alder = value;
+            _age = value;
         }
     }
 
     public string Email
     {
         get => _email;
-        set => _email = ErGyldigEmail(value) ? value : _email;
+        set => _email = IsValidEmail(value) ? value : _email;
     }
 
-    private static bool ErGyldigEmail(string email) =>
+    private static bool IsValidEmail(string email) =>
         !string.IsNullOrWhiteSpace(email) && email.Contains('@');
 
-    public void UdskrivInfo()
+    public void PrintInfo()
     {
-        Console.WriteLine($"{Navn}, {Alder} år — {Email}, tlf. {Telefon}");
+        Console.WriteLine($"{Name}, {Age} år — {Email}, tlf. {Phone}");
     }
 
-    public void SkiftEmail(string nyEmail)
+    public void ChangeEmail(string newEmail)
     {
-        if (ErGyldigEmail(nyEmail))
-            Email = nyEmail;
+        if (IsValidEmail(newEmail))
+            Email = newEmail;
         else
             Console.WriteLine("Ugyldig email.");
     }
 }
 
-Person p = new Person { Navn = "Mads", Alder = 20, Telefon = "12345678" };
-p.Email = "mads@test.dk";
-p.UdskrivInfo();
+Person person = new Person { Name = "Mads", Age = 20, Phone = "12345678" };
+person.Email = "mads@test.dk";
+person.PrintInfo();
 Console.Write("Ny email: ");
-p.SkiftEmail(Console.ReadLine()!);
-p.UdskrivInfo();
+person.ChangeEmail(Console.ReadLine()!);
+person.PrintInfo();
 ```
 
 :::
@@ -664,54 +664,54 @@ Console.WriteLine("- Køretøj, Bil og Motorcykel med arv og metoder");
 :::solution
 
 ```csharp
-class Koeretoej
+class Vehicle
 {
-    public string Maerke { get; set; } = "";
+    public string Brand { get; set; } = "";
     public string Model { get; set; } = "";
-    public int Aargang { get; set; }
+    public int Year { get; set; }
 
-    public int BeregnAlder() => DateTime.Now.Year - Aargang;
-    public bool ErGammel() => BeregnAlder() > 10;
+    public int CalculateAge() => DateTime.Now.Year - Year;
+    public bool IsOld() => CalculateAge() > 10;
 
-    public virtual void UdskrivInfo()
+    public virtual void PrintInfo()
     {
-        Console.WriteLine($"{Maerke} {Model} ({Aargang}) — alder {BeregnAlder()} år");
+        Console.WriteLine($"{Brand} {Model} ({Year}) — alder {CalculateAge()} år");
     }
 }
 
-class Bil : Koeretoej
+class Car : Vehicle
 {
-    public int AntalDoere { get; set; }
-    public string Braendstof { get; set; } = "";
+    public int DoorCount { get; set; }
+    public string FuelType { get; set; } = "";
 
-    public override void UdskrivInfo()
+    public override void PrintInfo()
     {
-        base.UdskrivInfo();
-        Console.WriteLine($"  Bil: {AntalDoere} døre, {Braendstof}");
+        base.PrintInfo();
+        Console.WriteLine($"  Bil: {DoorCount} døre, {FuelType}");
     }
 }
 
-class Motorcykel : Koeretoej
+class Motorcycle : Vehicle
 {
-    public int CylinderAntal { get; set; }
+    public int CylinderCount { get; set; }
 
-    public override void UdskrivInfo()
+    public override void PrintInfo()
     {
-        base.UdskrivInfo();
-        Console.WriteLine($"  MC: {CylinderAntal} cylindre");
+        base.PrintInfo();
+        Console.WriteLine($"  MC: {CylinderCount} cylindre");
     }
 }
 
-Koeretoej[] udstilling =
+Vehicle[] display =
 {
-    new Bil { Maerke = "Toyota", Model = "Yaris", Aargang = 2010, AntalDoere = 5, Braendstof = "Benzin" },
-    new Motorcykel { Maerke = "Honda", Model = "CB500", Aargang = 2022, CylinderAntal = 2 }
+    new Car { Brand = "Toyota", Model = "Yaris", Year = 2010, DoorCount = 5, FuelType = "Benzin" },
+    new Motorcycle { Brand = "Honda", Model = "CB500", Year = 2022, CylinderCount = 2 }
 };
 
-foreach (var k in udstilling)
+foreach (var vehicle in display)
 {
-    k.UdskrivInfo();
-    Console.WriteLine(k.ErGammel() ? "  Gammelt køretøj" : "  Relativt nyt");
+    vehicle.PrintInfo();
+    Console.WriteLine(vehicle.IsOld() ? "  Gammelt køretøj" : "  Relativt nyt");
 }
 ```
 

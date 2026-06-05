@@ -38,22 +38,22 @@ Lav et program, der gemmer **5 fornavne** som brugeren indtaster i et **array**.
 // gf2-input: Eva
 Console.WriteLine("Opgave 1 (Array):");
 Console.WriteLine("Lav et program som gemmer 5 fornavne som brugeren indtaster i et array. Udskriv navnene til sidst.");
-string[] navne = new string[5];
-// TODO: Lav opgave 1 herunder! Tip: brug et for-loop med navne[i] = Console.ReadLine();
+string[] names = new string[5];
+// TODO: Lav opgave 1 herunder! Tip: brug et for-loop med names[i] = Console.ReadLine();
 ```
 :::
 
 :::solution
 
 ```csharp
-for (int i = 0; i < navne.Length; i++)
+for (int i = 0; i < names.Length; i++)
 {
     Console.Write($"Fornavn {i + 1}: ");
-    navne[i] = Console.ReadLine()!;
+    names[i] = Console.ReadLine()!;
 }
 Console.WriteLine("Alle navne:");
-for (int i = 0; i < navne.Length; i++)
-    Console.WriteLine(navne[i]);
+for (int i = 0; i < names.Length; i++)
+    Console.WriteLine(names[i]);
 ```
 
 :::
@@ -84,17 +84,17 @@ Console.WriteLine("Lav et program som gemmer 5 tal i et array og udskriver det s
 :::solution
 
 ```csharp
-int[] tal = new int[5];
-for (int i = 0; i < tal.Length; i++)
+int[] numbers = new int[5];
+for (int i = 0; i < numbers.Length; i++)
 {
     Console.Write($"Tal {i + 1}: ");
-    tal[i] = int.Parse(Console.ReadLine()!);
+    numbers[i] = int.Parse(Console.ReadLine()!);
 }
-int max = tal[0];
-for (int i = 1; i < tal.Length; i++)
+int max = numbers[0];
+for (int i = 1; i < numbers.Length; i++)
 {
-    if (tal[i] > max)
-        max = tal[i];
+    if (numbers[i] > max)
+        max = numbers[i];
 }
 Console.WriteLine($"Største tal: {max}");
 ```
@@ -127,15 +127,15 @@ Console.WriteLine("Lav et program som gemmer 5 bynavne i et array og udskriver d
 :::solution
 
 ```csharp
-string[] byer = new string[5];
-for (int i = 0; i < byer.Length; i++)
+string[] cities = new string[5];
+for (int i = 0; i < cities.Length; i++)
 {
     Console.Write($"By {i + 1}: ");
-    byer[i] = Console.ReadLine()!;
+    cities[i] = Console.ReadLine()!;
 }
 Console.WriteLine("Byer i omvendt rækkefølge:");
-for (int i = byer.Length - 1; i >= 0; i--)
-    Console.WriteLine(byer[i]);
+for (int i = cities.Length - 1; i >= 0; i--)
+    Console.WriteLine(cities[i]);
 ```
 
 :::
@@ -159,8 +159,8 @@ Lav et program, der gemmer **5 fornavne** som brugeren indtaster i en **liste**.
 // gf2-input: Pat
 Console.WriteLine("Opgave 1 (List):");
 Console.WriteLine("Lav et program som gemmer 5 fornavne som brugeren indtaster i en liste. Udskriv listen til sidst.");
-List<string> navne = new List<string>();
-// TODO: Lav opgave 4 herunder! Tip: brug navne.Add(Console.ReadLine()) i et loop.
+List<string> names = new List<string>();
+// TODO: Lav opgave 4 herunder! Tip: brug names.Add(Console.ReadLine()) i et loop.
 ```
 :::
 
@@ -170,11 +170,11 @@ List<string> navne = new List<string>();
 for (int i = 0; i < 5; i++)
 {
     Console.Write($"Fornavn {i + 1}: ");
-    navne.Add(Console.ReadLine()!);
+    names.Add(Console.ReadLine()!);
 }
 Console.WriteLine("Alle navne:");
-foreach (string navn in navne)
-    Console.WriteLine(navn);
+foreach (string name in names)
+    Console.WriteLine(name);
 ```
 
 :::
@@ -203,18 +203,18 @@ Console.WriteLine("Lav et program hvor brugeren kan blive ved med at indtaste na
 :::solution
 
 ```csharp
-List<string> navne = new List<string>();
+List<string> names = new List<string>();
 while (true)
 {
     Console.Write("Navn (eller 'stop'): ");
     string input = Console.ReadLine()!;
     if (input.Equals("stop", StringComparison.OrdinalIgnoreCase))
         break;
-    navne.Add(input);
+    names.Add(input);
 }
 Console.WriteLine("Alle navne:");
-foreach (string navn in navne)
-    Console.WriteLine(navn);
+foreach (string name in names)
+    Console.WriteLine(name);
 ```
 
 :::
@@ -245,17 +245,17 @@ Console.WriteLine("Lav et program hvor brugeren indtaster 5 tal i en liste og pr
 :::solution
 
 ```csharp
-List<int> tal = new List<int>();
+List<int> numbers = new List<int>();
 for (int i = 0; i < 5; i++)
 {
     Console.Write($"Tal {i + 1}: ");
-    tal.Add(int.Parse(Console.ReadLine()!));
+    numbers.Add(int.Parse(Console.ReadLine()!));
 }
 double sum = 0;
-foreach (int t in tal)
-    sum += t;
-double gennemsnit = sum / tal.Count;
-Console.WriteLine($"Gennemsnit: {gennemsnit}");
+foreach (int number in numbers)
+    sum += number;
+double average = sum / numbers.Count;
+Console.WriteLine($"Gennemsnit: {average}");
 ```
 
 :::
@@ -287,7 +287,7 @@ Console.WriteLine("Tip: skriv 'fjern <ting>' for at fjerne, og 'stop' når du er
 :::solution
 
 ```csharp
-List<string> indkoeb = new List<string>();
+List<string> shoppingList = new List<string>();
 while (true)
 {
     Console.Write("Tilføj ting, 'fjern <ting>' eller 'stop': ");
@@ -296,17 +296,17 @@ while (true)
         break;
     if (input.StartsWith("fjern ", StringComparison.OrdinalIgnoreCase))
     {
-        string ting = input.Substring(6).Trim();
-        indkoeb.Remove(ting);
+        string item = input.Substring(6).Trim();
+        shoppingList.Remove(item);
     }
     else
     {
-        indkoeb.Add(input);
+        shoppingList.Add(input);
     }
 }
 Console.WriteLine("Indkøbsliste:");
-foreach (string ting in indkoeb)
-    Console.WriteLine(ting);
+foreach (string item in shoppingList)
+    Console.WriteLine(item);
 ```
 
 :::
@@ -338,22 +338,22 @@ Console.WriteLine("Skriv 'stop' når du er færdig.");
 :::solution
 
 ```csharp
-List<string> venner = new List<string>();
+List<string> friends = new List<string>();
 while (true)
 {
     Console.Write("Vennenavn (eller 'stop'): ");
-    string navn = Console.ReadLine()!;
-    if (navn.Equals("stop", StringComparison.OrdinalIgnoreCase))
+    string name = Console.ReadLine()!;
+    if (name.Equals("stop", StringComparison.OrdinalIgnoreCase))
         break;
-    venner.Add(navn);
+    friends.Add(name);
 }
-int antalA = 0;
-foreach (string v in venner)
+int countStartingWithA = 0;
+foreach (string friend in friends)
 {
-    if (v.StartsWith("A", StringComparison.OrdinalIgnoreCase))
-        antalA++;
+    if (friend.StartsWith("A", StringComparison.OrdinalIgnoreCase))
+        countStartingWithA++;
 }
-Console.WriteLine($"Navne der starter med 'A': {antalA}");
+Console.WriteLine($"Navne der starter med 'A': {countStartingWithA}");
 ```
 
 :::
@@ -373,21 +373,21 @@ Lav et program, hvor du gemmer **navn og alder** på **3 personer** i en **dicti
 Console.WriteLine("Opgave 1 (Dictionary):");
 Console.WriteLine("Lav et program hvor du gemmer navne og alder på 3 personer i en dictionary og udskriver dem alle.");
 // TODO: Lav opgave 9 herunder!
-// Husk: Dictionary<string, int> personer = new Dictionary<string, int>();
+// Husk: Dictionary<string, int> people = new Dictionary<string, int>();
 ```
 :::
 
 :::solution
 
 ```csharp
-Dictionary<string, int> personer = new Dictionary<string, int>
+Dictionary<string, int> people = new Dictionary<string, int>
 {
     { "Anna", 17 },
     { "Bo", 18 },
     { "Clara", 16 }
 };
-foreach (var par in personer)
-    Console.WriteLine($"{par.Key} er {par.Value} år");
+foreach (var entry in people)
+    Console.WriteLine($"{entry.Key} er {entry.Value} år");
 ```
 
 :::
@@ -414,16 +414,16 @@ Console.WriteLine("Lav et program hvor brugeren kan indtaste et navn og få alde
 :::solution
 
 ```csharp
-Dictionary<string, int> personer = new Dictionary<string, int>
+Dictionary<string, int> people = new Dictionary<string, int>
 {
     { "Anna", 17 },
     { "Bo", 18 },
     { "Clara", 16 }
 };
 Console.Write("Indtast navn: ");
-string navn = Console.ReadLine()!;
-if (personer.TryGetValue(navn, out int alder))
-    Console.WriteLine($"{navn} er {alder} år");
+string name = Console.ReadLine()!;
+if (people.TryGetValue(name, out int age))
+    Console.WriteLine($"{name} er {age} år");
 else
     Console.WriteLine("Personen findes ikke i listen.");
 ```
@@ -457,15 +457,15 @@ Console.WriteLine("Gem navnene i en liste og udskriv hele klasselisten i konsoll
 :::solution
 
 ```csharp
-List<string> klasse = new List<string>();
+List<string> students = new List<string>();
 for (int i = 0; i < 5; i++)
 {
     Console.Write($"Elev {i + 1}: ");
-    klasse.Add(Console.ReadLine()!);
+    students.Add(Console.ReadLine()!);
 }
 Console.WriteLine("Klasseliste:");
-for (int i = 0; i < klasse.Count; i++)
-    Console.WriteLine($"{i + 1}. {klasse[i]}");
+for (int i = 0; i < students.Count; i++)
+    Console.WriteLine($"{i + 1}. {students[i]}");
 ```
 
 :::
@@ -498,21 +498,21 @@ Console.WriteLine("Gem tingene i et key-value par med navn og pris, og udskriv e
 :::solution
 
 ```csharp
-Dictionary<string, double> indkoeb = new Dictionary<string, double>();
+Dictionary<string, double> shoppingList = new Dictionary<string, double>();
 for (int i = 0; i < 3; i++)
 {
     Console.Write($"Vare {i + 1} navn: ");
-    string navn = Console.ReadLine()!;
-    Console.Write($"Pris for {navn}: ");
-    double pris = double.Parse(Console.ReadLine()!);
-    indkoeb[navn] = pris;
+    string itemName = Console.ReadLine()!;
+    Console.Write($"Pris for {itemName}: ");
+    double price = double.Parse(Console.ReadLine()!);
+    shoppingList[itemName] = price;
 }
 double total = 0;
 Console.WriteLine("Indkøbsliste:");
-foreach (var linje in indkoeb)
+foreach (var entry in shoppingList)
 {
-    Console.WriteLine($"{linje.Key}: {linje.Value:F2} kr.");
-    total += linje.Value;
+    Console.WriteLine($"{entry.Key}: {entry.Value:F2} kr.");
+    total += entry.Value;
 }
 Console.WriteLine($"Total: {total:F2} kr.");
 ```

@@ -40,11 +40,11 @@ Console.WriteLine("Lav en method der udskriver 'Hej verden!' og kald den fra den
 :::solution
 
 ```csharp
-void HejVerden()
+void SayHelloWorld()
 {
     Console.WriteLine("Hej verden!");
 }
-HejVerden();
+SayHelloWorld();
 ```
 
 :::
@@ -70,12 +70,12 @@ Console.WriteLine("Lav en method der udskriver tallene fra 1 til 5 og kald den f
 :::solution
 
 ```csharp
-void UdskrivEtTilFem()
+void PrintOneToFive()
 {
     for (int i = 1; i <= 5; i++)
         Console.WriteLine(i);
 }
-UdskrivEtTilFem();
+PrintOneToFive();
 ```
 
 :::
@@ -102,13 +102,13 @@ Console.WriteLine("Lav en method der beder brugeren om deres navn og hilser på 
 :::solution
 
 ```csharp
-void Hilse()
+void Greet()
 {
     Console.Write("Hvad hedder du? ");
-    string navn = Console.ReadLine()!;
-    Console.WriteLine($"Hej {navn}!");
+    string name = Console.ReadLine()!;
+    Console.WriteLine($"Hej {name}!");
 }
-Hilse();
+Greet();
 ```
 
 :::
@@ -134,11 +134,11 @@ Console.WriteLine("Lav en method der tager et navn som parameter og udskriver 'H
 :::solution
 
 ```csharp
-void SigHej(string navn)
+void SayHello(string name)
 {
-    Console.WriteLine($"Hej {navn}!");
+    Console.WriteLine($"Hej {name}!");
 }
-SigHej("Sofia");
+SayHello("Sofia");
 ```
 
 :::
@@ -164,11 +164,11 @@ Console.WriteLine("Lav en method der tager to tal som parametre og udskriver sum
 :::solution
 
 ```csharp
-void UdskrivSum(int a, int b)
+void PrintSum(int a, int b)
 {
     Console.WriteLine(a + b);
 }
-UdskrivSum(12, 30);
+PrintSum(12, 30);
 ```
 
 :::
@@ -194,15 +194,15 @@ Console.WriteLine("Lav en method der tager et tal som parameter og tjekker om de
 :::solution
 
 ```csharp
-void TjekLigeUlige(int tal)
+void CheckEvenOdd(int number)
 {
-    if (tal % 2 == 0)
-        Console.WriteLine($"{tal} er lige");
+    if (number % 2 == 0)
+        Console.WriteLine($"{number} er lige");
     else
-        Console.WriteLine($"{tal} er ulige");
+        Console.WriteLine($"{number} er ulige");
 }
-TjekLigeUlige(8);
-TjekLigeUlige(7);
+CheckEvenOdd(8);
+CheckEvenOdd(7);
 ```
 
 :::
@@ -229,11 +229,11 @@ Console.WriteLine("Eksempel: Jeg hedder [navn], er [alder] år gammel og kommer 
 :::solution
 
 ```csharp
-void Praesenter(string navn, int alder, string by)
+void Present(string name, int age, string city)
 {
-    Console.WriteLine($"Jeg hedder {navn}, er {alder} år gammel og kommer fra {by}");
+    Console.WriteLine($"Jeg hedder {name}, er {age} år gammel og kommer fra {city}");
 }
-Praesenter("Emma", 17, "Aarhus");
+Present("Emma", 17, "Aarhus");
 ```
 
 :::
@@ -259,12 +259,12 @@ Console.WriteLine("Lav en method der tager to tal som parametre og returnerer su
 :::solution
 
 ```csharp
-int BeregnSum(int a, int b)
+int CalculateSum(int a, int b)
 {
     return a + b;
 }
-int resultat = BeregnSum(15, 27);
-Console.WriteLine(resultat);
+int result = CalculateSum(15, 27);
+Console.WriteLine(result);
 ```
 
 :::
@@ -290,12 +290,12 @@ Console.WriteLine("Lav en method der tager et tal som parameter og returnerer om
 :::solution
 
 ```csharp
-bool ErLige(int tal)
+bool IsEven(int number)
 {
-    return tal % 2 == 0;
+    return number % 2 == 0;
 }
-Console.WriteLine(ErLige(10));
-Console.WriteLine(ErLige(11));
+Console.WriteLine(IsEven(10));
+Console.WriteLine(IsEven(11));
 ```
 
 :::
@@ -321,11 +321,11 @@ Console.WriteLine("Lav en method der tager et navn som parameter og returnerer '
 :::solution
 
 ```csharp
-string LavHilsen(string navn)
+string CreateGreeting(string name)
 {
-    return $"Hej {navn}!";
+    return $"Hej {name}!";
 }
-Console.WriteLine(LavHilsen("Noah"));
+Console.WriteLine(CreateGreeting("Noah"));
 ```
 
 :::
@@ -351,14 +351,14 @@ Console.WriteLine("Lav en method der tager tre tal som parametre og returnerer d
 :::solution
 
 ```csharp
-int Stoerste(int a, int b, int c)
+int Largest(int a, int b, int c)
 {
     int max = a;
     if (b > max) max = b;
     if (c > max) max = c;
     return max;
 }
-Console.WriteLine(Stoerste(3, 9, 5));
+Console.WriteLine(Largest(3, 9, 5));
 ```
 
 :::
@@ -385,13 +385,13 @@ Console.WriteLine("Tip: Fakultet af n = n * fakultet af (n-1), og fakultet af 1 
 :::solution
 
 ```csharp
-int Fakultet(int n)
+int Factorial(int n)
 {
     if (n <= 1)
         return 1;
-    return n * Fakultet(n - 1);
+    return n * Factorial(n - 1);
 }
-Console.WriteLine(Fakultet(5));
+Console.WriteLine(Factorial(5));
 ```
 
 :::
@@ -454,27 +454,27 @@ Console.WriteLine("Hver method returnerer resultatet. Bed om to tal og en operat
 :::solution
 
 ```csharp
-double Plus(double a, double b) => a + b;
-double Minus(double a, double b) => a - b;
-double Gange(double a, double b) => a * b;
-double Divider(double a, double b) => a / b;
+double Add(double a, double b) => a + b;
+double Subtract(double a, double b) => a - b;
+double Multiply(double a, double b) => a * b;
+double Divide(double a, double b) => a / b;
 
 Console.Write("Tal 1: ");
-double t1 = double.Parse(Console.ReadLine()!);
+double firstNumber = double.Parse(Console.ReadLine()!);
 Console.Write("Tal 2: ");
-double t2 = double.Parse(Console.ReadLine()!);
+double secondNumber = double.Parse(Console.ReadLine()!);
 Console.Write("Operation (+ - * /): ");
-string op = Console.ReadLine()!.Trim();
+string operation = Console.ReadLine()!.Trim();
 
-double resultat = op switch
+double result = operation switch
 {
-    "+" => Plus(t1, t2),
-    "-" => Minus(t1, t2),
-    "*" => Gange(t1, t2),
-    "/" => Divider(t1, t2),
+    "+" => Add(firstNumber, secondNumber),
+    "-" => Subtract(firstNumber, secondNumber),
+    "*" => Multiply(firstNumber, secondNumber),
+    "/" => Divide(firstNumber, secondNumber),
     _ => double.NaN
 };
-Console.WriteLine($"Resultat: {resultat}");
+Console.WriteLine($"Resultat: {result}");
 ```
 
 :::
@@ -492,7 +492,7 @@ Lav et **gæt-et-tal-spil** med metoder til: tilfældigt tal, brugerens gæt, sa
 :::code-playground
 ```csharp
 // gf2-setup: Random rnd = new Random(42);
-// gf2-setup: int hemmeligt = rnd.Next(1, 11);
+// gf2-setup: int secretNumber = rnd.Next(1, 11);
 // gf2-input: 5
 // gf2-input: 8
 // gf2-input: 7
@@ -507,32 +507,32 @@ Console.WriteLine("- Metode til sammenligning og feedback");
 :::solution
 
 ```csharp
-int LavHemmeligtTal()
+int CreateSecretNumber()
 {
     Random rnd = new Random();
     return rnd.Next(1, 11);
 }
 
-int LaesGaet()
+int ReadGuess()
 {
     Console.Write("Gæt et tal (1-10): ");
     return int.Parse(Console.ReadLine()!);
 }
 
-string GivFeedback(int gaet, int hemmeligt)
+string GiveFeedback(int guess, int secretNumber)
 {
-    if (gaet == hemmeligt)
+    if (guess == secretNumber)
         return "Rigtigt!";
-    if (gaet > hemmeligt)
+    if (guess > secretNumber)
         return "For højt!";
     return "For lavt!";
 }
 
-int hemmeligt = LavHemmeligtTal();
+int secretNumber = CreateSecretNumber();
 while (true)
 {
-    int gaet = LaesGaet();
-    string feedback = GivFeedback(gaet, hemmeligt);
+    int guess = ReadGuess();
+    string feedback = GiveFeedback(guess, secretNumber);
     Console.WriteLine(feedback);
     if (feedback == "Rigtigt!")
         break;

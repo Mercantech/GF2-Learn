@@ -38,8 +38,8 @@ Console.WriteLine("Lav et program som tjekker om en værdi er højere eller lave
 :::solution
 
 ```csharp
-int alder = 20;
-if (alder >= 18)
+int age = 20;
+if (age >= 18)
     Console.WriteLine("Myndig");
 else
     Console.WriteLine("Ikke myndig");
@@ -60,7 +60,7 @@ Lav et program, der tjekker om en værdi er **lige eller ulige**. Brug **if** og
 :::code-playground
 ```csharp
 Console.WriteLine("Lav et program som tjekker om en værdi er lige eller ulige. Brug if og else.");
-int tal = 7;
+int number = 7;
 // TODO: Lav opgave 2 herunder!
 ```
 :::
@@ -68,8 +68,8 @@ int tal = 7;
 :::solution
 
 ```csharp
-int tal = 7;
-if (tal % 2 == 0)
+int number = 7;
+if (number % 2 == 0)
     Console.WriteLine("Lige");
 else
     Console.WriteLine("Ulige");
@@ -90,7 +90,7 @@ Lav et program, der tjekker om en værdi er **lige eller ulige** — denne gang 
 :::code-playground
 ```csharp
 Console.WriteLine("Lav et program som tjekker om en værdi er lige eller ulige – men denne gang ved at bruge switch.");
-int tal = 8;
+int number = 8;
 // TODO: Lav opgave 3 herunder!
 ```
 :::
@@ -98,8 +98,8 @@ int tal = 8;
 :::solution
 
 ```csharp
-int tal = 8;
-switch (tal % 2)
+int number = 8;
+switch (number % 2)
 {
     case 0:
         Console.WriteLine("Lige");
@@ -125,7 +125,7 @@ Lav et program, der tjekker om en værdi er **lige eller ulige** — brug **tern
 :::code-playground
 ```csharp
 Console.WriteLine("Lav et program som tjekker om en værdi er lige eller ulige – brug ternary operator ( ? : ).");
-int tal = 5;
+int number = 5;
 // TODO: Lav opgave 4 herunder!
 ```
 :::
@@ -133,9 +133,9 @@ int tal = 5;
 :::solution
 
 ```csharp
-int tal = 5;
-string resultat = tal % 2 == 0 ? "Lige" : "Ulige";
-Console.WriteLine(resultat);
+int number = 5;
+string result = number % 2 == 0 ? "Lige" : "Ulige";
+Console.WriteLine(result);
 ```
 
 :::
@@ -215,21 +215,21 @@ Console.WriteLine("Ekstra: Indtast flere karakterer og regn gennemsnittet ud.");
 
 ```csharp
 Console.Write("Indtast karakter: ");
-int karakter = int.Parse(Console.ReadLine()!);
+int grade = int.Parse(Console.ReadLine()!);
 
-if (karakter >= 10)
+if (grade >= 10)
     Console.WriteLine("Super flot!");
-else if (karakter >= 7)
+else if (grade >= 7)
     Console.WriteLine("Godt klaret!");
-else if (karakter >= 4)
+else if (grade >= 4)
     Console.WriteLine("Du kan gøre det bedre.");
 else
     Console.WriteLine("Brug for ekstra støtte — spørg læreren.");
 
 // Ekstra: gennemsnit af flere karakterer
-// int sum = 0, antal = 0;
-// while (antal < 3) { ... sum += karakter; antal++; }
-// Console.WriteLine($"Gennemsnit: {(double)sum / antal:F2}");
+// int sum = 0, count = 0;
+// while (count < 3) { ... sum += grade; count++; }
+// Console.WriteLine($"Gennemsnit: {(double)sum / count:F2}");
 ```
 
 :::
