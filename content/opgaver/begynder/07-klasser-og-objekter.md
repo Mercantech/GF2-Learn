@@ -2,6 +2,7 @@
 title: "Klasser og objekter"
 order: 8
 difficulty: begynder
+category: oop
 related_pensum: [09-oop-grundlaeg]
 kompetencemaal:
   - "Kan oprette klasser med properties og metoder"

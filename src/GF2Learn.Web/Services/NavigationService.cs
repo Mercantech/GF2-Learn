@@ -29,8 +29,33 @@ public sealed class NavigationService(ContentService content)
 
     private static SectionNav BuildExercisesNav(List<ContentItem> items)
     {
+        var categorized = items.Where(i => !string.IsNullOrWhiteSpace(i.Category)).ToList();
+        if (categorized.Count > 0)
+        {
+            var groups = ExerciseCategoryCatalog.All
+                .Select(c => new NavGroup
+                {
+                    Title = c.Title,
+                    Items = categorized
+                        .Where(i => string.Equals(i.Category, c.Key, StringComparison.OrdinalIgnoreCase))
+                        .OrderBy(i => i.Order)
+                        .ToList()
+                })
+                .Where(g => g.Items.Count > 0)
+                .ToList();
+
+            var uncategorized = items
+                .Where(i => string.IsNullOrWhiteSpace(i.Category))
+                .OrderBy(i => i.Order)
+                .ToList();
+            if (uncategorized.Count > 0)
+                groups.Add(new NavGroup { Title = "Øvrige", Items = uncategorized });
+
+            return new SectionNav { Section = ContentSectionType.Exercises, Groups = groups };
+        }
+
         var levels = new[] { ("begynder", "Beginner"), ("mellem", "Intermediate"), ("avanceret", "Advanced") };
-        var groups = levels
+        var levelGroups = levels
             .Select(l => new NavGroup
             {
                 Title = l.Item2,
@@ -38,9 +63,9 @@ public sealed class NavigationService(ContentService content)
             })
             .Where(g => g.Items.Count > 0)
             .ToList();
-        if (groups.Count == 0)
-            groups.Add(new NavGroup { Title = "Exercises", Items = items.OrderBy(i => i.Order).ToList() });
-        return new SectionNav { Section = ContentSectionType.Exercises, Groups = groups };
+        if (levelGroups.Count == 0)
+            levelGroups.Add(new NavGroup { Title = "Exercises", Items = items.OrderBy(i => i.Order).ToList() });
+        return new SectionNav { Section = ContentSectionType.Exercises, Groups = levelGroups };
     }
 
     private static SectionNav BuildProjectsNav(List<ContentItem> items)

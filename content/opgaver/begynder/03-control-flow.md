@@ -2,6 +2,7 @@
 title: "Control flow"
 order: 3
 difficulty: begynder
+category: logik
 related_pensum: [04-betingelser]
 kompetencemaal:
   - "Kan bruge if, else if og else til at styre programflow"

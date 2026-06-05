@@ -2,6 +2,7 @@
 title: "Variabler"
 order: 1
 difficulty: begynder
+category: grundlaeg
 related_pensum: [02-variabler-og-datatyper]
 kompetencemaal:
   - "Kan erklære og bruge grundlæggende datatyper (int, double, string, bool, float, char, decimal)"

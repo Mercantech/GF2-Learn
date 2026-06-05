@@ -14,6 +14,8 @@ public sealed class ContentItem
     public ContentSectionType Section { get; init; }
     public int Order { get; init; }
     public string? Difficulty { get; init; }
+    /// <summary>Exercise chapter category (fx grundlaeg, logik, samlinger, oop).</summary>
+    public string? Category { get; init; }
     public string? ProjectSlug { get; init; }
     public bool IsOverview { get; init; }
     public List<string> Topics { get; init; } = [];

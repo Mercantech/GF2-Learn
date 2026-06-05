@@ -2,6 +2,7 @@
 title: "Arrays, lister og dictionaries"
 order: 6
 difficulty: begynder
+category: samlinger
 related_pensum: [07-datastrukturer, 05-loekker]
 kompetencemaal:
   - "Kan oprette og bruge arrays med fast størrelse"

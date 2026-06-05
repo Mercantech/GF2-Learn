@@ -2,6 +2,7 @@
 title: "Loops"
 order: 4
 difficulty: begynder
+category: logik
 related_pensum: [05-loekker]
 kompetencemaal:
   - "Kan bruge for-, while- og do-while-løkker til gentagne opgaver"

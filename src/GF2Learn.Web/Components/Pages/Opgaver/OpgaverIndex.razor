@@ -10,31 +10,72 @@
 <PageTitle>Exercises — GF2 Learn</PageTitle>
 
 <SectionShell Section="ContentSectionType.Exercises" Title="Exercises">
-    <SectionHero Title="Exercises" Eyebrow="Practice" Lead="Øv dig med opgaver i tre sværhedsgrader. Gem dine løsninger når du er logget ind — som ved pensum-quizzen." />
-    @foreach (var level in new[] { ("begynder", "Beginner", "🌱"), ("mellem", "Intermediate", "⚡"), ("avanceret", "Advanced", "🔥") })
+    <SectionHero Title="Exercises" Eyebrow="Practice" Lead="Syv begynderkapitler fordelt i fire emner — kør kode i browser-IDE og gem løsninger når du er logget ind." />
+    @{
+        var exercises = Content.GetAll()
+            .Where(i => i.Section == ContentSectionType.Exercises)
+            .OrderBy(i => i.Order)
+            .ToList();
+        var categorized = exercises.Where(i => !string.IsNullOrWhiteSpace(i.Category)).ToList();
+    }
+    @if (categorized.Count > 0)
     {
-        var items = Content.GetAll().Where(i => i.Section == ContentSectionType.Exercises && string.Equals(i.Difficulty, level.Item1, StringComparison.OrdinalIgnoreCase)).OrderBy(i => i.Order).ToList();
-        if (items.Count == 0) continue;
-        <section class="index-section">
-            <h2><span class="level-icon">@level.Item3</span> @level.Item2</h2>
-            <div class="index-list">
-                @foreach (var item in items)
-                {
-                    <a href="@item.Href" class="index-item" data-exercise-slug="@item.Slug" data-enhance-nav="false">
-                        <span class="index-order">@item.Order.ToString("D2")</span>
-                        <div class="index-item-body"><strong>@item.Title</strong></div>
-                        @if (_completedSlugs.Contains(item.Slug))
-                        {
-                            <span class="index-check" aria-label="Fuldført" title="Alle opgavedele løst">✓</span>
-                        }
-                        else
-                        {
-                            <span class="index-arrow">→</span>
-                        }
-                    </a>
-                }
-            </div>
-        </section>
+        @foreach (var category in ExerciseCategoryCatalog.All)
+        {
+            var items = categorized
+                .Where(i => string.Equals(i.Category, category.Key, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(i => i.Order)
+                .ToList();
+            if (items.Count == 0) continue;
+            <section class="index-section index-section-category">
+                <h2><span class="level-icon">@category.Icon</span> @category.Title</h2>
+                <div class="index-list">
+                    @foreach (var item in items)
+                    {
+                        <a href="@item.Href" class="index-item" data-exercise-slug="@item.Slug" data-enhance-nav="false">
+                            <span class="index-order">@item.Order.ToString("D2")</span>
+                            <div class="index-item-body"><strong>@item.Title</strong></div>
+                            @if (_completedSlugs.Contains(item.Slug))
+                            {
+                                <span class="index-check" aria-label="Fuldført" title="Alle opgavedele løst">✓</span>
+                            }
+                            else
+                            {
+                                <span class="index-arrow">→</span>
+                            }
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+    }
+    else
+    {
+        @foreach (var level in new[] { ("begynder", "Beginner", "🌱"), ("mellem", "Intermediate", "⚡"), ("avanceret", "Advanced", "🔥") })
+        {
+            var items = exercises.Where(i => string.Equals(i.Difficulty, level.Item1, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (items.Count == 0) continue;
+            <section class="index-section">
+                <h2><span class="level-icon">@level.Item3</span> @level.Item2</h2>
+                <div class="index-list">
+                    @foreach (var item in items)
+                    {
+                        <a href="@item.Href" class="index-item" data-exercise-slug="@item.Slug" data-enhance-nav="false">
+                            <span class="index-order">@item.Order.ToString("D2")</span>
+                            <div class="index-item-body"><strong>@item.Title</strong></div>
+                            @if (_completedSlugs.Contains(item.Slug))
+                            {
+                                <span class="index-check" aria-label="Fuldført" title="Alle opgavedele løst">✓</span>
+                            }
+                            else
+                            {
+                                <span class="index-arrow">→</span>
+                            }
+                        </a>
+                    }
+                </div>
+            </section>
+        }
     }
 </SectionShell>
 

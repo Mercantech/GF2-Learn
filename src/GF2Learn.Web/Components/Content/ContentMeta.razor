@@ -1,13 +1,18 @@
 ﻿@using GF2Learn.Web.Models
+@using GF2Learn.Web.Services
 
-@if (Item.Timer > 0 || !string.IsNullOrWhiteSpace(Item.Difficulty) || Item.Topics.Count > 0)
+@if (Item.Timer > 0 || !string.IsNullOrWhiteSpace(Item.Difficulty) || !string.IsNullOrWhiteSpace(Item.Category) || Item.Topics.Count > 0)
 {
     <aside class="content-meta">
         @if (Item.Timer > 0)
         {
             <span class="meta-chip">@Item.Timer timer</span>
         }
-        @if (!string.IsNullOrWhiteSpace(Item.Difficulty))
+        @if (!string.IsNullOrWhiteSpace(Item.Category))
+        {
+            <span class="meta-chip meta-chip-category">@ExerciseCategoryCatalog.GetTitle(Item.Category)</span>
+        }
+        else if (!string.IsNullOrWhiteSpace(Item.Difficulty))
         {
             <span class="meta-chip meta-chip-level">@Item.Difficulty</span>
         }

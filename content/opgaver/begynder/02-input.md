@@ -2,6 +2,7 @@
 title: "Input"
 order: 2
 difficulty: begynder
+category: grundlaeg
 related_pensum: [03-operatorer-og-udtryk, 04-betingelser]
 kompetencemaal:
   - "Kan læse brugerinput med Console.ReadLine"

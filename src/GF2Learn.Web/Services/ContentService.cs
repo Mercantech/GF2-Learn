@@ -112,6 +112,7 @@ public sealed class ContentService(IWebHostEnvironment env, IConfiguration confi
             Section = section,
             Order = order,
             Difficulty = GetString(data, "difficulty"),
+            Category = GetString(data, "category"),
             ProjectSlug = projectSlug,
             IsOverview = isOverview,
             Topics = GetStringList(data, "topics"),

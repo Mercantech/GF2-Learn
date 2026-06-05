@@ -2,6 +2,7 @@
 title: "Metoder"
 order: 7
 difficulty: begynder
+category: oop
 related_pensum: [06-metoder]
 kompetencemaal:
   - "Kan definere og kalde egne metoder"
