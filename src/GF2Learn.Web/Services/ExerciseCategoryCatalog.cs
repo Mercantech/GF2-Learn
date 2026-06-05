@@ -7,9 +7,12 @@ public static class ExerciseCategoryCatalog
     public static readonly IReadOnlyList<CategoryDef> All =
     [
         new("grundlaeg", "Grundlæggende", "📘", 1),
-        new("logik", "Logik og løkker", "🔀", 2),
-        new("samlinger", "Samlinger", "📦", 3),
+        new("logik", "Logic and loops", "🔀", 2),
+        new("samlinger", "Collections", "📦", 3),
         new("oop", "Metoder og OOP", "🏗️", 4),
+        new("fejl", "Error handling", "🛡️", 5),
+        new("strings", "Strings", "🔤", 6),
+        new("projekter", "Mini projects", "🚀", 7),
     ];
 
     public static string? GetTitle(string? key) =>
