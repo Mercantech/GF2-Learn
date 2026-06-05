@@ -1,3 +1,6 @@
+@using GF2Learn.Web.Auth
+@inject NavigationManager Navigation
+
 <footer class="site-footer">
     <div class="site-footer-inner">
         <div class="site-footer-brand">
@@ -14,7 +17,7 @@
             <div>
                 <p class="site-footer-label">Mercantec</p>
                 <a href="https://mercantec.dk" target="_blank" rel="noopener">mercantec.dk</a>
-                <a href="https://auth.mercantec.tech" target="_blank" rel="noopener">Log ind</a>
+                <a href="@MercantecAuthExtensions.LoginUrl(Navigation.Uri)">Log ind</a>
             </div>
         </div>
     </div>

@@ -1,6 +1,7 @@
 @using System.Security.Claims
 @using GF2Learn.Web.Auth
 @inject MercantecAuthStatus AuthStatus
+@inject NavigationManager Navigation
 
 <div class="user-menu">
     @if (!AuthStatus.IsConfigured)
@@ -19,7 +20,7 @@
                 </div>
             </Authorized>
             <NotAuthorized>
-                <a href="/auth/login" class="btn btn-primary btn-sm">Log in</a>
+                <a href="@MercantecAuthExtensions.LoginUrl(Navigation.Uri)" class="btn btn-primary btn-sm">Log in</a>
             </NotAuthorized>
         </AuthorizeView>
     }

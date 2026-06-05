@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+﻿@using GF2Learn.Web.Auth
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.JSInterop
 @implements IDisposable
@@ -13,7 +14,7 @@
                         <div class="auth-required">
                             <h1>Login required</h1>
                             <p>Du skal logge ind for at se denne side.</p>
-                            <a href="/auth/login?returnUrl=@Uri.EscapeDataString(Navigation.Uri)" class="user-link user-link-login">Log in</a>
+                            <a href="@MercantecAuthExtensions.LoginUrl(Navigation.Uri)" class="user-link user-link-login">Log in</a>
                         </div>
                     }
                     else

@@ -109,14 +109,8 @@ public static class MercantecAuthExtensions
                 return;
             }
 
-            var redirectUri = "/";
-            if (!string.IsNullOrWhiteSpace(returnUrl))
-            {
-                if (Uri.TryCreate(returnUrl, UriKind.Absolute, out var absolute))
-                    redirectUri = $"{absolute.PathAndQuery}{absolute.Fragment}";
-                else
-                    redirectUri = returnUrl;
-            }
+            returnUrl ??= context.Request.Query["ReturnUrl"].FirstOrDefault();
+            var redirectUri = ResolvePostLoginRedirect(context, returnUrl);
 
             await context.ChallengeAsync(MercantecAuthOptions.SchemeName, new AuthenticationProperties
             {
@@ -148,6 +142,36 @@ public static class MercantecAuthExtensions
     private static bool IsAuthConfigured(MercantecAuthOptions options) =>
         !string.IsNullOrWhiteSpace(options.ClientId)
         && !string.IsNullOrWhiteSpace(options.ClientSecret);
+
+    /// <summary>Builds <c>/auth/login?returnUrl=…</c> for the current or given page.</summary>
+    public static string LoginUrl(string? returnUrl)
+    {
+        if (string.IsNullOrWhiteSpace(returnUrl))
+            return "/auth/login";
+
+        return $"/auth/login?returnUrl={Uri.EscapeDataString(returnUrl)}";
+    }
+
+    private static string ResolvePostLoginRedirect(HttpContext context, string? returnUrl)
+    {
+        var fallback = $"{context.Request.PathBase}/";
+        if (string.IsNullOrWhiteSpace(returnUrl))
+            return fallback;
+
+        if (Uri.TryCreate(returnUrl, UriKind.Absolute, out var absolute))
+        {
+            var path = absolute.PathAndQuery + absolute.Fragment;
+            return string.IsNullOrWhiteSpace(path) ? fallback : path;
+        }
+
+        if (!returnUrl.StartsWith('/'))
+            return fallback;
+
+        if (returnUrl.StartsWith("//", StringComparison.Ordinal))
+            return fallback;
+
+        return returnUrl;
+    }
 
     private static bool IsApiRequest(HttpRequest request)
     {

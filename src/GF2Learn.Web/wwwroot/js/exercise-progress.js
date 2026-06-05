@@ -152,7 +152,11 @@
     root.dataset.exerciseLoginHintShown = "1";
     var hint = document.createElement("p");
     hint.className = "exercise-login-hint";
-    hint.innerHTML = '<a href="/auth/login">Log ind</a> for at gemme dine løsninger på tværs af enheder.';
+    var returnUrl = encodeURIComponent(window.location.href);
+    hint.innerHTML =
+      '<a href="/auth/login?returnUrl=' +
+      returnUrl +
+      '">Log ind</a> for at gemme dine løsninger på tværs af enheder.';
     var summary = root.querySelector(".exercise-progress-summary");
     if (summary) summary.after(hint);
     else root.prepend(hint);
