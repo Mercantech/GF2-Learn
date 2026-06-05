@@ -18,6 +18,12 @@ public interface IExerciseProgressService
         string contentSlug,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<ExercisePartVersionDto>> GetPartVersionsAsync(
+        string userSub,
+        string contentSlug,
+        int partIndex,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<ExerciseChapterProgress>> GetExerciseProgressAsync(
         string userSub,
         IReadOnlyList<(string Slug, int TotalParts)> exercises,
@@ -27,6 +33,7 @@ public interface IExerciseProgressService
 public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExerciseProgressService
 {
     private const int MaxAnswerLength = 16_000;
+    private const int MaxVersionsPerPart = 3;
 
     public async Task SavePartAsync(
         string userSub,
@@ -41,29 +48,24 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
                 ? answerText[..MaxAnswerLength]
                 : answerText.Trim();
 
-        var existing = await db.ExerciseAnswers
-            .FirstOrDefaultAsync(
-                a => a.UserSub == userSub
-                     && a.ContentSlug == contentSlug
-                     && a.PartIndex == partIndex,
-                cancellationToken);
+        var versions = await db.ExerciseAnswers
+            .Where(a => a.UserSub == userSub
+                        && a.ContentSlug == contentSlug
+                        && a.PartIndex == partIndex)
+            .OrderBy(a => a.CompletedAt)
+            .ToListAsync(cancellationToken);
 
-        if (existing is null)
+        if (versions.Count >= MaxVersionsPerPart)
+            db.ExerciseAnswers.Remove(versions[0]);
+
+        db.ExerciseAnswers.Add(new ExerciseAnswer
         {
-            db.ExerciseAnswers.Add(new ExerciseAnswer
-            {
-                UserSub = userSub,
-                ContentSlug = contentSlug,
-                PartIndex = partIndex,
-                AnswerText = text,
-                CompletedAt = DateTimeOffset.UtcNow
-            });
-        }
-        else
-        {
-            existing.AnswerText = text;
-            existing.CompletedAt = DateTimeOffset.UtcNow;
-        }
+            UserSub = userSub,
+            ContentSlug = contentSlug,
+            PartIndex = partIndex,
+            AnswerText = text,
+            CompletedAt = DateTimeOffset.UtcNow
+        });
 
         await db.SaveChangesAsync(cancellationToken);
     }
@@ -73,11 +75,36 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
         string contentSlug,
         CancellationToken cancellationToken = default)
     {
-        return await db.ExerciseAnswers
+        var rows = await db.ExerciseAnswers
             .AsNoTracking()
             .Where(a => a.UserSub == userSub && a.ContentSlug == contentSlug)
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .GroupBy(a => a.PartIndex)
+            .Select(g =>
+            {
+                var latest = g.OrderByDescending(x => x.CompletedAt).First();
+                return new ExercisePartAnswerDto(latest.PartIndex, latest.AnswerText, latest.CompletedAt);
+            })
             .OrderBy(a => a.PartIndex)
-            .Select(a => new ExercisePartAnswerDto(a.PartIndex, a.AnswerText, a.CompletedAt))
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<ExercisePartVersionDto>> GetPartVersionsAsync(
+        string userSub,
+        string contentSlug,
+        int partIndex,
+        CancellationToken cancellationToken = default)
+    {
+        return await db.ExerciseAnswers
+            .AsNoTracking()
+            .Where(a => a.UserSub == userSub
+                        && a.ContentSlug == contentSlug
+                        && a.PartIndex == partIndex)
+            .OrderByDescending(a => a.CompletedAt)
+            .Take(MaxVersionsPerPart)
+            .Select(a => new ExercisePartVersionDto(a.Id, a.AnswerText, a.CompletedAt))
             .ToListAsync(cancellationToken);
     }
 
@@ -91,12 +118,16 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
             return [];
 
         var slugs = withParts.Select(e => e.Slug).ToList();
-        var completedCounts = await db.ExerciseAnswers
+        var partKeys = await db.ExerciseAnswers
             .AsNoTracking()
             .Where(a => a.UserSub == userSub && slugs.Contains(a.ContentSlug))
-            .GroupBy(a => a.ContentSlug)
-            .Select(g => new { Slug = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.Slug, x => x.Count, cancellationToken);
+            .Select(a => new { a.ContentSlug, a.PartIndex })
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var completedCounts = partKeys
+            .GroupBy(x => x.ContentSlug)
+            .ToDictionary(g => g.Key, g => g.Count());
 
         return withParts
             .Select(e =>

@@ -15,7 +15,7 @@ kompetencemaal:
 Ni små opgaver om grundlæggende datatyper. Arbejd dem igennem én ad gangen — skriv din kode **efter `// TODO`** i editoren under hver opgave.
 
 :::callout type="tip"
-Læs pensum [Variabler og datatyper](/curriculum/02-variabler-og-datatyper) først. Tryk **Kør** for at teste, og **Gem som løst** når du er logget ind.
+Læs pensum [Variabler og datatyper](/curriculum/02-variabler-og-datatyper) først. Tryk **Kør** for at teste, og **Gem løsning** (Ctrl+S) når du er logget ind.
 :::
 
 ---

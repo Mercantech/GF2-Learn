@@ -26,7 +26,7 @@ public sealed class Gf2LearnDbContext(DbContextOptions<Gf2LearnDbContext> option
             entity.Property(e => e.UserSub).HasMaxLength(128).IsRequired();
             entity.Property(e => e.ContentSlug).HasMaxLength(128).IsRequired();
             entity.Property(e => e.AnswerText).HasMaxLength(16_000);
-            entity.HasIndex(e => new { e.UserSub, e.ContentSlug, e.PartIndex }).IsUnique();
+            entity.HasIndex(e => new { e.UserSub, e.ContentSlug, e.PartIndex });
         });
     }
 }

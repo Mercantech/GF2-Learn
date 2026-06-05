@@ -88,8 +88,7 @@ partial class Gf2LearnDbContextModelSnapshot : ModelSnapshot
 
                 b.HasKey("Id");
 
-                b.HasIndex("UserSub", "ContentSlug", "PartIndex")
-                    .IsUnique();
+                b.HasIndex("UserSub", "ContentSlug", "PartIndex");
 
                 b.ToTable("exercise_answers", (string)null);
             });

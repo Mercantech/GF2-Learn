@@ -1903,6 +1903,30 @@ a:hover { color: var(--accent-bright); }
   border-top: 1px solid var(--border);
   background: var(--bg-elevated);
 }
+.exercise-ide-versions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.exercise-ide-versions-label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.exercise-ide-version-select {
+  min-width: 12rem;
+  max-width: 100%;
+  flex: 1 1 12rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
 .exercise-ide-actions {
   display: flex;
   flex-wrap: wrap;

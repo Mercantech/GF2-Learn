@@ -10,6 +10,11 @@ public sealed record ExercisePartAnswerDto(
     string? AnswerText,
     DateTimeOffset CompletedAt);
 
+public sealed record ExercisePartVersionDto(
+    long Id,
+    string? AnswerText,
+    DateTimeOffset SavedAt);
+
 public sealed record ExerciseChapterProgress(
     string ContentSlug,
     int TotalParts,

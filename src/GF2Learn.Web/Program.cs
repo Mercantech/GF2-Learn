@@ -198,6 +198,29 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         return Results.Ok(answers);
     });
 
+    progress.MapGet("/exercise/{contentSlug}/parts/{partIndex:int}/versions", async (
+        string contentSlug,
+        int partIndex,
+        ClaimsPrincipal user,
+        IExerciseProgressService progressService,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        if (partIndex < 0)
+            return Results.BadRequest();
+
+        var versions = await progressService.GetPartVersionsAsync(
+            userSub,
+            contentSlug,
+            partIndex,
+            cancellationToken);
+
+        return Results.Ok(versions);
+    });
+
     progress.MapPost("/exercise", async (
         SaveExercisePartRequest request,
         ClaimsPrincipal user,

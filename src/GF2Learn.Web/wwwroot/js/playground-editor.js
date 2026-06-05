@@ -140,6 +140,18 @@ window.gf2Playground = {
     });
   },
 
+  registerCtrlSave: function (elementId, dotNetHelper) {
+    var editor = this.editors[elementId];
+    if (!editor || !window.monaco || !dotNetHelper) return;
+
+    var monaco = window.monaco;
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
+      dotNetHelper.invokeMethodAsync("TriggerCtrlSaveAsync").catch(function () {
+        /* editor disposed */
+      });
+    });
+  },
+
   registerTabSnippets: function (editor) {
     var monaco = window.monaco;
     var snippets = this.csharpSnippets;

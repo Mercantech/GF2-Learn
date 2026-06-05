@@ -1,3 +1,4 @@
+@using Microsoft.JSInterop
 @inject CSharpRunnerService Runner
 @inject IJSRuntime Js
 @implements IAsyncDisposable
@@ -82,9 +83,13 @@
     [Parameter] public string RootClass { get; set; } = "";
     [Parameter] public string EditorHostClass { get; set; } = "";
     [Parameter] public bool ShowCopyButton { get; set; } = true;
+    [Parameter] public bool EnableCtrlSave { get; set; }
+    [Parameter] public EventCallback OnCtrlSave { get; set; }
     [Parameter] public RenderFragment? Footer { get; set; }
 
     private readonly string _editorId = $"pg-{Guid.NewGuid():N}";
+    private DotNetObjectReference<CodePlaygroundCore>? _ctrlSaveRef;
+    private bool _ctrlSaveRegistered;
     private string _code = "";
     private string _output = "";
     private string _error = "";
@@ -157,10 +162,30 @@
         _monacoMounted = true;
         _syncedInitialCode = StartupCode;
 
+        if (EnableCtrlSave && OnCtrlSave.HasDelegate)
+            await RegisterCtrlSaveAsync();
+
         if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
             _ = Runner.WarmupAsync();
 
         StateHasChanged();
+    }
+
+    private async Task RegisterCtrlSaveAsync()
+    {
+        if (_ctrlSaveRegistered)
+            return;
+
+        _ctrlSaveRef ??= DotNetObjectReference.Create(this);
+        await Js.InvokeVoidAsync("gf2Playground.registerCtrlSave", _editorId, _ctrlSaveRef);
+        _ctrlSaveRegistered = true;
+    }
+
+    [JSInvokable]
+    public async Task TriggerCtrlSaveAsync()
+    {
+        if (OnCtrlSave.HasDelegate)
+            await OnCtrlSave.InvokeAsync();
     }
 
     private static string EncodePendingCode(string code) =>
@@ -245,6 +270,7 @@
 
     public async ValueTask DisposeAsync()
     {
+        _ctrlSaveRef?.Dispose();
         if (_editorReady)
             await Js.InvokeVoidAsync("gf2Playground.dispose", _editorId);
     }

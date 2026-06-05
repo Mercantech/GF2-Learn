@@ -67,7 +67,7 @@
       return;
     }
 
-    summary.textContent = done + " af " + total + " opgavedele gemt som løst";
+    summary.textContent = done + " af " + total + " opgavedele med gemt løsning";
     summary.hidden = false;
 
     if (done === total) {

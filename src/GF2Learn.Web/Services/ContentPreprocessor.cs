@@ -85,7 +85,7 @@ public sealed partial class ContentPreprocessor
             <label class="exercise-save-label" for="exercise-answer-{WebUtility.HtmlEncode(contentSlug ?? "x")}-{partIndex}">Din løsning</label>
             <textarea id="exercise-answer-{WebUtility.HtmlEncode(contentSlug ?? "x")}-{partIndex}" class="exercise-answer-input" rows="5" placeholder="Indsæt din kode eller kort beskrivelse af, hvad du har lavet…"></textarea>
             <div class="exercise-save-actions">
-            <button type="button" class="btn btn-primary btn-sm exercise-save-btn">Gem som løst</button>
+            <button type="button" class="btn btn-primary btn-sm exercise-save-btn">Gem løsning</button>
             <span class="exercise-saved-badge" hidden aria-live="polite">✓ Gemt</span>
             </div>
             </div>
