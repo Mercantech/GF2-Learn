@@ -35,15 +35,20 @@ else
             <div class="exercise-page-body">
                 @if (_partCount > 0)
                 {
-                    <p class="exercise-progress-summary" hidden aria-live="polite">0 af @_partCount opgavedele med gemt løsning</p>
+                    <p class="exercise-progress-summary" hidden aria-live="polite">0 af @_partCount opgavedele godkendt af Clippy</p>
                 }
                 <ExerciseContent Item="Item"
                                  SavedParts="_savedParts"
+                                 VerifiedParts="_verifiedParts"
                                  OnProgressChanged="ReloadProgressAsync" />
             </div>
             @if (_savedParts.Count > 0)
             {
                 <script type="application/json" id="exercise-bootstrap-@Slug">@JsonSerializer.Serialize(_savedParts, JsonOptions)</script>
+            }
+            @if (_verifiedParts.Any(v => v.IsSolved))
+            {
+                <script type="application/json" id="exercise-verifications-bootstrap-@Slug">@JsonSerializer.Serialize(_verifiedParts.Where(v => v.IsSolved), JsonOptions)</script>
             }
         </div>
     </SectionShell>
@@ -60,6 +65,7 @@ else
 
     private ContentItem? Item => Content.GetExercise(Slug);
     private List<ExercisePartAnswerDto> _savedParts = [];
+    private List<ExercisePartVerificationDto> _verifiedParts = [];
     private int _partCount;
 
     private bool HasInteractiveEditors =>
@@ -69,6 +75,7 @@ else
     protected override async Task OnParametersSetAsync()
     {
         _savedParts = [];
+        _verifiedParts = [];
         _partCount = Item is null ? 0 : ExerciseCatalog.CountParts(Item.Body);
 
         var http = HttpContextAccessor.HttpContext;
@@ -80,7 +87,7 @@ else
         if (userSub is null)
             return;
 
-        await LoadSavedPartsAsync(userSub);
+        await LoadProgressAsync(userSub);
     }
 
     private async Task ReloadProgressAsync()
@@ -94,12 +101,18 @@ else
         if (userSub is null)
             return;
 
-        await LoadSavedPartsAsync(userSub);
+        await LoadProgressAsync(userSub);
         StateHasChanged();
     }
 
-    private async Task LoadSavedPartsAsync(string userSub) =>
+    private async Task LoadProgressAsync(string userSub)
+    {
         _savedParts = (await ProgressScope.TryExecuteAsync(
             (svc, ct) => svc.GetAnswersAsync(userSub, Slug, ct),
             fallback: (IReadOnlyList<ExercisePartAnswerDto>)[])).ToList();
+
+        _verifiedParts = (await ProgressScope.TryExecuteAsync(
+            (svc, ct) => svc.GetVerificationsAsync(userSub, Slug, ct),
+            fallback: (IReadOnlyList<ExercisePartVerificationDto>)[])).ToList();
+    }
 }

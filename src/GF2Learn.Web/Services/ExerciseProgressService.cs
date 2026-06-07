@@ -28,6 +28,18 @@ public interface IExerciseProgressService
         string userSub,
         IReadOnlyList<(string Slug, int TotalParts)> exercises,
         CancellationToken cancellationToken = default);
+
+    Task SaveVerificationAsync(
+        string userSub,
+        string contentSlug,
+        int partIndex,
+        bool isSolved,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ExercisePartVerificationDto>> GetVerificationsAsync(
+        string userSub,
+        string contentSlug,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExerciseProgressService
@@ -127,14 +139,15 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
             return [];
 
         var slugs = withParts.Select(e => e.Slug).ToList();
-        var partKeys = await db.ExerciseAnswers
+        var verifiedParts = await db.ExercisePartVerifications
             .AsNoTracking()
-            .Where(a => a.UserSub == userSub && slugs.Contains(a.ContentSlug))
-            .Select(a => new { a.ContentSlug, a.PartIndex })
-            .Distinct()
+            .Where(v => v.UserSub == userSub
+                        && slugs.Contains(v.ContentSlug)
+                        && v.IsSolved)
+            .Select(v => new { v.ContentSlug, v.PartIndex })
             .ToListAsync(cancellationToken);
 
-        var completedCounts = partKeys
+        var completedCounts = verifiedParts
             .GroupBy(x => x.ContentSlug)
             .ToDictionary(g => g.Key, g => g.Count());
 
@@ -149,5 +162,53 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
                     completed >= e.TotalParts);
             })
             .ToList();
+    }
+
+    public async Task SaveVerificationAsync(
+        string userSub,
+        string contentSlug,
+        int partIndex,
+        bool isSolved,
+        CancellationToken cancellationToken = default)
+    {
+        var existing = await db.ExercisePartVerifications
+            .FirstOrDefaultAsync(
+                v => v.UserSub == userSub
+                     && v.ContentSlug == contentSlug
+                     && v.PartIndex == partIndex,
+                cancellationToken);
+
+        var verifiedAt = DateTimeOffset.UtcNow;
+        if (existing is null)
+        {
+            db.ExercisePartVerifications.Add(new ExercisePartVerification
+            {
+                UserSub = userSub,
+                ContentSlug = contentSlug,
+                PartIndex = partIndex,
+                IsSolved = isSolved,
+                VerifiedAt = verifiedAt
+            });
+        }
+        else
+        {
+            existing.IsSolved = isSolved;
+            existing.VerifiedAt = verifiedAt;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ExercisePartVerificationDto>> GetVerificationsAsync(
+        string userSub,
+        string contentSlug,
+        CancellationToken cancellationToken = default)
+    {
+        return await db.ExercisePartVerifications
+            .AsNoTracking()
+            .Where(v => v.UserSub == userSub && v.ContentSlug == contentSlug)
+            .OrderBy(v => v.PartIndex)
+            .Select(v => new ExercisePartVerificationDto(v.PartIndex, v.IsSolved, v.VerifiedAt))
+            .ToListAsync(cancellationToken);
     }
 }

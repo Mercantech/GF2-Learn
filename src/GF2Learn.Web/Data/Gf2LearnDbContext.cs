@@ -7,6 +7,7 @@ public sealed class Gf2LearnDbContext(DbContextOptions<Gf2LearnDbContext> option
 {
     public DbSet<KnowledgeCheckAnswer> KnowledgeCheckAnswers => Set<KnowledgeCheckAnswer>();
     public DbSet<ExerciseAnswer> ExerciseAnswers => Set<ExerciseAnswer>();
+    public DbSet<ExercisePartVerification> ExercisePartVerifications => Set<ExercisePartVerification>();
     public DbSet<PlaygroundProject> PlaygroundProjects => Set<PlaygroundProject>();
     public DbSet<PlaygroundFile> PlaygroundFiles => Set<PlaygroundFile>();
 
@@ -29,6 +30,15 @@ public sealed class Gf2LearnDbContext(DbContextOptions<Gf2LearnDbContext> option
             entity.Property(e => e.ContentSlug).HasMaxLength(128).IsRequired();
             entity.Property(e => e.AnswerText).HasMaxLength(16_000);
             entity.HasIndex(e => new { e.UserSub, e.ContentSlug, e.PartIndex });
+        });
+
+        modelBuilder.Entity<ExercisePartVerification>(entity =>
+        {
+            entity.ToTable("exercise_part_verifications");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserSub).HasMaxLength(128).IsRequired();
+            entity.Property(e => e.ContentSlug).HasMaxLength(128).IsRequired();
+            entity.HasIndex(e => new { e.UserSub, e.ContentSlug, e.PartIndex }).IsUnique();
         });
 
         modelBuilder.Entity<PlaygroundProject>(entity =>

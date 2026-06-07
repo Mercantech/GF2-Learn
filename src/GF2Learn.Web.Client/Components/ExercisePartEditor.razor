@@ -93,11 +93,18 @@
                     </div>
                 }
                 <div class="exercise-ide-bar-group exercise-ide-bar-ai">
+                    @if (_isVerified)
+                    {
+                        <span class="exercise-ide-clippy-badge" title="Godkendt af Clippy">
+                            <img src="/images/clippy.svg" width="18" height="18" alt="" aria-hidden="true" />
+                            <span>Godkendt</span>
+                        </span>
+                    }
                     <button type="button"
-                            class="exercise-ide-bar-btn exercise-ide-bar-btn-ai"
+                            class="exercise-ide-bar-btn exercise-ide-bar-btn-clippy"
                             disabled="@(!_aiEnabled || _aiBusy)"
                             title="@_aiStatusHint"
-                            aria-label="AI tip"
+                            aria-label="Clippy tip"
                             @onclick="GetHintAsync">
                         @if (_aiHintLoading)
                         {
@@ -106,19 +113,15 @@
                         }
                         else
                         {
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M9 18h6" />
-                                <path d="M10 22h4" />
-                                <path d="M12 2a7 7 0 0 0-4 12v1H6l4 4 4-4h-2v-1a7 7 0 0 0-4-12z" />
-                            </svg>
-                            <span>AI tip</span>
+                            <img src="/images/clippy.svg" width="18" height="18" alt="" aria-hidden="true" />
+                            <span>Clippy tip</span>
                         }
                     </button>
                     <button type="button"
-                            class="exercise-ide-bar-btn exercise-ide-bar-btn-ai"
+                            class="exercise-ide-bar-btn exercise-ide-bar-btn-clippy"
                             disabled="@(!_aiEnabled || _aiBusy)"
                             title="@_aiStatusHint"
-                            aria-label="Tjek løsning"
+                            aria-label="Clippy tjek løsning"
                             @onclick="CheckSolutionAsync">
                         @if (_aiCheckLoading)
                         {
@@ -127,10 +130,7 @@
                         }
                         else
                         {
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
+                            <img src="/images/clippy.svg" width="18" height="18" alt="" aria-hidden="true" />
                             <span>Tjek løsning</span>
                         }
                     </button>
@@ -151,24 +151,28 @@
             @if (_aiRequiresLogin)
             {
                 <span class="exercise-ide-save-error">
-                    Log ind for at bruge AI-hjælpen.
+                    Log ind for at bruge Clippy.
                     <a href="@LoginUrl">Log ind</a>
                 </span>
             }
         </div>
         @if (!string.IsNullOrWhiteSpace(_aiHint))
         {
-            <div class="exercise-ai-panel exercise-ai-panel-hint" role="status">
-                <p class="exercise-ai-panel-label">AI-tip</p>
-                <p class="exercise-ai-panel-body">@_aiHint</p>
-            </div>
+            <ClippySpeech Variant="hint"
+                          Title="Et hint til dig"
+                          Message="@_aiHint" />
         }
         @if (_aiCheck is not null)
         {
-            <div class="exercise-ai-panel @(_aiCheck.IsSolved ? "exercise-ai-panel-ok" : "exercise-ai-panel-warn")" role="status">
-                <p class="exercise-ai-panel-label">@(_aiCheck.IsSolved ? "Opgaven ser løst ud" : "Ikke helt i mål endnu")</p>
-                <p class="exercise-ai-panel-body">@_aiCheck.Feedback</p>
-            </div>
+            <ClippySpeech Variant="@(_aiCheck.IsSolved ? "ok" : "warn")"
+                          Title="@(_aiCheck.IsSolved ? "Godt gået!" : "Ikke helt i mål endnu")"
+                          Message="@_aiCheck.Feedback" />
+        }
+        else if (_isVerified && _aiCheck is null && string.IsNullOrWhiteSpace(_aiHint))
+        {
+            <ClippySpeech Variant="ok"
+                          Title="Godkendt af Clippy"
+                          Message="Denne opgavedel er allerede godkendt. Du kan stadig gemme nye versioner og køre koden." />
         }
     </Footer>
 </CodePlaygroundCore>
@@ -178,7 +182,9 @@
     [Parameter] public int PartIndex { get; set; }
     [Parameter, EditorRequired] public string InitialCode { get; set; } = "";
     [Parameter] public string? SavedCode { get; set; }
+    [Parameter] public bool IsVerified { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnVerified { get; set; }
 
     private CodePlaygroundCore? _editor;
     private readonly string _versionSelectId = $"ver-{Guid.NewGuid():N}";
@@ -201,14 +207,18 @@
     private string? _aiError;
     private string? _aiHint;
     private ExerciseAiCheckResult? _aiCheck;
+    private bool _isVerified;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    protected override void OnParametersSet() =>
+    protected override void OnParametersSet()
+    {
         _saved = !string.IsNullOrWhiteSpace(SavedCode) || _versions.Count > 0;
+        _isVerified = IsVerified;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -237,7 +247,7 @@
             _aiEnabled = status?.Enabled == true;
             _aiRequiresLogin = status?.RequiresLogin == true;
             _aiStatusHint = status?.Enabled == true
-                ? "AI-hjælp"
+                ? "Clippy AI-hjælp"
                 : (status?.Message ?? "OpenAI-nøgle mangler på serveren");
         }
         catch
@@ -316,6 +326,21 @@
             if (envelope.Ok && TryParseBody(envelope.Body, out ExerciseAiCheckResult? check) && check is not null)
             {
                 _aiCheck = check;
+                if (check.IsSolved)
+                {
+                    _isVerified = true;
+                    try
+                    {
+                        await Js.InvokeVoidAsync("gf2ExerciseProgress.markPartComplete", ContentSlug, PartIndex);
+                    }
+                    catch
+                    {
+                        // Progress UI opdateres via OnVerified
+                    }
+
+                    await OnVerified.InvokeAsync();
+                }
+
                 return;
             }
 

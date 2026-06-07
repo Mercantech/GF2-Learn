@@ -93,6 +93,41 @@ partial class Gf2LearnDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("exercise_answers", (string)null);
             });
 
+        modelBuilder.Entity("GF2Learn.Web.Models.ExercisePartVerification", b =>
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                b.Property<string>("ContentSlug")
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.Property<bool>("IsSolved")
+                    .HasColumnType("boolean");
+
+                b.Property<int>("PartIndex")
+                    .HasColumnType("integer");
+
+                b.Property<string>("UserSub")
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .HasColumnType("character varying(128)");
+
+                b.Property<DateTimeOffset>("VerifiedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("UserSub", "ContentSlug", "PartIndex")
+                    .IsUnique();
+
+                b.ToTable("exercise_part_verifications", (string)null);
+            });
+
         modelBuilder.Entity("GF2Learn.Web.Models.PlaygroundFile", b =>
             {
                 b.Property<long>("Id")

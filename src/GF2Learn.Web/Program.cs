@@ -235,6 +235,24 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         return Results.Ok(versions);
     });
 
+    progress.MapGet("/exercise/{contentSlug}/verifications", async (
+        string contentSlug,
+        ClaimsPrincipal user,
+        IExerciseProgressService progressService,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        var verifications = await progressService.GetVerificationsAsync(
+            userSub,
+            contentSlug,
+            cancellationToken);
+
+        return Results.Ok(verifications);
+    });
+
     progress.MapPost("/exercise", async (
         SaveExercisePartRequest request,
         ClaimsPrincipal user,
@@ -472,6 +490,8 @@ exerciseAi.MapPost("/check", async (
     ExerciseAiRequest request,
     IExerciseAiService ai,
     ExerciseAiContextService contexts,
+    ClaimsPrincipal user,
+    IServiceProvider services,
     ILogger<ExerciseAiService> logger,
     CancellationToken cancellationToken) =>
 {
@@ -498,6 +518,19 @@ exerciseAi.MapPost("/check", async (
             request.StudentCode,
             request.ConsoleOutput,
             cancellationToken);
+
+        var userSub = GetUserSub(user);
+        var progressService = services.GetService<IExerciseProgressService>();
+        if (userSub is not null && progressService is not null)
+        {
+            await progressService.SaveVerificationAsync(
+                userSub,
+                request.ContentSlug,
+                request.PartIndex,
+                check.IsSolved,
+                cancellationToken);
+        }
+
         return Results.Ok(check);
     }
     catch (Exception ex)

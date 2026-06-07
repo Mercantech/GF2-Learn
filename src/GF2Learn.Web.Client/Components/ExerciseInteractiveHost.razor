@@ -14,7 +14,9 @@
                                 PartIndex="@part.PartIndex"
                                 InitialCode="@part.Code"
                                 SavedCode="@GetSavedCode(part.PartIndex)"
-                                OnSaved="() => HandleSavedAsync(part.PartIndex)" />
+                                IsVerified="@IsPartVerified(part.PartIndex)"
+                                OnSaved="HandleSavedAsync"
+                                OnVerified="() => HandleVerifiedAsync(part.PartIndex)" />
         </section>
     }
     else if (segment is HtmlSegment html)
@@ -27,6 +29,7 @@
     [Parameter, EditorRequired] public string ContentSlug { get; set; } = "";
     [Parameter] public IReadOnlyList<ExerciseBlockTransfer> Blocks { get; set; } = [];
     [Parameter] public IReadOnlyList<ExercisePartAnswerDto> SavedParts { get; set; } = [];
+    [Parameter] public IReadOnlyList<ExercisePartVerificationDto> VerifiedParts { get; set; } = [];
     [Parameter] public EventCallback OnProgressChanged { get; set; }
 
     [Inject] private IJSRuntime Js { get; set; } = default!;
@@ -70,7 +73,16 @@
     private string? GetSavedCode(int partIndex) =>
         _resolvedParts.FirstOrDefault(p => p.PartIndex == partIndex)?.AnswerText;
 
-    private async Task HandleSavedAsync(int partIndex)
+    private bool IsPartVerified(int partIndex) =>
+        VerifiedParts.Any(v => v.PartIndex == partIndex && v.IsSolved);
+
+    private async Task HandleSavedAsync()
+    {
+        await ReloadLocalPartsAsync();
+        await OnProgressChanged.InvokeAsync();
+    }
+
+    private async Task HandleVerifiedAsync(int partIndex)
     {
         try
         {
@@ -78,10 +90,9 @@
         }
         catch
         {
-            // Editor shows saved state locally
+            // Editor shows verified state locally
         }
 
-        await ReloadLocalPartsAsync();
         await OnProgressChanged.InvokeAsync();
     }
 

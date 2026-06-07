@@ -15,6 +15,11 @@ public sealed record ExercisePartVersionDto(
     string? AnswerText,
     DateTimeOffset SavedAt);
 
+public sealed record ExercisePartVerificationDto(
+    int PartIndex,
+    bool IsSolved,
+    DateTimeOffset VerifiedAt);
+
 public sealed record ExerciseChapterProgress(
     string ContentSlug,
     int TotalParts,

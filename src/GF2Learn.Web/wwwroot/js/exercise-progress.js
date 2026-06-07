@@ -14,6 +14,14 @@
     };
   }
 
+  function normalizeVerification(raw) {
+    return {
+      partIndex: raw.partIndex ?? raw.PartIndex,
+      isSolved: raw.isSolved ?? raw.IsSolved ?? false,
+      verifiedAt: raw.verifiedAt ?? raw.VerifiedAt
+    };
+  }
+
   function readBootstrapAnswers(contentSlug) {
     var el = document.getElementById("exercise-bootstrap-" + contentSlug);
     if (!el || !el.textContent) return null;
@@ -23,6 +31,19 @@
       return Array.isArray(parsed) ? parsed : null;
     } catch (e) {
       console.warn("Exercise progress: kunne ikke læse gemte svar.", e);
+      return null;
+    }
+  }
+
+  function readBootstrapVerifications(contentSlug) {
+    var el = document.getElementById("exercise-verifications-bootstrap-" + contentSlug);
+    if (!el || !el.textContent) return null;
+
+    try {
+      var parsed = JSON.parse(el.textContent);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch (e) {
+      console.warn("Exercise progress: kunne ikke læse Clippy-godkendelser.", e);
       return null;
     }
   }
@@ -37,7 +58,7 @@
         var check = document.createElement("span");
         check.className = "sidebar-check";
         check.setAttribute("aria-label", "Fuldført");
-        check.setAttribute("title", "Alle opgavedele løst");
+        check.setAttribute("title", "Alle opgavedele godkendt af Clippy");
         check.textContent = "✓";
         link.appendChild(check);
         return;
@@ -49,7 +70,7 @@
         var indexCheck = document.createElement("span");
         indexCheck.className = "index-check";
         indexCheck.setAttribute("aria-label", "Fuldført");
-        indexCheck.setAttribute("title", "Alle opgavedele løst");
+        indexCheck.setAttribute("title", "Alle opgavedele godkendt af Clippy");
         indexCheck.textContent = "✓";
         link.appendChild(indexCheck);
       }
@@ -67,7 +88,7 @@
       return;
     }
 
-    summary.textContent = done + " af " + total + " opgavedele med gemt løsning";
+    summary.textContent = done + " af " + total + " opgavedele godkendt af Clippy";
     summary.hidden = false;
 
     if (done === total) {
@@ -76,11 +97,14 @@
   }
 
   function applySavedPart(part, answerText) {
-    part.classList.add("exercise-part-complete");
     var textarea = part.querySelector(".exercise-answer-input");
     var badge = part.querySelector(".exercise-saved-badge");
     if (textarea && answerText) textarea.value = answerText;
     if (badge) badge.hidden = false;
+  }
+
+  function applyVerifiedPart(part) {
+    part.classList.add("exercise-part-complete");
   }
 
   function savePart(contentSlug, partIndex, answerText) {
@@ -125,13 +149,30 @@
     if (!root) return;
 
     var part = root.querySelector('.exercise-part[data-part-index="' + partIndex + '"]');
-    if (part) part.classList.add("exercise-part-complete");
+    if (part) applyVerifiedPart(part);
 
     updateProgressSummary(root);
   }
 
   function loadAnswers(contentSlug) {
     return fetch(apiUrl("/api/progress/exercise/" + encodeURIComponent(contentSlug)), {
+      credentials: "include",
+      headers: { Accept: "application/json" }
+    }).then(function (response) {
+      if (response.status === 401) return [];
+      if (!response.ok) return [];
+      var contentType = response.headers.get("content-type") || "";
+      if (contentType.indexOf("application/json") === -1) return [];
+      return response.json().then(function (data) {
+        return Array.isArray(data) ? data : [];
+      });
+    }).catch(function () {
+      return [];
+    });
+  }
+
+  function loadVerifications(contentSlug) {
+    return fetch(apiUrl("/api/progress/exercise/" + encodeURIComponent(contentSlug) + "/verifications"), {
       credentials: "include",
       headers: { Accept: "application/json" }
     }).then(function (response) {
@@ -180,15 +221,10 @@
       }
 
       applySavedPart(part, answerText);
-      updateProgressSummary(root);
 
       if (!contentSlug) return;
 
       savePartWithStatus(contentSlug, partIndex, answerText).then(function (result) {
-        if (result.ok) {
-          updateProgressSummary(root);
-          return;
-        }
         if (result.status === 401) showLoginHint(root);
       });
     });
@@ -204,6 +240,18 @@
       if (!el) return;
       applySavedPart(el, part.answerText || "");
     });
+  }
+
+  function restoreVerifications(root, verifications) {
+    if (!verifications || !verifications.length) return;
+
+    verifications.forEach(function (raw) {
+      var item = normalizeVerification(raw);
+      if (item.partIndex === undefined || !item.isSolved) return;
+      var el = root.querySelector('.exercise-part[data-part-index="' + item.partIndex + '"]');
+      if (!el) return;
+      applyVerifiedPart(el);
+    });
 
     updateProgressSummary(root);
   }
@@ -216,17 +264,22 @@
       wirePart(part, root);
     });
 
-    function finishInit(answers) {
+    function finishInit(answers, verifications) {
       restoreParts(root, answers);
+      restoreVerifications(root, verifications);
     }
 
-    var bootstrap = readBootstrapAnswers(contentSlug);
-    if (bootstrap) {
-      finishInit(bootstrap);
+    var bootstrapAnswers = readBootstrapAnswers(contentSlug);
+    var bootstrapVerifications = readBootstrapVerifications(contentSlug);
+
+    if (bootstrapAnswers || bootstrapVerifications) {
+      finishInit(bootstrapAnswers || [], bootstrapVerifications || []);
       return;
     }
 
-    loadAnswers(contentSlug).then(finishInit);
+    Promise.all([loadAnswers(contentSlug), loadVerifications(contentSlug)]).then(function (results) {
+      finishInit(results[0], results[1]);
+    });
   }
 
   function initExerciseProgress(scope) {
@@ -245,6 +298,9 @@
   function wire() {
     scheduleInit(document);
     global.addEventListener("gf2-enhanced-nav", function () {
+      scheduleInit(document);
+    });
+    global.addEventListener("gf2-exercise-page-ready", function () {
       scheduleInit(document);
     });
   }

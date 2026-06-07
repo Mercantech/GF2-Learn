@@ -1,0 +1,38 @@
+<div class="clippy-speech @VariantClass" role="status">
+    <img class="clippy-speech-avatar"
+         src="/images/clippy.svg"
+         width="@AvatarSize"
+         height="@AvatarSize"
+         alt=""
+         aria-hidden="true" />
+    <div class="clippy-speech-bubble">
+        <p class="clippy-speech-name">Clippy</p>
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <p class="clippy-speech-title">@Title</p>
+        }
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <p class="clippy-speech-body">@Message</p>
+        }
+        @if (ChildContent is not null)
+        {
+            <div class="clippy-speech-body">@ChildContent</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string Variant { get; set; } = "hint";
+    [Parameter] public int AvatarSize { get; set; } = 44;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string VariantClass => Variant switch
+    {
+        "ok" => "clippy-speech-ok",
+        "warn" => "clippy-speech-warn",
+        _ => "clippy-speech-hint"
+    };
+}
