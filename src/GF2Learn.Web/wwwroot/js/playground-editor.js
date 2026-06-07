@@ -227,6 +227,18 @@ window.gf2Playground = {
     });
   },
 
+  registerCtrlRun: function (elementId, dotNetHelper) {
+    var editor = this.editors[elementId];
+    if (!editor || !window.monaco || !dotNetHelper) return;
+
+    var monaco = window.monaco;
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function () {
+      dotNetHelper.invokeMethodAsync("TriggerCtrlRunAsync").catch(function () {
+        /* editor disposed */
+      });
+    });
+  },
+
   registerTabSnippets: function (editor) {
     var monaco = window.monaco;
     var snippets = this.csharpSnippets;

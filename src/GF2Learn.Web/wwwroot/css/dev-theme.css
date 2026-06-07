@@ -2011,51 +2011,97 @@ a:hover { color: var(--accent-bright); }
 .exercise-ide-footer {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.65rem 0.75rem;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
   border-top: 1px solid var(--border);
   background: var(--bg-elevated);
 }
-.exercise-ide-versions {
+.exercise-ide-footer-bar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  min-height: 2rem;
 }
-.exercise-ide-versions-label {
+.exercise-ide-bar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.exercise-ide-bar-ai {
+  margin-left: auto;
+}
+.exercise-ide-bar-label {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
+  white-space: nowrap;
 }
-.exercise-ide-version-select {
-  min-width: 12rem;
-  max-width: 100%;
-  flex: 1 1 12rem;
-  padding: 0.35rem 0.5rem;
-  font-size: 0.82rem;
+.exercise-ide-bar-select {
+  height: 2rem;
+  min-width: 9.5rem;
+  max-width: 14rem;
+  padding: 0 0.5rem;
+  font-size: 0.78rem;
   font-family: inherit;
   color: var(--text);
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  cursor: pointer;
 }
-.exercise-ide-actions {
-  display: flex;
-  flex-wrap: wrap;
+.exercise-ide-bar-select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.exercise-ide-bar-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 2rem;
+  padding: 0 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: inherit;
+  line-height: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-hover);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.exercise-ai-btn {
-  border-color: rgba(34, 211, 238, 0.35);
+.exercise-ide-bar-btn svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
+}
+.exercise-ide-bar-btn .gf2-spinner {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-width: 2px;
+}
+.exercise-ide-bar-btn:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.exercise-ide-bar-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.exercise-ide-bar-btn-ai {
+  border-color: rgba(34, 211, 238, 0.28);
   color: var(--accent-teal);
 }
-.exercise-ai-btn:hover:not(:disabled) {
-  background: rgba(34, 211, 238, 0.1);
-  border-color: var(--accent-teal);
-}
-.exercise-ai-btn:disabled {
-  opacity: 0.45;
+.exercise-ide-bar-btn-ai:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.08);
+  border-color: rgba(34, 211, 238, 0.45);
+  color: var(--accent-teal);
 }
 .exercise-ai-panel {
   padding: 0.65rem 0.75rem;

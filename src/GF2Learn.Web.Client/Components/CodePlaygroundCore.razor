@@ -14,8 +14,8 @@
                     <button type="button"
                             class="playground-icon-btn playground-icon-btn-run"
                             disabled="@_running"
-                            title="@RunLabel"
-                            aria-label="@(_running ? "Kører kode" : RunLabel)"
+                            title="@GetRunTitle()"
+                            aria-label="@(_running ? "Kører kode" : GetRunTitle())"
                             @onclick="RunAsync">
                         @if (_running)
                         {
@@ -213,6 +213,9 @@
         if (EnableCtrlSave && OnCtrlSave.HasDelegate)
             await RegisterCtrlSaveAsync();
 
+        if (ShowRunToolbar)
+            await RegisterCtrlRunAsync();
+
         if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
             _ = Runner.WarmupAsync();
 
@@ -264,11 +267,33 @@
         _ctrlSaveRegistered = true;
     }
 
+    private bool _ctrlRunRegistered;
+
+    private async Task RegisterCtrlRunAsync()
+    {
+        if (_ctrlRunRegistered)
+            return;
+
+        _ctrlSaveRef ??= DotNetObjectReference.Create(this);
+        await Js.InvokeVoidAsync("gf2Playground.registerCtrlRun", _editorId, _ctrlSaveRef);
+        _ctrlRunRegistered = true;
+    }
+
+    private string GetRunTitle() =>
+        UseIconToolbar ? $"{RunLabel} (Ctrl+Enter)" : RunLabel;
+
     [JSInvokable]
     public async Task TriggerCtrlSaveAsync()
     {
         if (OnCtrlSave.HasDelegate)
             await OnCtrlSave.InvokeAsync();
+    }
+
+    [JSInvokable]
+    public async Task TriggerCtrlRunAsync()
+    {
+        if (!_running)
+            await RunAsync();
     }
 
     private static string EncodePendingCode(string code) =>

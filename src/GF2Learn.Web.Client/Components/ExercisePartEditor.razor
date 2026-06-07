@@ -16,7 +16,7 @@
                     Title="Skriv din løsning her"
                     RunLabel="Kør"
                     ResetLabel="Nulstil"
-                    EmptyOutputHint="Skriv koden efter // TODO-linjen og tryk Kør."
+                    EmptyOutputHint="Skriv koden efter // TODO-linjen og tryk Kør (Ctrl+Enter)."
                     RootClass="exercise-ide-playground"
                     EditorHostClass="playground-editor-host-exercise"
                     ShowCopyButton="false"
@@ -72,40 +72,69 @@
     </ToolbarActions>
     <Footer>
         <div class="exercise-ide-footer">
-            @if (_versions.Count > 0)
-            {
-                <div class="exercise-ide-versions">
-                    <label class="exercise-ide-versions-label" for="@_versionSelectId">Gemte versioner</label>
-                    <select id="@_versionSelectId"
-                            class="exercise-ide-version-select"
-                            disabled="@(_versionLoading || !_editorReady || _versions.Count < 2)"
-                            @bind="_selectedVersionKey"
-                            @bind:after="OnVersionSelectedAfterBindAsync">
-                        @for (var i = 0; i < _versions.Count; i++)
+            <div class="exercise-ide-footer-bar">
+                @if (_versions.Count > 0)
+                {
+                    <div class="exercise-ide-bar-group">
+                        <label class="exercise-ide-bar-label" for="@_versionSelectId">Version</label>
+                        <select id="@_versionSelectId"
+                                class="exercise-ide-bar-select"
+                                disabled="@(_versionLoading || !_editorReady || _versions.Count < 2)"
+                                @bind="_selectedVersionKey"
+                                @bind:after="OnVersionSelectedAfterBindAsync">
+                            @for (var i = 0; i < _versions.Count; i++)
+                            {
+                                var version = _versions[i];
+                                <option value="@version.Id.ToString(CultureInfo.InvariantCulture)">
+                                    @FormatVersionLabel(i, version.SavedAt)
+                                </option>
+                            }
+                        </select>
+                    </div>
+                }
+                <div class="exercise-ide-bar-group exercise-ide-bar-ai">
+                    <button type="button"
+                            class="exercise-ide-bar-btn exercise-ide-bar-btn-ai"
+                            disabled="@(!_aiEnabled || _aiBusy)"
+                            title="@_aiStatusHint"
+                            aria-label="AI tip"
+                            @onclick="GetHintAsync">
+                        @if (_aiHintLoading)
                         {
-                            var version = _versions[i];
-                            <option value="@version.Id.ToString(CultureInfo.InvariantCulture)">
-                                @FormatVersionLabel(i, version.SavedAt)
-                            </option>
+                            <span class="gf2-spinner" aria-hidden="true"></span>
+                            <span>Tip…</span>
                         }
-                    </select>
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 18h6" />
+                                <path d="M10 22h4" />
+                                <path d="M12 2a7 7 0 0 0-4 12v1H6l4 4 4-4h-2v-1a7 7 0 0 0-4-12z" />
+                            </svg>
+                            <span>AI tip</span>
+                        }
+                    </button>
+                    <button type="button"
+                            class="exercise-ide-bar-btn exercise-ide-bar-btn-ai"
+                            disabled="@(!_aiEnabled || _aiBusy)"
+                            title="@_aiStatusHint"
+                            aria-label="Tjek løsning"
+                            @onclick="CheckSolutionAsync">
+                        @if (_aiCheckLoading)
+                        {
+                            <span class="gf2-spinner" aria-hidden="true"></span>
+                            <span>Tjek…</span>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                            <span>Tjek løsning</span>
+                        }
+                    </button>
                 </div>
-            }
-            <div class="exercise-ide-actions">
-                <button type="button"
-                        class="btn btn-ghost btn-sm exercise-ai-btn"
-                        disabled="@(!_aiEnabled || _aiBusy)"
-                        title="@_aiStatusHint"
-                        @onclick="GetHintAsync">
-                    @(_aiHintLoading ? "Henter tip…" : "AI hjælp mig")
-                </button>
-                <button type="button"
-                        class="btn btn-ghost btn-sm exercise-ai-btn"
-                        disabled="@(!_aiEnabled || _aiBusy)"
-                        title="@_aiStatusHint"
-                        @onclick="CheckSolutionAsync">
-                    @(_aiCheckLoading ? "Tjekker…" : "Er opgaven løst?")
-                </button>
             </div>
             @if (!string.IsNullOrWhiteSpace(_formatError))
             {
@@ -505,7 +534,7 @@
     {
         var local = savedAt.ToLocalTime();
         var stamp = local.ToString("d/M HH:mm", CultureInfo.InvariantCulture);
-        return index == 0 ? $"Seneste ({stamp})" : $"Ældre {index + 1} ({stamp})";
+        return index == 0 ? $"Seneste · {stamp}" : $"v{index + 1} · {stamp}";
     }
 
     private async Task FormatCodeAsync()
