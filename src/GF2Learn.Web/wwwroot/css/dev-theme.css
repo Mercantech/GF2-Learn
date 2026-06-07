@@ -2130,8 +2130,12 @@ a:hover { color: var(--accent-bright); }
   border: 1px solid var(--border);
   background: var(--bg-card);
 }
-.clippy-speech-avatar {
+.clippy-speech-avatar,
+.clippy-inline-icon {
   flex-shrink: 0;
+  object-fit: contain;
+}
+.clippy-speech-avatar {
   margin-top: 0.1rem;
 }
 .clippy-speech-bubble {

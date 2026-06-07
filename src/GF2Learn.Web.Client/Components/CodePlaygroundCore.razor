@@ -192,9 +192,6 @@
 
         _ctrlSaveRef ??= DotNetObjectReference.Create(this);
 
-        if (ShowRunToolbar)
-            await Js.InvokeVoidAsync("gf2Playground.registerCtrlRun", _editorId, _ctrlSaveRef);
-
         try
         {
             await Js.InvokeVoidAsync("gf2Playground.init", _editorId, StartupCode);

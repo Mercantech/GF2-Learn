@@ -2,7 +2,8 @@ window.gf2Playground = {
   editors: {},
   editorOptions: {},
   ctrlRunHelpers: {},
-  ctrlRunBound: {},
+  ctrlSaveHelpers: {},
+  keyboardBound: {},
   lazyObservers: {},
   heightSyncScheduled: {},
   monacoLoadPromise: null,
@@ -217,15 +218,37 @@ window.gf2Playground = {
     }
   },
 
-  registerCtrlSave: function (elementId, dotNetHelper) {
-    var editor = this.editors[elementId];
-    if (!editor || !window.monaco || !dotNetHelper) return;
+  getPlaygroundRoot: function (elementId) {
+    var host = document.getElementById(elementId);
+    return host ? host.closest(".code-playground") : null;
+  },
 
-    var monaco = window.monaco;
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
-      dotNetHelper.invokeMethodAsync("TriggerCtrlSaveAsync").catch(function () {
-        /* editor disposed */
-      });
+  isEditorHostActive: function (elementId) {
+    var host = document.getElementById(elementId);
+    return !!(host && host.contains(document.activeElement));
+  },
+
+  clickPlaygroundButton: function (elementId, selectors) {
+    var root = this.getPlaygroundRoot(elementId);
+    if (!root) return false;
+
+    var list = Array.isArray(selectors) ? selectors : [selectors];
+    for (var i = 0; i < list.length; i++) {
+      var btn = root.querySelector(list[i]);
+      if (btn && !btn.disabled) {
+        btn.click();
+        return true;
+      }
+    }
+    return false;
+  },
+
+  invokeCtrlSave: function (elementId) {
+    var helper = this.ctrlSaveHelpers[elementId];
+    if (!helper) return;
+
+    helper.invokeMethodAsync("TriggerCtrlSaveAsync").catch(function (err) {
+      console.warn("gf2 Ctrl+S save:", err);
     });
   },
 
@@ -238,40 +261,80 @@ window.gf2Playground = {
     });
   },
 
-  bindCtrlRun: function (elementId) {
+  triggerRun: function (elementId) {
+    if (
+      this.clickPlaygroundButton(elementId, [
+        ".playground-icon-btn-run",
+        ".playground-header-toolbar .btn-primary"
+      ])
+    ) {
+      return;
+    }
+    this.invokeCtrlRun(elementId);
+  },
+
+  triggerSave: function (elementId) {
+    if (this.clickPlaygroundButton(elementId, ".playground-icon-btn-save")) return;
+    this.invokeCtrlSave(elementId);
+  },
+
+  bindKeyboardShortcuts: function (elementId) {
     var editor = this.editors[elementId];
     var host = document.getElementById(elementId);
-    if (!editor || !host || !window.monaco || !this.ctrlRunHelpers[elementId]) return;
-    if (this.ctrlRunBound[elementId]) return;
+    if (!editor || !host || this.keyboardBound[elementId]) return;
 
-    var monaco = window.monaco;
     var self = this;
+    var monaco = window.monaco;
+
     var runCode = function () {
-      self.invokeCtrlRun(elementId);
+      self.triggerRun(elementId);
     };
 
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.NumpadEnter, runCode);
+    var saveCode = function () {
+      self.triggerSave(elementId);
+    };
+
+    if (monaco) {
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.NumpadEnter, runCode);
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveCode);
+    }
 
     host.addEventListener(
       "keydown",
       function (e) {
-        if (!(e.ctrlKey || e.metaKey) || e.key !== "Enter") return;
-        if (!editor.hasTextFocus || !editor.hasTextFocus()) return;
-        e.preventDefault();
-        e.stopPropagation();
-        runCode();
+        if (!self.isEditorHostActive(elementId)) return;
+
+        var ctrl = e.ctrlKey || e.metaKey;
+        if (!ctrl) return;
+
+        if (e.key === "Enter") {
+          e.preventDefault();
+          e.stopPropagation();
+          runCode();
+          return;
+        }
+
+        if (e.key === "s" || e.key === "S") {
+          e.preventDefault();
+          e.stopPropagation();
+          saveCode();
+        }
       },
       true
     );
 
-    this.ctrlRunBound[elementId] = true;
+    this.keyboardBound[elementId] = true;
+  },
+
+  registerCtrlSave: function (elementId, dotNetHelper) {
+    if (dotNetHelper) this.ctrlSaveHelpers[elementId] = dotNetHelper;
+    this.bindKeyboardShortcuts(elementId);
   },
 
   registerCtrlRun: function (elementId, dotNetHelper) {
-    if (!dotNetHelper) return;
-    this.ctrlRunHelpers[elementId] = dotNetHelper;
-    this.bindCtrlRun(elementId);
+    if (dotNetHelper) this.ctrlRunHelpers[elementId] = dotNetHelper;
+    this.bindKeyboardShortcuts(elementId);
   },
 
   registerTabSnippets: function (editor) {
@@ -485,13 +548,13 @@ window.gf2Playground = {
 
     self.markHostReady(host);
     self.applyContentHeight(elementId, editor.getContentHeight());
-    self.bindCtrlRun(elementId);
+    self.bindKeyboardShortcuts(elementId);
 
     await new Promise(function (resolve) {
       requestAnimationFrame(function () {
         self.applyContentHeight(elementId, editor.getContentHeight());
         self.markHostReady(host);
-        self.bindCtrlRun(elementId);
+        self.bindKeyboardShortcuts(elementId);
         if (window.gf2ExercisePage && window.gf2ExercisePage.checkReady) {
           window.gf2ExercisePage.checkReady();
         }
@@ -608,7 +671,8 @@ window.gf2Playground = {
     this.detachLazyObserver(elementId);
     delete this.heightSyncScheduled[elementId];
     delete this.ctrlRunHelpers[elementId];
-    delete this.ctrlRunBound[elementId];
+    delete this.ctrlSaveHelpers[elementId];
+    delete this.keyboardBound[elementId];
 
     var editor = this.editors[elementId];
     if (editor) {

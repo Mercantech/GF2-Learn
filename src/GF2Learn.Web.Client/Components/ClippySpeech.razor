@@ -1,6 +1,6 @@
 <div class="clippy-speech @VariantClass" role="status">
     <img class="clippy-speech-avatar"
-         src="/images/clippy.svg"
+         src="/images/clippy.png"
          width="@AvatarSize"
          height="@AvatarSize"
          alt=""
@@ -26,7 +26,7 @@
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Message { get; set; }
     [Parameter] public string Variant { get; set; } = "hint";
-    [Parameter] public int AvatarSize { get; set; } = 44;
+    [Parameter] public int AvatarSize { get; set; } = 56;
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private string VariantClass => Variant switch
