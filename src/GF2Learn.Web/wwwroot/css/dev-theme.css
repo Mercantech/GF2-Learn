@@ -1955,6 +1955,54 @@ a:hover { color: var(--accent-bright); }
 .exercise-ide-playground .playground-title {
   color: var(--accent-teal);
 }
+.playground-header-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+.playground-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-hover);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.playground-icon-btn:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--accent);
+}
+.playground-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.playground-icon-btn .gf2-spinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-width: 2px;
+}
+.playground-icon-btn-run {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+.playground-icon-btn-run:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 88%, #fff);
+  border-color: transparent;
+  color: #fff;
+}
+.playground-icon-btn-save.playground-icon-btn-saved {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
 .playground-editor-host-exercise {
   min-height: 8.5rem;
   height: auto;
@@ -2172,6 +2220,9 @@ a:hover { color: var(--accent-bright); }
   padding: 0.5rem 0.75rem;
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
+}
+.playground-header .playground-header-toolbar {
+  margin-left: auto;
 }
 .playground-title {
   font-family: var(--font-mono);

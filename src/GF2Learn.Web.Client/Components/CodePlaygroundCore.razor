@@ -8,14 +8,52 @@
         <span class="playground-title">@Title</span>
         @if (ShowRunToolbar)
         {
-            <div class="playground-toolbar">
-                <button type="button" class="btn btn-primary btn-sm" disabled="@_running" @onclick="RunAsync">
-                    @(_running ? "Kører…" : RunLabel)
-                </button>
-                <button type="button" class="btn btn-ghost btn-sm" disabled="@_running" @onclick="ResetCodeAsync">@ResetLabel</button>
-                @if (ShowCopyButton)
+            <div class="playground-header-toolbar">
+                @if (UseIconToolbar)
                 {
-                    <button type="button" class="btn btn-ghost btn-sm" @onclick="CopyCodeAsync">Kopier</button>
+                    <button type="button"
+                            class="playground-icon-btn playground-icon-btn-run"
+                            disabled="@_running"
+                            title="@RunLabel"
+                            aria-label="@(_running ? "Kører kode" : RunLabel)"
+                            @onclick="RunAsync">
+                        @if (_running)
+                        {
+                            <span class="gf2-spinner" aria-hidden="true"></span>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        }
+                    </button>
+                    <button type="button"
+                            class="playground-icon-btn"
+                            disabled="@_running"
+                            title="@ResetLabel"
+                            aria-label="@ResetLabel"
+                            @onclick="ResetCodeAsync">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                        </svg>
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-primary btn-sm" disabled="@_running" @onclick="RunAsync">
+                        @(_running ? "Kører…" : RunLabel)
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm" disabled="@_running" @onclick="ResetCodeAsync">@ResetLabel</button>
+                    @if (ShowCopyButton)
+                    {
+                        <button type="button" class="btn btn-ghost btn-sm" @onclick="CopyCodeAsync">Kopier</button>
+                    }
+                }
+                @if (ToolbarActions is not null)
+                {
+                    @ToolbarActions
                 }
             </div>
         }
@@ -90,9 +128,11 @@
     [Parameter] public string EditorHostClass { get; set; } = "";
     [Parameter] public bool ShowCopyButton { get; set; } = true;
     [Parameter] public bool ShowRunToolbar { get; set; } = true;
+    [Parameter] public bool UseIconToolbar { get; set; }
     [Parameter] public bool ShowOutputPanel { get; set; } = true;
     [Parameter] public bool EnableCtrlSave { get; set; }
     [Parameter] public EventCallback OnCtrlSave { get; set; }
+    [Parameter] public RenderFragment? ToolbarActions { get; set; }
     [Parameter] public RenderFragment? Footer { get; set; }
 
     private readonly string _editorId = $"pg-{Guid.NewGuid():N}";

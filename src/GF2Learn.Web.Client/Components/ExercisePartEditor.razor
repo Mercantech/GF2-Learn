@@ -20,8 +20,56 @@
                     RootClass="exercise-ide-playground"
                     EditorHostClass="playground-editor-host-exercise"
                     ShowCopyButton="false"
+                    UseIconToolbar="true"
                     EnableCtrlSave="true"
                     OnCtrlSave="SaveAsync">
+    <ToolbarActions>
+        <button type="button"
+                class="playground-icon-btn"
+                disabled="@(!_editorReady || _formatting)"
+                title="Formater kode (Ctrl+Shift+F)"
+                aria-label="Formater kode"
+                @onclick="FormatCodeAsync">
+            @if (_formatting)
+            {
+                <span class="gf2-spinner" aria-hidden="true"></span>
+            }
+            else
+            {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 6H3" />
+                    <path d="M15 12H3" />
+                    <path d="M17 18H3" />
+                    <path d="M18 9l3 3-3 3" />
+                </svg>
+            }
+        </button>
+        <button type="button"
+                class="playground-icon-btn playground-icon-btn-save @(_saved ? "playground-icon-btn-saved" : "")"
+                disabled="@(_saving || !_editorReady)"
+                title="@GetSaveTitle()"
+                aria-label="@GetSaveTitle()"
+                @onclick="SaveAsync">
+            @if (_saving)
+            {
+                <span class="gf2-spinner" aria-hidden="true"></span>
+            }
+            else if (_saved)
+            {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                </svg>
+            }
+            else
+            {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                </svg>
+            }
+        </button>
+    </ToolbarActions>
     <Footer>
         <div class="exercise-ide-footer">
             @if (_versions.Count > 0)
@@ -57,20 +105,6 @@
                         title="@_aiStatusHint"
                         @onclick="CheckSolutionAsync">
                     @(_aiCheckLoading ? "Tjekker…" : "Er opgaven løst?")
-                </button>
-                <button type="button"
-                        class="btn btn-ghost btn-sm"
-                        disabled="@(!_editorReady || _formatting)"
-                        title="Formater kode (Ctrl+Shift+F eller Shift+Alt+F)"
-                        @onclick="FormatCodeAsync">
-                    @(_formatting ? "Formaterer…" : "Formater")
-                </button>
-                <button type="button"
-                        class="btn btn-primary btn-sm"
-                        disabled="@(_saving || !_editorReady)"
-                        title="Gem løsning (Ctrl+S)"
-                        @onclick="SaveAsync">
-                    @(_saving ? "Gemmer…" : !_editorReady ? "Indlæser editor…" : _saved ? "Gemt ✓" : "Gem løsning")
                 </button>
             </div>
             @if (!string.IsNullOrWhiteSpace(_formatError))
@@ -458,6 +492,14 @@
         _saveError = null;
         StateHasChanged();
     }
+
+    private string GetSaveTitle() => _saving
+        ? "Gemmer…"
+        : !_editorReady
+            ? "Indlæser editor…"
+            : _saved
+                ? "Gemt (Ctrl+S)"
+                : "Gem løsning (Ctrl+S)";
 
     private static string FormatVersionLabel(int index, DateTimeOffset savedAt)
     {
