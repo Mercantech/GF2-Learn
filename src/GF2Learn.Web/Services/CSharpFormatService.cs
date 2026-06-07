@@ -14,7 +14,9 @@ public sealed record CSharpFormatResult(bool Success, string? Formatted, string?
 public sealed class CSharpFormatService : ICSharpFormatService
 {
     private const int MaxCodeLength = 64_000;
-    private static readonly AdhocWorkspace Workspace = new();
+
+    private static readonly CSharpParseOptions ParseOptions =
+        CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
 
     public async Task<CSharpFormatResult> FormatAsync(
         string code,
@@ -28,10 +30,30 @@ public sealed class CSharpFormatService : ICSharpFormatService
 
         try
         {
-            var project = Workspace.AddProject("GF2Format", LanguageNames.CSharp)
-                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var workspace = new AdhocWorkspace();
+            var project = workspace.AddProject("GF2Format", LanguageNames.CSharp)
+                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .WithParseOptions(ParseOptions);
 
             var document = project.AddDocument("Code.cs", code);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root is null)
+                return new CSharpFormatResult(false, null, "Koden kunne ikke læses.");
+
+            var errors = root.GetDiagnostics()
+                .Where(d => d.Severity == DiagnosticSeverity.Error)
+                .Take(3)
+                .Select(d => d.GetMessage())
+                .ToList();
+
+            if (errors.Count > 0)
+            {
+                return new CSharpFormatResult(
+                    false,
+                    null,
+                    "Ret syntaksfejl først: " + string.Join(" ", errors));
+            }
+
             var formatted = await Formatter.FormatAsync(document, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
             var text = await formatted.GetTextAsync(cancellationToken).ConfigureAwait(false);

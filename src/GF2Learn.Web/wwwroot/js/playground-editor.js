@@ -140,26 +140,43 @@ window.gf2Playground = {
     });
   },
 
-  registerFormatCommand: function (elementId) {
+  registerFormatCommand: function (elementId, host) {
     var editor = this.editors[elementId];
     if (!editor || !window.monaco) return;
 
     var monaco = window.monaco;
     var self = this;
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, function () {
+
+    var runFormat = function () {
       self.formatDocument(elementId);
-    });
+    };
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, runFormat);
+    editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, runFormat);
+
+    if (!host || host.dataset.formatBound === "1") return;
+    host.dataset.formatBound = "1";
+
+    host.addEventListener("keydown", function (e) {
+      var ctrlFmt = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "F" || e.key === "f");
+      var altShiftFmt = e.shiftKey && e.altKey && (e.key === "F" || e.key === "f");
+      if (!ctrlFmt && !altShiftFmt) return;
+      if (!editor.hasTextFocus || !editor.hasTextFocus()) return;
+      e.preventDefault();
+      e.stopPropagation();
+      runFormat();
+    }, true);
   },
 
   formatDocument: async function (elementId) {
     var editor = this.editors[elementId];
-    if (!editor) return;
+    if (!editor) return false;
 
     var code = editor.getValue();
-    if (!code.trim()) return;
+    if (!code.trim()) return false;
 
     var model = editor.getModel();
-    if (!model) return;
+    if (!model) return false;
 
     try {
       var response = await fetch("/api/playground/format", {
@@ -168,11 +185,19 @@ window.gf2Playground = {
         body: JSON.stringify({ code: code })
       });
 
-      if (!response.ok) return;
+      if (!response.ok) {
+        var detail = "Formatering fejlede.";
+        try {
+          var err = await response.json();
+          if (err && err.detail) detail = err.detail;
+        } catch (ignore) { /* ignore */ }
+        console.warn("gf2 format:", detail);
+        return false;
+      }
 
       var data = await response.json();
-      if (!data || typeof data.formatted !== "string") return;
-      if (data.formatted === code) return;
+      if (!data || typeof data.formatted !== "string") return false;
+      if (data.formatted === code) return true;
 
       var fullRange = model.getFullModelRange();
       editor.pushUndoStop();
@@ -183,8 +208,10 @@ window.gf2Playground = {
       }]);
       editor.pushUndoStop();
       this.updateHeight(elementId);
+      return true;
     } catch (e) {
       console.warn("gf2 format:", e);
+      return false;
     }
   },
 
@@ -207,32 +234,31 @@ window.gf2Playground = {
     editor.addCommand(monaco.KeyCode.Tab, function () {
       var model = editor.getModel();
       var position = editor.getPosition();
-      if (!model || !position) {
-        editor.trigger("keyboard", "type", { text: "\t" });
-        return;
-      }
 
-      var line = model.getLineContent(position.lineNumber);
-      var before = line.substring(0, position.column - 1);
+      if (model && position) {
+        var line = model.getLineContent(position.lineNumber);
+        var before = line.substring(0, position.column - 1);
 
-      for (var i = 0; i < snippets.length; i++) {
-        var s = snippets[i];
-        var re = new RegExp("\\b" + s.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$");
-        if (re.test(before)) {
-          var startCol = position.column - s.label.length;
-          editor.executeEdits("snippet", [{
-            range: new monaco.Range(position.lineNumber, startCol, position.lineNumber, position.column),
-            text: "",
-            forceMoveMarkers: true
-          }]);
-          editor.trigger("keyboard", "editor.action.insertSnippet", {
-            snippet: s.insertText
-          });
-          return;
+        for (var i = 0; i < snippets.length; i++) {
+          var s = snippets[i];
+          var re = new RegExp("\\b" + s.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$");
+          if (re.test(before)) {
+            var startCol = position.column - s.label.length;
+            editor.executeEdits("snippet", [{
+              range: new monaco.Range(position.lineNumber, startCol, position.lineNumber, position.column),
+              text: "",
+              forceMoveMarkers: true
+            }]);
+            editor.trigger("keyboard", "editor.action.insertSnippet", {
+              snippet: s.insertText
+            });
+            return;
+          }
         }
       }
 
-      editor.trigger("keyboard", "type", { text: "\t" });
+      // Normal indrykning (4 mellemrum) — ikke et råt tab-tegn
+      editor.trigger("keyboard", "tab", {});
     });
   },
 
@@ -407,8 +433,8 @@ window.gf2Playground = {
     });
 
     this.registerTabSnippets(editor);
-    this.registerFormatCommand(elementId);
     this.editors[elementId] = editor;
+    this.registerFormatCommand(elementId, host);
 
     self.markHostReady(host);
     self.applyContentHeight(elementId, editor.getContentHeight());

@@ -59,6 +59,13 @@
                     @(_aiCheckLoading ? "Tjekker…" : "Er opgaven løst?")
                 </button>
                 <button type="button"
+                        class="btn btn-ghost btn-sm"
+                        disabled="@(!_editorReady || _formatting)"
+                        title="Formater kode (Ctrl+Shift+F eller Shift+Alt+F)"
+                        @onclick="FormatCodeAsync">
+                    @(_formatting ? "Formaterer…" : "Formater")
+                </button>
+                <button type="button"
                         class="btn btn-primary btn-sm"
                         disabled="@(_saving || !_editorReady)"
                         title="Gem løsning (Ctrl+S)"
@@ -66,6 +73,10 @@
                     @(_saving ? "Gemmer…" : !_editorReady ? "Indlæser editor…" : _saved ? "Gemt ✓" : "Gem løsning")
                 </button>
             </div>
+            @if (!string.IsNullOrWhiteSpace(_formatError))
+            {
+                <span class="exercise-ide-save-error">@_formatError</span>
+            }
             @if (!string.IsNullOrWhiteSpace(_saveError))
             {
                 <span class="exercise-ide-save-error">@_saveError</span>
@@ -110,8 +121,10 @@
     private readonly string _versionSelectId = $"ver-{Guid.NewGuid():N}";
     private bool _saved;
     private bool _saving;
+    private bool _formatting;
     private bool _versionLoading;
     private string? _saveError;
+    private string? _formatError;
     private List<ExercisePartVersionDto> _versions = [];
     private string _selectedVersionKey = "";
     private bool _editorReady;
@@ -451,6 +464,37 @@
         var local = savedAt.ToLocalTime();
         var stamp = local.ToString("d/M HH:mm", CultureInfo.InvariantCulture);
         return index == 0 ? $"Seneste ({stamp})" : $"Ældre {index + 1} ({stamp})";
+    }
+
+    private async Task FormatCodeAsync()
+    {
+        if (_editor is null)
+        {
+            _formatError = "Editoren er ikke klar endnu.";
+            return;
+        }
+
+        if (!await _editor.WaitForEditorReadyAsync())
+        {
+            _formatError = "Editoren indlæses stadig — vent et øjeblik og prøv igen.";
+            return;
+        }
+
+        _formatting = true;
+        _formatError = null;
+        StateHasChanged();
+
+        try
+        {
+            var ok = await _editor.FormatDocumentAsync();
+            if (!ok)
+                _formatError = "Kunne ikke formatere — ret syntaksfejl og prøv igen.";
+        }
+        finally
+        {
+            _formatting = false;
+            StateHasChanged();
+        }
     }
 
     private async Task SaveAsync()

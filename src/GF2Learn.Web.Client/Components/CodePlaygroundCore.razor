@@ -265,6 +265,21 @@
             await Js.InvokeVoidAsync("gf2Playground.setValue", _editorId, code);
     }
 
+    public async Task<bool> FormatDocumentAsync()
+    {
+        if (!_editorReady)
+            return false;
+
+        try
+        {
+            return await Js.InvokeAsync<bool>("gf2Playground.formatDocument", _editorId);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private async Task RunAsync()
     {
         _running = true;

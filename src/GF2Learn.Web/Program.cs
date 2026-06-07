@@ -147,6 +147,18 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapMercantecAuthEndpoints();
 
+app.MapPost("/api/playground/format", async (
+    FormatCSharpRequest request,
+    ICSharpFormatService formatter,
+    CancellationToken cancellationToken) =>
+{
+    var result = await formatter.FormatAsync(request.Code ?? "", cancellationToken);
+    if (!result.Success)
+        return Results.BadRequest(new { detail = result.Error });
+
+    return Results.Ok(new { formatted = result.Formatted });
+}).DisableAntiforgery();
+
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
     var progress = app.MapGroup("/api/progress").RequireAuthorization();
@@ -265,18 +277,6 @@ if (!string.IsNullOrWhiteSpace(connectionString))
                 detail: "Kunne ikke gemme opgavesvar: " + ex.Message,
                 statusCode: StatusCodes.Status500InternalServerError);
         }
-    }).DisableAntiforgery();
-
-    app.MapPost("/api/playground/format", async (
-        FormatCSharpRequest request,
-        ICSharpFormatService formatter,
-        CancellationToken cancellationToken) =>
-    {
-        var result = await formatter.FormatAsync(request.Code ?? "", cancellationToken);
-        if (!result.Success)
-            return Results.BadRequest(new { detail = result.Error });
-
-        return Results.Ok(new { formatted = result.Formatted });
     }).DisableAntiforgery();
 
     var playground = app.MapGroup("/api/playground").RequireAuthorization();
