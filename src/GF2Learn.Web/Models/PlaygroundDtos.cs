@@ -35,3 +35,5 @@ public sealed record SavePlaygroundFileItem(
 public sealed record CreatePlaygroundFileRequest(string FileName, string? Content);
 
 public sealed record RenamePlaygroundFileRequest(string FileName);
+
+public sealed record FormatCSharpRequest(string? Code);

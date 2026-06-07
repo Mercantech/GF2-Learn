@@ -140,6 +140,54 @@ window.gf2Playground = {
     });
   },
 
+  registerFormatCommand: function (elementId) {
+    var editor = this.editors[elementId];
+    if (!editor || !window.monaco) return;
+
+    var monaco = window.monaco;
+    var self = this;
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, function () {
+      self.formatDocument(elementId);
+    });
+  },
+
+  formatDocument: async function (elementId) {
+    var editor = this.editors[elementId];
+    if (!editor) return;
+
+    var code = editor.getValue();
+    if (!code.trim()) return;
+
+    var model = editor.getModel();
+    if (!model) return;
+
+    try {
+      var response = await fetch("/api/playground/format", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code })
+      });
+
+      if (!response.ok) return;
+
+      var data = await response.json();
+      if (!data || typeof data.formatted !== "string") return;
+      if (data.formatted === code) return;
+
+      var fullRange = model.getFullModelRange();
+      editor.pushUndoStop();
+      editor.executeEdits("format", [{
+        range: fullRange,
+        text: data.formatted,
+        forceMoveMarkers: true
+      }]);
+      editor.pushUndoStop();
+      this.updateHeight(elementId);
+    } catch (e) {
+      console.warn("gf2 format:", e);
+    }
+  },
+
   registerCtrlSave: function (elementId, dotNetHelper) {
     var editor = this.editors[elementId];
     if (!editor || !window.monaco || !dotNetHelper) return;
@@ -359,6 +407,7 @@ window.gf2Playground = {
     });
 
     this.registerTabSnippets(editor);
+    this.registerFormatCommand(elementId);
     this.editors[elementId] = editor;
 
     self.markHostReady(host);

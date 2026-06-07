@@ -38,6 +38,7 @@ builder.Services.AddSingleton<PlaygroundParser>();
 builder.Services.AddSingleton<RunnableCodeParser>();
 builder.Services.AddSingleton<ProjectSolutionCatalog>();
 builder.Services.AddSingleton<ExerciseAiContextService>();
+builder.Services.AddSingleton<ICSharpFormatService, CSharpFormatService>();
 
 builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
 builder.Services.AddHttpClient<IExerciseAiService, ExerciseAiService>(client =>
@@ -264,6 +265,18 @@ if (!string.IsNullOrWhiteSpace(connectionString))
                 detail: "Kunne ikke gemme opgavesvar: " + ex.Message,
                 statusCode: StatusCodes.Status500InternalServerError);
         }
+    }).DisableAntiforgery();
+
+    app.MapPost("/api/playground/format", async (
+        FormatCSharpRequest request,
+        ICSharpFormatService formatter,
+        CancellationToken cancellationToken) =>
+    {
+        var result = await formatter.FormatAsync(request.Code ?? "", cancellationToken);
+        if (!result.Success)
+            return Results.BadRequest(new { detail = result.Error });
+
+        return Results.Ok(new { formatted = result.Formatted });
     }).DisableAntiforgery();
 
     var playground = app.MapGroup("/api/playground").RequireAuthorization();
