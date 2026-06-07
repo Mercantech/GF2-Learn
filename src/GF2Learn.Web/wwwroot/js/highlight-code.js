@@ -69,16 +69,32 @@
     return match ? match[1].toLowerCase() : null;
   }
 
+  function codesInRoot(root) {
+    if (!root) return [];
+    if (root.tagName === "CODE") return [root];
+    if (root.tagName === "PRE") {
+      var direct = root.querySelector(":scope > code");
+      return direct ? [direct] : [];
+    }
+    if (!root.querySelectorAll) return [];
+    return Array.prototype.slice.call(
+      root.querySelectorAll("pre > code, code.language-csharp, code.language-cs")
+    );
+  }
+
   function highlightCode(code) {
     var hljs = global.hljs;
-    if (!hljs) return;
-    if (code.closest(".landing-code-window")) return;
+    if (!hljs) return false;
+    if (code.closest(".landing-code-window")) return false;
 
     code.classList.remove("hljs");
     code.removeAttribute("data-highlighted");
 
     var lang = detectLanguage(code);
     if (lang === "cs") lang = "csharp";
+    if (!lang && code.closest(".curriculum-content, .markdown-body, .code-playground, .runnable-code-display")) {
+      lang = "csharp";
+    }
 
     try {
       if (lang && hljs.getLanguage(lang)) {
@@ -86,24 +102,31 @@
         code.innerHTML = result.value;
         code.classList.add("hljs");
         code.dataset.highlighted = "yes";
-        return;
+        return true;
       }
       hljs.highlightElement(code);
+      return code.classList.contains("hljs") || code.dataset.highlighted === "yes";
     } catch (e) {
       console.warn("Syntax highlight failed:", lang || "auto", e);
+      return false;
     }
   }
 
   function highlightAll(root) {
-    if (!global.hljs) return;
-    root.querySelectorAll("pre > code").forEach(highlightCode);
+    if (!global.hljs) return false;
+    var scope = root && root.querySelectorAll ? root : document;
+    var ok = false;
+    scope.querySelectorAll("pre > code").forEach(function (code) {
+      if (highlightCode(code)) ok = true;
+    });
+    return ok;
   }
 
   function process(root) {
     root = root || document;
     syncHljsTheme();
     enhanceCodeBlocks(root);
-    highlightAll(root);
+    return highlightAll(root);
   }
 
   function scheduleProcess(root) {
@@ -113,16 +136,29 @@
   }
 
   function highlightRoot(root) {
-    if (!root) return;
+    if (!root || !global.hljs) return false;
     syncHljsTheme();
-    var nodes = root.querySelectorAll
-      ? root.querySelectorAll("pre > code, code.language-csharp, code.language-cs")
-      : [];
-    if ((!nodes || nodes.length === 0) && root.tagName === "CODE") {
-      highlightCode(root);
-      return;
-    }
-    nodes.forEach(highlightCode);
+    var nodes = codesInRoot(root);
+    if (nodes.length === 0) return false;
+    var ok = false;
+    nodes.forEach(function (code) {
+      if (highlightCode(code)) ok = true;
+    });
+    return ok;
+  }
+
+  function observeDynamicContent() {
+    document.querySelectorAll(".curriculum-content, .markdown-body").forEach(function (watch) {
+      if (watch.dataset.highlightObserved === "1") return;
+      watch.dataset.highlightObserved = "1";
+      var timer = null;
+      new MutationObserver(function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          scheduleProcess(watch);
+        }, 120);
+      }).observe(watch, { childList: true, subtree: true });
+    });
   }
 
   global.gf2Highlight = {
@@ -136,6 +172,7 @@
 
   function boot() {
     syncHljsTheme();
+    observeDynamicContent();
     scheduleProcess(document);
   }
 
@@ -144,4 +181,9 @@
   } else {
     boot();
   }
+
+  global.addEventListener("gf2-enhanced-nav", function () {
+    observeDynamicContent();
+    scheduleProcess(document);
+  });
 })(window);

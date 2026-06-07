@@ -58,6 +58,7 @@
 
     private ElementReference _codePre;
     private string? _highlightedCode;
+    private bool _highlightSucceeded;
     private string _output = "";
     private string _error = "";
     private bool _running;
@@ -91,17 +92,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_highlightedCode == Code)
+        if (_highlightSucceeded && _highlightedCode == Code)
             return;
 
-        _highlightedCode = Code;
         try
         {
-            await Js.InvokeVoidAsync("gf2Highlight.highlightRoot", _codePre);
+            _highlightSucceeded = await Js.InvokeAsync<bool>("gf2Highlight.highlightRoot", _codePre);
+            if (_highlightSucceeded)
+                _highlightedCode = Code;
         }
         catch
         {
-            // highlight.js may not be loaded yet
+            _highlightSucceeded = false;
         }
     }
 }
