@@ -10,7 +10,7 @@ public sealed record ExerciseAiHintResponse(string Message);
 
 public sealed record ExerciseAiCheckResponse(bool IsSolved, string Feedback);
 
-public sealed record ExerciseAiStatusResponse(bool Enabled, string? Message);
+public sealed record ExerciseAiStatusResponse(bool Enabled, string? Message, bool RequiresLogin = false);
 
 public sealed record ExercisePartAiContext(
     int PartIndex,

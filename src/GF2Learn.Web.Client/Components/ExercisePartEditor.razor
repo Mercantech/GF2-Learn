@@ -6,6 +6,7 @@
 @using GF2Learn.Web.Client.Models
 @inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime Js
+@inject NavigationManager Navigation
 
 <CodePlaygroundCore @ref="_editor"
                     @key="@($"{ContentSlug}-{PartIndex}")"
@@ -73,6 +74,13 @@
             {
                 <span class="exercise-ide-save-error">@_aiError</span>
             }
+            @if (_aiRequiresLogin)
+            {
+                <span class="exercise-ide-save-error">
+                    Log ind for at bruge AI-hjælpen.
+                    <a href="@LoginUrl">Log ind</a>
+                </span>
+            }
         </div>
         @if (!string.IsNullOrWhiteSpace(_aiHint))
         {
@@ -111,6 +119,7 @@
     private bool _aiBusy;
     private bool _aiHintLoading;
     private bool _aiCheckLoading;
+    private bool _aiRequiresLogin;
     private string? _aiStatusHint;
     private string? _aiError;
     private string? _aiHint;
@@ -136,6 +145,7 @@
             var raw = await Js.InvokeAsync<string>("gf2ExerciseAi.getStatus");
             var status = JsonSerializer.Deserialize<ExerciseAiStatusResponse>(raw, JsonOpts);
             _aiEnabled = status?.Enabled == true;
+            _aiRequiresLogin = status?.RequiresLogin == true;
             _aiStatusHint = status?.Enabled == true
                 ? "AI-hjælp"
                 : (status?.Message ?? "OpenAI-nøgle mangler på serveren");
@@ -143,9 +153,13 @@
         catch
         {
             _aiEnabled = false;
+            _aiRequiresLogin = false;
             _aiStatusHint = "Kunne ikke kontakte serveren for AI-status";
         }
     }
+
+    private string LoginUrl =>
+        "/auth/login?returnUrl=" + Uri.EscapeDataString(Navigation.Uri);
 
     private async Task GetHintAsync()
     {
@@ -295,7 +309,10 @@
         }
 
         if (result.Status == 401)
-            return "Log ind igen for at bruge AI (session udløbet efter deploy).";
+            return "Log ind for at bruge AI-hjælpen. Hvis du lige har været logget ind, er sessionen udløbet.";
+
+        if (result.Status == 400)
+            return "AI kunne ikke læse koden. Skriv lidt kode i editoren og prøv igen.";
 
         if (result.Status == 503)
             return "AI er ikke konfigureret på serveren.";
@@ -475,7 +492,8 @@
         [property: JsonPropertyName("feedback")] string Feedback);
     private sealed record ExerciseAiStatusResponse(
         [property: JsonPropertyName("enabled")] bool Enabled,
-        [property: JsonPropertyName("message")] string? Message);
+        [property: JsonPropertyName("message")] string? Message,
+        [property: JsonPropertyName("requiresLogin")] bool RequiresLogin);
 
     private sealed class AiPostEnvelope
     {

@@ -387,10 +387,25 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     });
 }
 
-app.MapGet("/api/exercise-ai/status", (IExerciseAiService ai) =>
-    Results.Ok(new ExerciseAiStatusResponse(
-        ai.IsConfigured,
-        ai.IsConfigured ? null : "OpenAI er ikke konfigureret (sæt OpenAi__ApiKey i .env).")))
+app.MapGet("/api/exercise-ai/status", (IExerciseAiService ai, ClaimsPrincipal user) =>
+{
+    if (!ai.IsConfigured)
+    {
+        return Results.Ok(new ExerciseAiStatusResponse(
+            false,
+            "OpenAI er ikke konfigureret (sæt OpenAi__ApiKey i .env)."));
+    }
+
+    if (GetUserSub(user) is null)
+    {
+        return Results.Ok(new ExerciseAiStatusResponse(
+            false,
+            "Log ind for at bruge AI-hjælpen.",
+            RequiresLogin: true));
+    }
+
+    return Results.Ok(new ExerciseAiStatusResponse(true, null));
+})
     .AllowAnonymous();
 
 var exerciseAi = app.MapGroup("/api/exercise-ai").RequireAuthorization();
