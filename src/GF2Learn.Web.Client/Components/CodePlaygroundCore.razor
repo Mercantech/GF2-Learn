@@ -104,6 +104,7 @@
     private bool _running;
     private bool _editorReady;
     private bool _monacoMounted;
+    private bool _startupCodeApplied;
     private string? _syncedInitialCode;
     private string _pendingCodeAttr = "";
     private bool? _expectedMatch;
@@ -138,17 +139,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _editorReady)
+        if (!firstRender)
         {
-            if (_editorReady
-                && !string.IsNullOrWhiteSpace(SavedCode)
-                && SavedCode != _syncedInitialCode)
-            {
-                await SetCodeAsync(SavedCode);
-            }
+            if (_editorReady && !_startupCodeApplied)
+                await ApplyStartupCodeOnceAsync();
 
             return;
         }
+
+        if (_editorReady)
+            return;
 
         try
         {
@@ -168,7 +168,7 @@
 
         _editorReady = true;
         _monacoMounted = true;
-        _syncedInitialCode = StartupCode;
+        await ApplyStartupCodeOnceAsync();
 
         if (EnableCtrlSave && OnCtrlSave.HasDelegate)
             await RegisterCtrlSaveAsync();
@@ -177,6 +177,41 @@
             _ = Runner.WarmupAsync();
 
         StateHasChanged();
+    }
+
+    private async Task ApplyStartupCodeOnceAsync()
+    {
+        if (_startupCodeApplied)
+            return;
+
+        await SetCodeAsync(StartupCode);
+        _startupCodeApplied = true;
+    }
+
+    public bool IsEditorReady => _editorReady;
+
+    public async Task<bool> WaitForEditorReadyAsync(int maxWaitMs = 5000)
+    {
+        var deadline = Environment.TickCount64 + maxWaitMs;
+        while (Environment.TickCount64 < deadline)
+        {
+            if (_editorReady)
+            {
+                try
+                {
+                    if (await Js.InvokeAsync<bool>("gf2Playground.isReady", _editorId))
+                        return true;
+                }
+                catch
+                {
+                    return true;
+                }
+            }
+
+            await Task.Delay(50);
+        }
+
+        return _editorReady;
     }
 
     private async Task RegisterCtrlSaveAsync()
@@ -201,10 +236,20 @@
 
     public async Task<string> GetCodeAsync()
     {
-        if (!_editorReady)
+        if (!await WaitForEditorReadyAsync())
             return _code;
 
-        return await Js.InvokeAsync<string>("gf2Playground.getValue", _editorId);
+        try
+        {
+            var value = await Js.InvokeAsync<string>("gf2Playground.getValue", _editorId);
+            if (!string.IsNullOrEmpty(value))
+                _code = value;
+            return value;
+        }
+        catch
+        {
+            return _code;
+        }
     }
 
     public string? LastOutput => string.IsNullOrEmpty(_output) ? null : _output;

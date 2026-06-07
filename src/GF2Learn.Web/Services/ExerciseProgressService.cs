@@ -6,7 +6,7 @@ namespace GF2Learn.Web.Services;
 
 public interface IExerciseProgressService
 {
-    Task SavePartAsync(
+    Task<ExercisePartVersionDto> SavePartAsync(
         string userSub,
         string contentSlug,
         int partIndex,
@@ -35,18 +35,19 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
     private const int MaxAnswerLength = 16_000;
     private const int MaxVersionsPerPart = 3;
 
-    public async Task SavePartAsync(
+    public async Task<ExercisePartVersionDto> SavePartAsync(
         string userSub,
         string contentSlug,
         int partIndex,
         string? answerText,
         CancellationToken cancellationToken = default)
     {
-        var text = string.IsNullOrWhiteSpace(answerText)
-            ? null
-            : answerText.Length > MaxAnswerLength
-                ? answerText[..MaxAnswerLength]
-                : answerText.Trim();
+        if (string.IsNullOrWhiteSpace(answerText))
+            throw new InvalidOperationException("Koden er tom — skriv noget før du gemmer.");
+
+        var text = answerText.Length > MaxAnswerLength
+            ? answerText[..MaxAnswerLength]
+            : answerText.Trim();
 
         var versions = await db.ExerciseAnswers
             .Where(a => a.UserSub == userSub
@@ -55,19 +56,27 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
             .OrderBy(a => a.CompletedAt)
             .ToListAsync(cancellationToken);
 
+        var latest = versions.MaxBy(v => v.CompletedAt);
+        if (latest is not null && string.Equals(latest.AnswerText, text, StringComparison.Ordinal))
+            return new ExercisePartVersionDto(latest.Id, latest.AnswerText, latest.CompletedAt);
+
         if (versions.Count >= MaxVersionsPerPart)
             db.ExerciseAnswers.Remove(versions[0]);
 
-        db.ExerciseAnswers.Add(new ExerciseAnswer
+        var savedAt = DateTimeOffset.UtcNow;
+        var row = new ExerciseAnswer
         {
             UserSub = userSub,
             ContentSlug = contentSlug,
             PartIndex = partIndex,
             AnswerText = text,
-            CompletedAt = DateTimeOffset.UtcNow
-        });
+            CompletedAt = savedAt
+        };
 
+        db.ExerciseAnswers.Add(row);
         await db.SaveChangesAsync(cancellationToken);
+
+        return new ExercisePartVersionDto(row.Id, row.AnswerText, savedAt);
     }
 
     public async Task<IReadOnlyList<ExercisePartAnswerDto>> GetAnswersAsync(

@@ -3,4 +3,7 @@
     <Project Path="src/GF2Learn.Web/GF2Learn.Web.csproj" />
     <Project Path="src/GF2Learn.Web.Client/GF2Learn.Web.Client.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GF2Learn.Tests/GF2Learn.Tests.csproj" />
+  </Folder>
 </Solution>

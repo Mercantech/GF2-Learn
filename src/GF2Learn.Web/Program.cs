@@ -245,14 +245,18 @@ if (!string.IsNullOrWhiteSpace(connectionString))
 
         try
         {
-            await progressService.SavePartAsync(
+            var saved = await progressService.SavePartAsync(
                 userSub,
                 request.ContentSlug,
                 request.PartIndex,
                 request.AnswerText,
                 cancellationToken);
 
-            return Results.NoContent();
+            return Results.Ok(saved);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { detail = ex.Message });
         }
         catch (Exception ex)
         {

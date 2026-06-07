@@ -30,9 +30,9 @@
                     <label class="exercise-ide-versions-label" for="@_versionSelectId">Gemte versioner</label>
                     <select id="@_versionSelectId"
                             class="exercise-ide-version-select"
-                            disabled="@_versionLoading"
-                            @bind="_selectedVersionKey"
-                            @bind:after="ApplySelectedVersionAsync">
+                            disabled="@_versionLoading || !_editorReady"
+                            value="@_selectedVersionKey"
+                            @onchange="OnVersionSelectedAsync">
                         @for (var i = 0; i < _versions.Count; i++)
                         {
                             var version = _versions[i];
@@ -60,10 +60,10 @@
                 </button>
                 <button type="button"
                         class="btn btn-primary btn-sm"
-                        disabled="@_saving"
+                        disabled="@(_saving || !_editorReady)"
                         title="Gem løsning (Ctrl+S)"
                         @onclick="SaveAsync">
-                    @(_saving ? "Gemmer…" : _saved ? "Gemt ✓" : "Gem løsning")
+                    @(_saving ? "Gemmer…" : !_editorReady ? "Indlæser editor…" : _saved ? "Gemt ✓" : "Gem løsning")
                 </button>
             </div>
             @if (!string.IsNullOrWhiteSpace(_saveError))
@@ -114,6 +114,7 @@
     private string? _saveError;
     private List<ExercisePartVersionDto> _versions = [];
     private string _selectedVersionKey = "";
+    private bool _editorReady;
 
     private bool _aiEnabled;
     private bool _aiBusy;
@@ -131,11 +132,24 @@
     };
 
     protected override void OnParametersSet() =>
-        _saved = !string.IsNullOrWhiteSpace(SavedCode);
+        _saved = !string.IsNullOrWhiteSpace(SavedCode) || _versions.Count > 0;
 
     protected override async Task OnInitializedAsync()
     {
         await Task.WhenAll(RefreshAiStatusAsync(), LoadVersionsAsync());
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_editor is null)
+            return;
+
+        var ready = await _editor.WaitForEditorReadyAsync();
+        if (ready == _editorReady)
+            return;
+
+        _editorReady = ready;
+        StateHasChanged();
     }
 
     private async Task RefreshAiStatusAsync()
@@ -376,8 +390,14 @@
             if (loaded is null || loaded.Count == 0)
                 return;
 
-            _versions = loaded;
-            _selectedVersionKey = loaded[0].Id.ToString();
+            _versions = loaded
+                .Where(v => !string.IsNullOrWhiteSpace(v.AnswerText))
+                .ToList();
+
+            if (_versions.Count == 0)
+                return;
+
+            _selectedVersionKey = _versions[0].Id.ToString();
             _saved = true;
         }
         catch
@@ -387,13 +407,29 @@
         finally
         {
             _versionLoading = false;
+            StateHasChanged();
         }
     }
 
-    private async Task ApplySelectedVersionAsync()
+    private async Task OnVersionSelectedAsync(ChangeEventArgs args)
     {
-        if (_editor is null || !long.TryParse(_selectedVersionKey, out var versionId))
+        if (args.Value is null || !long.TryParse(args.Value.ToString(), out var versionId))
             return;
+
+        _selectedVersionKey = versionId.ToString();
+        await ApplyVersionToEditorAsync(versionId);
+    }
+
+    private async Task ApplyVersionToEditorAsync(long versionId)
+    {
+        if (_editor is null)
+            return;
+
+        if (!await _editor.WaitForEditorReadyAsync())
+        {
+            _saveError = "Editoren er ikke klar endnu — prøv igen om et øjeblik.";
+            return;
+        }
 
         var version = _versions.FirstOrDefault(v => v.Id == versionId);
         if (version is null)
@@ -402,6 +438,7 @@
         await _editor.SetCodeAsync(version.AnswerText ?? "");
         _saved = true;
         _saveError = null;
+        StateHasChanged();
     }
 
     private static string FormatVersionLabel(int index, DateTimeOffset savedAt)
@@ -414,7 +451,16 @@
     private async Task SaveAsync()
     {
         if (_editor is null)
+        {
+            _saveError = "Editoren er ikke klar endnu.";
             return;
+        }
+
+        if (!await _editor.WaitForEditorReadyAsync())
+        {
+            _saveError = "Editoren indlæses stadig — vent et øjeblik og prøv igen.";
+            return;
+        }
 
         _saving = true;
         _saveError = null;
@@ -436,11 +482,19 @@
 
             if (response.IsSuccessStatusCode)
             {
-                _saved = true;
+                var saved = await response.Content.ReadFromJsonAsync<ExercisePartVersionDto>();
+                if (saved is not null)
+                    MergeSavedVersion(saved);
+
                 await LoadVersionsAsync();
-                if (_versions.Count > 0)
-                    _selectedVersionKey = _versions[0].Id.ToString();
+                _saved = true;
                 await OnSaved.InvokeAsync();
+                return;
+            }
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                _saveError = await ReadErrorDetailAsync(response) ?? "Kunne ikke gemme løsningen.";
                 return;
             }
 
@@ -455,8 +509,6 @@
                 {
                     _saved = true;
                     await LoadVersionsAsync();
-                    if (_versions.Count > 0)
-                        _selectedVersionKey = _versions[0].Id.ToString();
                     await OnSaved.InvokeAsync();
                     return;
                 }
@@ -482,6 +534,39 @@
             _saving = false;
             StateHasChanged();
         }
+    }
+
+    private void MergeSavedVersion(ExercisePartVersionDto saved)
+    {
+        if (string.IsNullOrWhiteSpace(saved.AnswerText))
+            return;
+
+        _versions.RemoveAll(v => v.Id == saved.Id);
+        _versions.Insert(0, saved);
+        if (_versions.Count > 3)
+            _versions = _versions.Take(3).ToList();
+
+        _selectedVersionKey = saved.Id.ToString();
+    }
+
+    private static async Task<string?> ReadErrorDetailAsync(HttpResponseMessage response)
+    {
+        try
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(body))
+                return null;
+
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("detail", out var detail))
+                return detail.GetString();
+        }
+        catch
+        {
+            // ignore parse errors
+        }
+
+        return null;
     }
 
     private sealed record SaveExercisePartPayload(string ContentSlug, int PartIndex, string? AnswerText);
