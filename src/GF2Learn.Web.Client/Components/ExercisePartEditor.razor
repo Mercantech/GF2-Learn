@@ -30,13 +30,13 @@
                     <label class="exercise-ide-versions-label" for="@_versionSelectId">Gemte versioner</label>
                     <select id="@_versionSelectId"
                             class="exercise-ide-version-select"
-                            disabled="@_versionLoading || !_editorReady"
-                            value="@_selectedVersionKey"
-                            @onchange="OnVersionSelectedAsync">
+                            disabled="@(_versionLoading || !_editorReady || _versions.Count < 2)"
+                            @bind="_selectedVersionKey"
+                            @bind:after="OnVersionSelectedAfterBindAsync">
                         @for (var i = 0; i < _versions.Count; i++)
                         {
                             var version = _versions[i];
-                            <option value="@version.Id">
+                            <option value="@version.Id.ToString(CultureInfo.InvariantCulture)">
                                 @FormatVersionLabel(i, version.SavedAt)
                             </option>
                         }
@@ -374,7 +374,7 @@
             _editor.LastConsoleOutput);
     }
 
-    private async Task LoadVersionsAsync()
+    private async Task LoadVersionsAsync(bool selectLatest = false)
     {
         _versionLoading = true;
         try
@@ -386,18 +386,24 @@
             if (!response.IsSuccessStatusCode)
                 return;
 
-            var loaded = await response.Content.ReadFromJsonAsync<List<ExercisePartVersionDto>>();
+            var loaded = await response.Content.ReadFromJsonAsync<List<ExercisePartVersionDto>>(JsonOpts);
             if (loaded is null || loaded.Count == 0)
                 return;
 
             _versions = loaded
-                .Where(v => !string.IsNullOrWhiteSpace(v.AnswerText))
+                .Where(v => v.Id > 0 && !string.IsNullOrWhiteSpace(v.AnswerText))
                 .ToList();
 
             if (_versions.Count == 0)
                 return;
 
-            _selectedVersionKey = _versions[0].Id.ToString();
+            if (selectLatest
+                || string.IsNullOrEmpty(_selectedVersionKey)
+                || _versions.All(v => v.Id.ToString() != _selectedVersionKey))
+            {
+                _selectedVersionKey = _versions[0].Id.ToString(CultureInfo.InvariantCulture);
+            }
+
             _saved = true;
         }
         catch
@@ -411,12 +417,11 @@
         }
     }
 
-    private async Task OnVersionSelectedAsync(ChangeEventArgs args)
+    private async Task OnVersionSelectedAfterBindAsync()
     {
-        if (args.Value is null || !long.TryParse(args.Value.ToString(), out var versionId))
+        if (!long.TryParse(_selectedVersionKey, NumberStyles.Integer, CultureInfo.InvariantCulture, out var versionId))
             return;
 
-        _selectedVersionKey = versionId.ToString();
         await ApplyVersionToEditorAsync(versionId);
     }
 
@@ -482,11 +487,11 @@
 
             if (response.IsSuccessStatusCode)
             {
-                var saved = await response.Content.ReadFromJsonAsync<ExercisePartVersionDto>();
+                var saved = await response.Content.ReadFromJsonAsync<ExercisePartVersionDto>(JsonOpts);
                 if (saved is not null)
                     MergeSavedVersion(saved);
 
-                await LoadVersionsAsync();
+                await LoadVersionsAsync(selectLatest: true);
                 _saved = true;
                 await OnSaved.InvokeAsync();
                 return;
@@ -508,7 +513,7 @@
                 if (jsOk)
                 {
                     _saved = true;
-                    await LoadVersionsAsync();
+                    await LoadVersionsAsync(selectLatest: true);
                     await OnSaved.InvokeAsync();
                     return;
                 }
@@ -546,7 +551,7 @@
         if (_versions.Count > 3)
             _versions = _versions.Take(3).ToList();
 
-        _selectedVersionKey = saved.Id.ToString();
+        _selectedVersionKey = saved.Id.ToString(CultureInfo.InvariantCulture);
     }
 
     private static async Task<string?> ReadErrorDetailAsync(HttpResponseMessage response)
