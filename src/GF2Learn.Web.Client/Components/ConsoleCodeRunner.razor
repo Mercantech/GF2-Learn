@@ -1,109 +1,25 @@
-@inject CSharpRunnerService Runner
-@inject IJSRuntime Js
-
 @if (ShowsSimulatedInputHint)
 {
     <p class="playground-stdin-hint">
         <strong>Simuleret konsol-input:</strong> Linjer med <code>// gf2-input: …</code> i koden svarer til det du «taster» ved hvert <code>ReadLine()</code>. Rediger værdierne i koden og tryk Kør igen.
     </p>
 }
-<div class="code-playground code-playground-readonly">
-    <div class="playground-header playground-header-unified">
-        <div class="playground-header-start">
-            <span class="code-block-dots" aria-hidden="true"><span></span><span></span><span></span></span>
-            <span class="playground-title">Kør eksempel</span>
-            <span class="code-block-lang">C#</span>
-        </div>
-        <div class="playground-toolbar">
-            <button type="button" class="btn btn-primary btn-sm" disabled="@_running" @onclick="RunAsync">
-                @(_running ? "Kører…" : "Kør")
-            </button>
-            <button type="button" class="btn btn-ghost btn-sm" @onclick="CopyCodeAsync">Kopier</button>
-        </div>
-    </div>
 
-    <pre class="runnable-code-display" @ref="_codePre"><code class="language-csharp">@Code</code></pre>
-
-    <div class="playground-output-panel">
-        <p class="playground-output-label">Output</p>
-        @if (_running)
-        {
-            <p class="playground-output-muted">Kører kode…</p>
-        }
-        else if (!string.IsNullOrEmpty(_error))
-        {
-            <pre class="playground-output playground-output-error">@_error</pre>
-        }
-        else if (!string.IsNullOrEmpty(_output))
-        {
-            <pre class="playground-output">@_output</pre>
-        }
-        else
-        {
-            <p class="playground-output-muted">Tryk Kør for at se output fra <code>Console.WriteLine</code>.</p>
-        }
-    </div>
-
-    @if (_elapsed is not null)
-    {
-        <p class="playground-elapsed">@(_elapsed.Value.TotalMilliseconds.ToString("F0")) ms</p>
-    }
-</div>
+<CodePlaygroundCore InitialCode="@Code"
+                    WrapExerciseMethod="false"
+                    Title="Kør eksempel"
+                    RunLabel="Kør"
+                    ResetLabel="Nulstil"
+                    UseIconToolbar="true"
+                    UseCurriculumHeader="true"
+                    ShowCopyButton="false"
+                    RootClass="curriculum-runnable-playground"
+                    EditorHostClass="playground-editor-host-compact"
+                    EmptyOutputHint="Rediger koden og tryk Kør (Ctrl+Enter)." />
 
 @code {
     [Parameter, EditorRequired] public string Code { get; set; } = "";
 
     private bool ShowsSimulatedInputHint =>
         Code.Contains("gf2-input:", StringComparison.OrdinalIgnoreCase);
-
-    private ElementReference _codePre;
-    private string? _highlightedCode;
-    private bool _highlightSucceeded;
-    private string _output = "";
-    private string _error = "";
-    private bool _running;
-    private TimeSpan? _elapsed;
-
-    private async Task RunAsync()
-    {
-        _running = true;
-        _error = "";
-        _output = "";
-        _elapsed = null;
-        StateHasChanged();
-
-        try
-        {
-            var result = await Runner.RunAsync(Code, expectedOutput: null, extraRefs: []);
-            _elapsed = result.Elapsed;
-            if (result.Success)
-                _output = string.IsNullOrEmpty(result.Output) ? "(ingen output)" : result.Output;
-            else
-                _error = result.Error ?? "Ukendt fejl.";
-        }
-        finally
-        {
-            _running = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task CopyCodeAsync() => await Js.InvokeVoidAsync("navigator.clipboard.writeText", Code);
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (_highlightSucceeded && _highlightedCode == Code)
-            return;
-
-        try
-        {
-            _highlightSucceeded = await Js.InvokeAsync<bool>("gf2Highlight.highlightRoot", _codePre);
-            if (_highlightSucceeded)
-                _highlightedCode = Code;
-        }
-        catch
-        {
-            _highlightSucceeded = false;
-        }
-    }
 }

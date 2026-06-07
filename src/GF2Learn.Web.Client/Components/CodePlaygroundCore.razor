@@ -4,8 +4,19 @@
 @implements IAsyncDisposable
 
 <div class="code-playground code-playground-interactive @RootClass">
-    <div class="playground-header">
-        <span class="playground-title">@Title</span>
+    <div class="playground-header @(UseCurriculumHeader ? "playground-header-unified" : null)">
+        @if (UseCurriculumHeader)
+        {
+            <div class="playground-header-start">
+                <span class="code-block-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="playground-title">@Title</span>
+                <span class="code-block-lang">@LanguageLabel</span>
+            </div>
+        }
+        else
+        {
+            <span class="playground-title">@Title</span>
+        }
         @if (ShowRunToolbar)
         {
             <div class="playground-header-toolbar">
@@ -129,6 +140,8 @@
     [Parameter] public bool ShowCopyButton { get; set; } = true;
     [Parameter] public bool ShowRunToolbar { get; set; } = true;
     [Parameter] public bool UseIconToolbar { get; set; }
+    [Parameter] public bool UseCurriculumHeader { get; set; }
+    [Parameter] public string LanguageLabel { get; set; } = "C#";
     [Parameter] public bool ShowOutputPanel { get; set; } = true;
     [Parameter] public bool EnableCtrlSave { get; set; }
     [Parameter] public EventCallback OnCtrlSave { get; set; }

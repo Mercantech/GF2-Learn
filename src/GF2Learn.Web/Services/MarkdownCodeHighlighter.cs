@@ -27,7 +27,7 @@ public sealed partial class MarkdownCodeHighlighter
         if (string.IsNullOrEmpty(html))
             return html;
 
-        return FencedCodeRegex().Replace(html, static match =>
+        return FencedCodeRegex().Replace(html, match =>
         {
             var classes = match.Groups[2].Success ? match.Groups[2].Value : "";
             var lang = ParseLanguage(classes);
@@ -35,16 +35,34 @@ public sealed partial class MarkdownCodeHighlighter
                 return match.Value;
 
             var source = WebUtility.HtmlDecode(match.Groups[3].Value);
-            var body = lang switch
-            {
-                "csharp" => HighlightCSharp(source),
-                "bash" => HighlightBash(source),
-                _ => WebUtility.HtmlEncode(source)
-            };
-
-            return $"<pre><code class=\"hljs language-{lang}\" data-highlighted=\"server\">{body}</code></pre>";
+            return WrapHighlighted(lang, HighlightSource(source, lang));
         });
     }
+
+    public string HighlightSource(string source, string language = "csharp")
+    {
+        if (string.IsNullOrEmpty(source))
+            return string.Empty;
+
+        var lang = NormalizeLanguage(language);
+        return lang switch
+        {
+            "csharp" => HighlightCSharp(source),
+            "bash" => HighlightBash(source),
+            _ => WebUtility.HtmlEncode(source)
+        };
+    }
+
+    private static string WrapHighlighted(string lang, string body) =>
+        $"<pre><code class=\"hljs language-{lang}\" data-highlighted=\"server\">{body}</code></pre>";
+
+    private static string NormalizeLanguage(string language) =>
+        language.ToLowerInvariant() switch
+        {
+            "cs" => "csharp",
+            "shell" => "bash",
+            _ => language.ToLowerInvariant()
+        };
 
     private static string? ParseLanguage(string classAttr)
     {
@@ -75,6 +93,7 @@ public sealed partial class MarkdownCodeHighlighter
         }
 
         encoded = CommentRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-comment")));
+        encoded = InterpolatedStringRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-string")));
         encoded = StringRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-string")));
         encoded = NumberRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-number")));
         encoded = BuiltInRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-built_in")));
@@ -130,6 +149,9 @@ public sealed partial class MarkdownCodeHighlighter
 
     [GeneratedRegex(@"(?m)#(?!!)[^\n]*")]
     private static partial Regex BashCommentRegex();
+
+    [GeneratedRegex(@"\$""([^""\\]|\\.)*""")]
+    private static partial Regex InterpolatedStringRegex();
 
     [GeneratedRegex(@"""([^""\\]|\\.)*""")]
     private static partial Regex StringRegex();

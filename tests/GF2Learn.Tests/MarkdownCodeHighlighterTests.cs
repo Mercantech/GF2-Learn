@@ -32,4 +32,13 @@ public sealed class MarkdownCodeHighlighterTests
 
         Assert.Equal(html, result);
     }
+
+    [Fact]
+    public void HighlightSource_HighlightsInterpolatedStrings()
+    {
+        var result = highlighter.HighlightSource("Console.WriteLine($\"{i + 1}.\");");
+
+        Assert.Contains("<span class=\"hljs-built_in\">Console.WriteLine</span>", result, StringComparison.Ordinal);
+        Assert.Contains("<span class=\"hljs-string\">$&quot;{i + 1}.&quot;</span>", result, StringComparison.Ordinal);
+    }
 }
