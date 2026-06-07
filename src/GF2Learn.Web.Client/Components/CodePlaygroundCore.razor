@@ -144,6 +144,7 @@
     private bool _running;
     private bool _editorReady;
     private bool _monacoMounted;
+    private bool _mountInProgress;
     private bool _startupCodeApplied;
     private string? _syncedInitialCode;
     private string _pendingCodeAttr = "";
@@ -179,47 +180,59 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (_editorReady)
         {
-            if (_editorReady && !_startupCodeApplied)
+            if (!_startupCodeApplied)
                 await ApplyStartupCodeOnceAsync();
 
             return;
         }
 
-        if (_editorReady)
+        if (_mountInProgress)
             return;
 
-        _ctrlSaveRef ??= DotNetObjectReference.Create(this);
-
+        _mountInProgress = true;
         try
         {
-            await Js.InvokeVoidAsync("gf2Playground.init", _editorId, StartupCode);
+            _ctrlSaveRef ??= DotNetObjectReference.Create(this);
+
+            try
+            {
+                await Js.InvokeVoidAsync("gf2Playground.init", _editorId, StartupCode);
+            }
+            finally
+            {
+                try
+                {
+                    await Js.InvokeVoidAsync("gf2ExercisePage.checkReady");
+                }
+                catch
+                {
+                    /* exercise-page-load.js may not be loaded on all hosts */
+                }
+            }
+
+            if (!await WaitForEditorReadyAsync())
+            {
+                StateHasChanged();
+                return;
+            }
+
+            await ApplyStartupCodeOnceAsync();
+
+            if (EnableCtrlSave && OnCtrlSave.HasDelegate)
+                await RegisterCtrlSaveAsync();
+
+            if (ShowRunToolbar)
+                await RegisterCtrlRunAsync();
+
+            if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
+                _ = Runner.WarmupAsync();
         }
         finally
         {
-            try
-            {
-                await Js.InvokeVoidAsync("gf2ExercisePage.checkReady");
-            }
-            catch
-            {
-                /* exercise-page-load.js may not be loaded on all hosts */
-            }
+            _mountInProgress = false;
         }
-
-        _editorReady = await WaitForEditorReadyAsync();
-        _monacoMounted = _editorReady;
-        await ApplyStartupCodeOnceAsync();
-
-        if (EnableCtrlSave && OnCtrlSave.HasDelegate)
-            await RegisterCtrlSaveAsync();
-
-        if (ShowRunToolbar)
-            await RegisterCtrlRunAsync();
-
-        if (Interlocked.CompareExchange(ref _compilerWarmupStarted, 1, 0) == 0)
-            _ = Runner.WarmupAsync();
 
         StateHasChanged();
     }
@@ -235,28 +248,29 @@
 
     public bool IsEditorReady => _editorReady;
 
-    public async Task<bool> WaitForEditorReadyAsync(int maxWaitMs = 5000)
+    public async Task<bool> WaitForEditorReadyAsync(int maxWaitMs = 8000)
     {
         var deadline = Environment.TickCount64 + maxWaitMs;
         while (Environment.TickCount64 < deadline)
         {
-            if (_editorReady)
+            try
             {
-                try
+                if (await Js.InvokeAsync<bool>("gf2Playground.isReady", _editorId))
                 {
-                    if (await Js.InvokeAsync<bool>("gf2Playground.isReady", _editorId))
-                        return true;
-                }
-                catch
-                {
+                    _editorReady = true;
+                    _monacoMounted = true;
                     return true;
                 }
+            }
+            catch
+            {
+                // Monaco/JS may not be ready yet — keep polling
             }
 
             await Task.Delay(50);
         }
 
-        return _editorReady;
+        return false;
     }
 
     private async Task RegisterCtrlSaveAsync()
@@ -305,20 +319,38 @@
 
     public async Task<string> GetCodeAsync()
     {
-        if (!await WaitForEditorReadyAsync())
-            return _code;
+        try
+        {
+            var value = await Js.InvokeAsync<string>("gf2Playground.getValue", _editorId);
+            if (!string.IsNullOrEmpty(value))
+            {
+                _code = value;
+                return value;
+            }
+        }
+        catch
+        {
+            // Editor may still be mounting — fall back to cached code below
+        }
+
+        if (!_editorReady)
+            await WaitForEditorReadyAsync(maxWaitMs: 1500);
 
         try
         {
             var value = await Js.InvokeAsync<string>("gf2Playground.getValue", _editorId);
             if (!string.IsNullOrEmpty(value))
+            {
                 _code = value;
-            return value;
+                return value;
+            }
         }
         catch
         {
-            return _code;
+            // ignore
         }
+
+        return _code;
     }
 
     public string? LastOutput => string.IsNullOrEmpty(_output) ? null : _output;
@@ -330,8 +362,18 @@
     {
         _code = code;
         _syncedInitialCode = code;
-        if (_editorReady)
+
+        if (!_editorReady)
+            await WaitForEditorReadyAsync(maxWaitMs: 3000);
+
+        try
+        {
             await Js.InvokeVoidAsync("gf2Playground.setValue", _editorId, code);
+        }
+        catch
+        {
+            // Host may not be mounted yet — _code is still updated for later reads
+        }
     }
 
     public async Task<bool> FormatDocumentAsync()

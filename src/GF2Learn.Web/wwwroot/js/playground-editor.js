@@ -469,7 +469,14 @@ window.gf2Playground = {
 
   isReady: function (elementId) {
     var host = document.getElementById(elementId);
-    return !!this.editors[elementId] && host && host.dataset.editorReady === "1" && this.hostHasEditor(host);
+    var editor = this.editors[elementId];
+    if (!editor || !host) return false;
+    if (this.hostHasEditor(host)) {
+      host.dataset.editorReady = "1";
+      host.classList.remove("playground-editor-host-loading");
+      return true;
+    }
+    return host.dataset.editorReady === "1";
   },
 
   refreshAll: function () {
