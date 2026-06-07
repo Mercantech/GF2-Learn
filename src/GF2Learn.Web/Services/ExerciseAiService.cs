@@ -208,7 +208,8 @@ public sealed class ExerciseAiService(
             var json = ExtractJsonObject(raw);
             var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
-            var solved = root.TryGetProperty("solved", out var s) && s.ValueKind == JsonValueKind.True;
+            var solved = (root.TryGetProperty("solved", out var s) && s.ValueKind == JsonValueKind.True)
+                || (root.TryGetProperty("isSolved", out var isSolved) && isSolved.ValueKind == JsonValueKind.True);
             var feedback = root.TryGetProperty("feedback", out var f)
                 ? f.GetString() ?? ""
                 : "";

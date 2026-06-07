@@ -5,6 +5,11 @@ public sealed record SaveExercisePartRequest(
     int PartIndex,
     string? AnswerText);
 
+public sealed record SaveExerciseVerificationRequest(
+    string ContentSlug,
+    int PartIndex,
+    bool IsSolved);
+
 public sealed record ExercisePartAnswerDto(
     int PartIndex,
     string? AnswerText,

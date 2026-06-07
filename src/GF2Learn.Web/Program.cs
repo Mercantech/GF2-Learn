@@ -253,6 +253,38 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         return Results.Ok(verifications);
     });
 
+    progress.MapPost("/exercise/verification", async (
+        SaveExerciseVerificationRequest request,
+        ClaimsPrincipal user,
+        IExerciseProgressService progressService,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        if (request.PartIndex < 0)
+            return Results.BadRequest();
+
+        try
+        {
+            await progressService.SaveVerificationAsync(
+                userSub,
+                request.ContentSlug,
+                request.PartIndex,
+                request.IsSolved,
+                cancellationToken);
+
+            return Results.Ok();
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(
+                detail: "Kunne ikke gemme Clippy-godkendelse: " + ex.Message,
+                statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }).DisableAntiforgery();
+
     progress.MapPost("/exercise", async (
         SaveExercisePartRequest request,
         ClaimsPrincipal user,
@@ -490,8 +522,6 @@ exerciseAi.MapPost("/check", async (
     ExerciseAiRequest request,
     IExerciseAiService ai,
     ExerciseAiContextService contexts,
-    ClaimsPrincipal user,
-    IServiceProvider services,
     ILogger<ExerciseAiService> logger,
     CancellationToken cancellationToken) =>
 {
@@ -518,18 +548,6 @@ exerciseAi.MapPost("/check", async (
             request.StudentCode,
             request.ConsoleOutput,
             cancellationToken);
-
-        var userSub = GetUserSub(user);
-        var progressService = services.GetService<IExerciseProgressService>();
-        if (userSub is not null && progressService is not null)
-        {
-            await progressService.SaveVerificationAsync(
-                userSub,
-                request.ContentSlug,
-                request.PartIndex,
-                check.IsSolved,
-                cancellationToken);
-        }
 
         return Results.Ok(check);
     }

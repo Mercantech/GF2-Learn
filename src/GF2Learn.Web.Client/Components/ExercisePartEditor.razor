@@ -326,6 +326,8 @@
             if (envelope.Ok && TryParseBody(envelope.Body, out ExerciseAiCheckResult? check) && check is not null)
             {
                 _aiCheck = check;
+                await PersistVerificationAsync(check.IsSolved);
+
                 if (check.IsSolved)
                 {
                     _isVerified = true;
@@ -434,6 +436,12 @@
 
         if (!string.IsNullOrWhiteSpace(result.Body))
         {
+            if (result.Body.Contains("Cloudflare", StringComparison.OrdinalIgnoreCase)
+                || result.Body.Contains("invalid or incomplete response", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Serveren svarede ikke færdigt (ofte timeout via Cloudflare). Prøv igen om et øjeblik — hint bruger samme forbindelse og bør stadig virke.";
+            }
+
             if (result.Body.TrimStart().StartsWith('{'))
             {
                 try
@@ -463,6 +471,26 @@
         return result.Status > 0
             ? $"AI-fejl (HTTP {result.Status})."
             : "AI-fejl — prøv igen.";
+    }
+
+    private async Task PersistVerificationAsync(bool isSolved)
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            using var response = await client.PostAsJsonAsync(
+                "/api/progress/exercise/verification",
+                new SaveExerciseVerificationPayload(ContentSlug, PartIndex, isSolved));
+
+            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.Unauthorized)
+            {
+                // AI-svar vises stadig — gem fejler stille hvis DB mangler
+            }
+        }
+        catch
+        {
+            // Godkendelse i UI virker; progress kan hentes ved næste page load
+        }
     }
 
     private async Task<ExerciseAiRequestPayload> BuildAiRequestAsync()
@@ -715,6 +743,7 @@
     }
 
     private sealed record SaveExercisePartPayload(string ContentSlug, int PartIndex, string? AnswerText);
+    private sealed record SaveExerciseVerificationPayload(string ContentSlug, int PartIndex, bool IsSolved);
     private sealed record ExerciseAiRequestPayload(string ContentSlug, int PartIndex, string StudentCode, string? ConsoleOutput);
     private sealed record ExerciseAiHintResponse(string Message);
     private sealed record ExerciseAiCheckResult(
