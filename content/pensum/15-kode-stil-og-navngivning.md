@@ -57,6 +57,9 @@ Undgå **forkortelser** som `cnt`, `msg`, `nr` — medmindre hele teamet bruger 
 Metoder beskriver en **handling** — brug et verbum:
 
 ```csharp
+PrintMenu();
+Console.WriteLine($"Sum: {CalculateSum(3, 4)}");
+
 static void PrintMenu()
 {
     Console.WriteLine("1. Start");
@@ -138,6 +141,8 @@ Kør **Ctrl+Shift+F** i GF2 Learn, hvis indrykningen er rodet efter copy-paste.
 Del kode op i **korte metoder**, der hver gør én ting. Det gør programmet nemmere at læse og fejlsøge.
 
 ```csharp
+RunProgram();
+
 static void RunProgram()
 {
     PrintWelcome();

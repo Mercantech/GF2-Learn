@@ -46,6 +46,11 @@ if (ok)
 **KISS:**
 
 ```csharp
+// gf2-setup: int age = 20;
+// gf2-setup: bool hasLicense = true;
+// gf2-setup: int score = 75;
+// gf2-setup: bool isGuest = false;
+
 bool isAdult = age >= 18 && age <= 67;
 bool hasValidLicense = hasLicense;
 bool passedOrGuest = score >= 60 || isGuest;
@@ -82,6 +87,8 @@ if (input != null)
 **KISS (tidlig exit):**
 
 ```csharp
+// gf2-setup: string input = "42";
+
 if (string.IsNullOrWhiteSpace(input))
 {
     Console.WriteLine("Tomt input.");
@@ -128,6 +135,8 @@ if (int.TryParse(Console.ReadLine(), out int key) && actions.ContainsKey(key))
 **KISS:**
 
 ```csharp
+// gf2-input: 1
+
 Console.WriteLine("1. Start");
 Console.WriteLine("2. Hjælp");
 Console.WriteLine("3. Afslut");
@@ -150,6 +159,16 @@ else if (choice == "3")
 else
 {
     Console.WriteLine("Ukendt valg.");
+}
+
+static void StartGame()
+{
+    Console.WriteLine("Spillet starter!");
+}
+
+static void ShowHelp()
+{
+    Console.WriteLine("Vælg 1 for start, 3 for afslut.");
 }
 ```
 
@@ -204,6 +223,8 @@ static void PrintDoubles()
         Console.WriteLine(i * 2);
     }
 }
+
+Main();
 ```
 
 `Main` fortæller **historien** — detaljerne bor i små metoder.
@@ -294,6 +315,8 @@ static void PrintPerson(string first, string last, int age, string city, string 
 **KISS** — opdel eller brug det du faktisk skal bruge lige nu:
 
 ```csharp
+PrintPerson("Ada Lovelace", 28, "London");
+
 static void PrintPerson(string fullName, int age, string city)
 {
     Console.WriteLine($"{fullName}, {age} år, {city}");
@@ -316,6 +339,9 @@ static bool IsValidEmail(string email) =>
 **KISS til øvelsesprogram:**
 
 ```csharp
+string email = "ada@example.com";
+Console.WriteLine(HasAtSign(email) ? "Email ser ok ud." : "Mangler @.");
+
 static bool HasAtSign(string email)
 {
     return email.Contains('@');

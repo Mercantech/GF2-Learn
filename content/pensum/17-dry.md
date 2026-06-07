@@ -53,6 +53,13 @@ Console.WriteLine($"Score: {guestScore}");
 **DRY:**
 
 ```csharp
+// gf2-setup: string name = "Ada";
+// gf2-setup: int score = 72;
+// gf2-setup: string teacher = "Kim";
+// gf2-setup: int examScore = 88;
+// gf2-setup: string guest = "Max";
+// gf2-setup: int guestScore = 55;
+
 PrintReport(name, score);
 PrintReport(teacher, examScore);
 PrintReport(guest, guestScore);
@@ -91,6 +98,10 @@ passed = score >= 60;
 **DRY:**
 
 ```csharp
+// gf2-setup: int score = 75;
+// gf2-setup: int bonusPoints = 0;
+// gf2-setup: bool passed = false;
+
 const int PassingScore = 60;
 
 if (IsPassing(score))
@@ -104,10 +115,11 @@ if (IsPassing(score))
 }
 
 passed = IsPassing(score);
+Console.WriteLine($"Bonus: {bonusPoints}, bestået: {passed}");
 
-static bool IsPassing(int score)
+static bool IsPassing(int value)
 {
-    return score >= 60;
+    return value >= 60;
 }
 ```
 
@@ -132,9 +144,13 @@ int points = int.Parse(Console.ReadLine() ?? "0");
 **DRY:**
 
 ```csharp
+// gf2-input: 25, 3, 80
+
 int age = ReadPositiveInt("Alder: ");
 int attempts = ReadPositiveInt("Antal forsøg: ");
 int points = ReadPositiveInt("Point: ");
+
+Console.WriteLine($"Alder {age}, forsøg {attempts}, point {points}.");
 
 static int ReadPositiveInt(string prompt)
 {
@@ -168,6 +184,9 @@ for (int i = 0; i < cities.Length; i++)
 **DRY:**
 
 ```csharp
+// gf2-setup: string[] names = { "Ada", "Lin", "Max" };
+// gf2-setup: string[] cities = { "Aarhus", "København", "Odense" };
+
 PrintNumberedList(names);
 PrintNumberedList(cities);
 
@@ -201,6 +220,9 @@ else
 **DRY:**
 
 ```csharp
+// gf2-setup: double hours = 45;
+// gf2-setup: double rate = 200;
+
 double pay = CalculatePay(hours, rate);
 Console.WriteLine(pay);
 
@@ -245,9 +267,15 @@ if (string.IsNullOrWhiteSpace(email))
 **DRY:**
 
 ```csharp
+// gf2-setup: string firstName = "Ada";
+// gf2-setup: string lastName = "Lovelace";
+// gf2-setup: string email = "ada@example.com";
+
 if (!RequireText(firstName, "Fornavn")) return;
 if (!RequireText(lastName, "Efternavn")) return;
 if (!RequireText(email, "Email")) return;
+
+Console.WriteLine("Alle felter er udfyldt.");
 
 static bool RequireText(string value, string fieldLabel)
 {
@@ -275,6 +303,10 @@ Console.WriteLine($"Total: {total:F2} kr.");
 **DRY:**
 
 ```csharp
+// gf2-setup: double price = 99.50;
+// gf2-setup: double discount = 10.00;
+// gf2-setup: double total = 89.50;
+
 PrintMoney("Pris", price);
 PrintMoney("Rabat", discount);
 PrintMoney("Total", total);
@@ -309,6 +341,8 @@ switch (choice)
 **DRY:**
 
 ```csharp
+// gf2-setup: string choice = "1";
+
 switch (choice)
 {
     case "1":
@@ -325,6 +359,16 @@ static void BeginSession(string modeName)
 {
     Console.WriteLine($"Starter {modeName}...");
     Console.WriteLine("Indlæser data...");
+}
+
+static void StartGame()
+{
+    Console.WriteLine("Spillet er klar.");
+}
+
+static void StartPractice()
+{
+    Console.WriteLine("Øvelsen er klar.");
 }
 ```
 
@@ -344,6 +388,8 @@ Hvis arrayet vokser, kopierer folk ofte mønsteret igen.
 **DRY:**
 
 ```csharp
+// gf2-setup: int[] numbers = { 4, 8, 15, 16, 23 };
+
 int sum = SumArray(numbers);
 double average = (double)sum / numbers.Length;
 
@@ -377,11 +423,22 @@ maxAttempts = 3;
 **DRY:**
 
 ```csharp
+// gf2-setup: int attempts = 4;
+
 const int MaxAttempts = 3;
 
-if (attempts > MaxAttempts) { /* ... */ }
-if (attempts > MaxAttempts) { /* ... */ }
-maxAttempts = MaxAttempts;
+if (attempts > MaxAttempts)
+{
+    Console.WriteLine("For mange forsøg.");
+}
+
+if (attempts > MaxAttempts)
+{
+    Console.WriteLine("Blokeret midlertidigt.");
+}
+
+int maxAttempts = MaxAttempts;
+Console.WriteLine($"Max forsøg: {maxAttempts}");
 ```
 
 Konstanten er **ét navngivet sted** for tallet 3.
