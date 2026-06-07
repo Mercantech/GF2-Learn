@@ -1,6 +1,7 @@
 ---
 title: "Code Style & Naming"
 order: 15
+category: kodeprincipper
 topics: [stil, navngivning, læsbarhed, formatering]
 kompetencemaal:
   - "Kan navngive variabler og metoder beskrivende på engelsk"

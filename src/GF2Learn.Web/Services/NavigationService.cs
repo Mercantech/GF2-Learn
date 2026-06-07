@@ -18,12 +18,24 @@ public sealed class NavigationService(ContentService content)
 
     private static SectionNav BuildCurriculumNav(List<ContentItem> items)
     {
-        var csharp = items.Where(i => !i.Topics.Contains("git", StringComparer.OrdinalIgnoreCase)).OrderBy(i => i.Order).ToList();
-        var git = items.Where(i => i.Topics.Contains("git", StringComparer.OrdinalIgnoreCase)).OrderBy(i => i.Order).ToList();
-        var groups = new List<NavGroup>();
-        if (csharp.Count > 0) groups.Add(new NavGroup { Title = "C#", Items = csharp });
-        if (git.Count > 0) groups.Add(new NavGroup { Title = "Git", Items = git });
-        if (groups.Count == 0) groups.Add(new NavGroup { Title = "Curriculum", Items = items.OrderBy(i => i.Order).ToList() });
+        var groups = CurriculumCategoryCatalog.All
+            .Select(c => new NavGroup
+            {
+                Title = c.Title,
+                Items = items
+                    .Where(i => string.Equals(
+                        CurriculumCategoryCatalog.ResolveCategory(i),
+                        c.Key,
+                        StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(i => i.Order)
+                    .ToList()
+            })
+            .Where(g => g.Items.Count > 0)
+            .ToList();
+
+        if (groups.Count == 0)
+            groups.Add(new NavGroup { Title = "Curriculum", Items = items.OrderBy(i => i.Order).ToList() });
+
         return new SectionNav { Section = ContentSectionType.Curriculum, Groups = groups };
     }
 

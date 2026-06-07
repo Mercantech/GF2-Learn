@@ -11,29 +11,49 @@
 
     <SectionShell Section="ContentSectionType.Curriculum" Title="Curriculum">
     <div class="curriculum-index">
-    <SectionHero Title="Curriculum" Eyebrow="Theory" Lead="C#-grundlag og Git — læs emnerne i rækkefølge, eller hop direkte til det du har brug for.">
+    <SectionHero Title="Curriculum" Eyebrow="Theory" Lead="C#-grundlag, kode-principper og Git — læs emnerne i rækkefølge, eller hop direkte til det du har brug for.">
         <span class="hero-chip">@CurriculumCount emner</span>
     </SectionHero>
-    <div class="index-list">
-        @foreach (var item in Content.GetAll().Where(i => i.Section == ContentSectionType.Curriculum).OrderBy(i => i.Order))
+    @foreach (var category in CurriculumCategoryCatalog.All)
+    {
+        var groupItems = Content.GetAll()
+            .Where(i => i.Section == ContentSectionType.Curriculum)
+            .Where(i => string.Equals(
+                CurriculumCategoryCatalog.ResolveCategory(i),
+                category.Key,
+                StringComparison.OrdinalIgnoreCase))
+            .OrderBy(i => i.Order)
+            .ToList();
+
+        if (groupItems.Count == 0)
         {
-            <a href="@item.Href" class="index-item" data-curriculum-slug="@item.Slug">
-                <span class="index-order">@item.Order.ToString("D2")</span>
-                <div class="index-item-body">
-                    <strong>@item.Title</strong>
-                    @if (item.Timer > 0) { <span class="index-meta">@item.Timer timer</span> }
-                </div>
-                @if (_completedSlugs.Contains(item.Slug))
-                {
-                    <span class="index-check" aria-label="Fuldført" title="Alle spørgsmål besvaret">✓</span>
-                }
-                else
-                {
-                    <span class="index-arrow">→</span>
-                }
-            </a>
+            continue;
         }
-    </div>
+
+        <section class="index-section index-section-category">
+            <h2><span class="level-icon">@category.Icon</span> @category.Title</h2>
+            <div class="index-list">
+                @foreach (var item in groupItems)
+                {
+                    <a href="@item.Href" class="index-item" data-curriculum-slug="@item.Slug">
+                        <span class="index-order">@item.Order.ToString("D2")</span>
+                        <div class="index-item-body">
+                            <strong>@item.Title</strong>
+                            @if (item.Timer > 0) { <span class="index-meta">@item.Timer timer</span> }
+                        </div>
+                        @if (_completedSlugs.Contains(item.Slug))
+                        {
+                            <span class="index-check" aria-label="Fuldført" title="Alle spørgsmål besvaret">✓</span>
+                        }
+                        else
+                        {
+                            <span class="index-arrow">→</span>
+                        }
+                    </a>
+                }
+            </div>
+        </section>
+    }
     </div>
 </SectionShell>
 

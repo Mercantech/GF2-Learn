@@ -1,6 +1,7 @@
 ---
 title: "DRY — Don't Repeat Yourself"
 order: 17
+category: kodeprincipper
 topics: [dry, genbrug, metoder, refaktorering]
 kompetencemaal:
   - "Kan forklare DRY-princippet med egne ord"

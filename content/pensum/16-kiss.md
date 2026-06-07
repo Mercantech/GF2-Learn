@@ -1,6 +1,7 @@
 ---
 title: "KISS — Keep It Simple"
 order: 16
+category: kodeprincipper
 topics: [kiss, enkelhed, læsbarhed, design]
 kompetencemaal:
   - "Kan forklare KISS-princippet med egne ord"

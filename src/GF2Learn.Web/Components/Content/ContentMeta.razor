@@ -1,16 +1,16 @@
 ﻿@using GF2Learn.Web.Models
 @using GF2Learn.Web.Services
 
-@if (Item.Timer > 0 || !string.IsNullOrWhiteSpace(Item.Difficulty) || !string.IsNullOrWhiteSpace(Item.Category) || Item.Topics.Count > 0)
+@if (Item.Timer > 0 || !string.IsNullOrWhiteSpace(Item.Difficulty) || !string.IsNullOrWhiteSpace(CategoryTitle) || Item.Topics.Count > 0)
 {
     <aside class="content-meta">
         @if (Item.Timer > 0)
         {
             <span class="meta-chip">@Item.Timer timer</span>
         }
-        @if (!string.IsNullOrWhiteSpace(Item.Category))
+        @if (!string.IsNullOrWhiteSpace(CategoryTitle))
         {
-            <span class="meta-chip meta-chip-category">@ExerciseCategoryCatalog.GetTitle(Item.Category)</span>
+            <span class="meta-chip meta-chip-category">@CategoryTitle</span>
         }
         else if (!string.IsNullOrWhiteSpace(Item.Difficulty))
         {
@@ -25,4 +25,11 @@
 
 @code {
     [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
+
+    private string? CategoryTitle => Item.Section switch
+    {
+        ContentSectionType.Curriculum => CurriculumCategoryCatalog.GetTitle(Item.Category),
+        ContentSectionType.Exercises => ExerciseCategoryCatalog.GetTitle(Item.Category),
+        _ => null
+    };
 }
