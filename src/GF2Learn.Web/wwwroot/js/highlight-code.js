@@ -1,16 +1,18 @@
 (function (global) {
-  var lightTheme = "https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github.min.css";
-  var darkTheme = "https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github-dark.min.css";
-
-  function effectiveDarkMode() {
-    var mode = document.documentElement.getAttribute("data-theme");
-    if (mode === "dark") return true;
-    if (mode === "light") return false;
-    return global.matchMedia && global.matchMedia("(prefers-color-scheme: dark)").matches;
+  function pathBase() {
+    var meta = document.querySelector('meta[name="gf2-path-base"]');
+    var base = meta ? meta.getAttribute("content") || "" : "";
+    if (base && base.charAt(0) !== "/") base = "/" + base;
+    if (base.endsWith("/")) base = base.slice(0, -1);
+    return base;
   }
 
   function hljsThemeUrl() {
-    return effectiveDarkMode() ? darkTheme : lightTheme;
+    var mode = document.documentElement.getAttribute("data-theme");
+    var dark = mode === "dark" ||
+      (mode !== "light" && global.matchMedia && global.matchMedia("(prefers-color-scheme: dark)").matches);
+    var file = dark ? "github-dark.min.css" : "github.min.css";
+    return pathBase() + "/vendor/highlightjs/styles/" + file;
   }
 
   function syncHljsTheme() {
@@ -82,10 +84,21 @@
     );
   }
 
+  function isServerHighlighted(code) {
+    return code.dataset.highlighted === "server" ||
+      (code.classList.contains("hljs") && code.querySelector(".hljs-keyword, .hljs-string, .hljs-comment"));
+  }
+
   function highlightCode(code) {
+    if (code.closest(".landing-code-window")) return false;
+
+    if (isServerHighlighted(code)) {
+      if (!code.classList.contains("hljs")) code.classList.add("hljs");
+      return true;
+    }
+
     var hljs = global.hljs;
     if (!hljs) return false;
-    if (code.closest(".landing-code-window")) return false;
 
     code.classList.remove("hljs");
     code.removeAttribute("data-highlighted");
@@ -113,7 +126,6 @@
   }
 
   function highlightAll(root) {
-    if (!global.hljs) return false;
     var scope = root && root.querySelectorAll ? root : document;
     var ok = false;
     scope.querySelectorAll("pre > code").forEach(function (code) {
@@ -136,7 +148,7 @@
   }
 
   function highlightRoot(root) {
-    if (!root || !global.hljs) return false;
+    if (!root) return false;
     syncHljsTheme();
     var nodes = codesInRoot(root);
     if (nodes.length === 0) return false;
@@ -161,6 +173,17 @@
     });
   }
 
+  function waitForHljs(attempt, root) {
+    if (global.hljs) {
+      process(root || document);
+      return;
+    }
+    if (attempt >= 40) return;
+    setTimeout(function () {
+      waitForHljs(attempt + 1, root);
+    }, 50);
+  }
+
   global.gf2Highlight = {
     process: process,
     processRoot: process,
@@ -173,7 +196,7 @@
   function boot() {
     syncHljsTheme();
     observeDynamicContent();
-    scheduleProcess(document);
+    waitForHljs(0, document);
   }
 
   if (document.readyState === "loading") {
@@ -184,6 +207,6 @@
 
   global.addEventListener("gf2-enhanced-nav", function () {
     observeDynamicContent();
-    scheduleProcess(document);
+    waitForHljs(0, document);
   });
 })(window);

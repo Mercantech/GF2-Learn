@@ -4,9 +4,9 @@
 
 <head>
     <meta charset="utf-8" />
-    <script src="@Assets["js/theme-head.js"]"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="gf2-path-base" content="@(Configuration["PathBase"] ?? "")" />
+    <script src="@Assets["js/theme-head.js"]"></script>
     <base href="/" />
     <title>GF2 Learn</title>
     <ResourcePreloader />
@@ -25,9 +25,9 @@
     <ReconnectModal />
     <script src="@Assets["js/theme.js"]"></script>
     <script src="@Assets["js/site.js"]"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/csharp.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+    <script src="@Assets["vendor/highlightjs/highlight.min.js"]"></script>
+    <script src="@Assets["vendor/highlightjs/languages/csharp.min.js"]"></script>
+    <script src="@Assets["vendor/highlightjs/languages/bash.min.js"]"></script>
     <script src="@Assets["js/highlight-code.js"]"></script>
     <script src="@Assets["js/playground-csharp-intellisense.js"]"></script>
     <script src="@Assets["js/playground-editor.js"]"></script>

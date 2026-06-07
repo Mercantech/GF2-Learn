@@ -4,6 +4,8 @@
 
 @inject RunnableCodeParser RunnableParser
 
+@inject MarkdownCodeHighlighter Highlighter
+
 
 
 <div class="markdown-body @(Item.Section == ContentSectionType.Curriculum ? "curriculum-content" : null)">
@@ -54,7 +56,7 @@
 
     {
 
-        @((MarkupString)Markdown.ToHtml(Item.Body, null))
+        @((MarkupString)Highlighter.Apply(Markdown.ToHtml(Item.Body, null)))
 
     }
 
@@ -90,8 +92,26 @@
 
         var html = Markdown.ToHtml(Item.Body, Item.Slug);
 
-        _segments = RunnableParser.BuildSegments(html);
+        _segments = HighlightSegments(RunnableParser.BuildSegments(html));
+    }
 
+    private IReadOnlyList<ContentSegment> HighlightSegments(IReadOnlyList<ContentSegment> segments)
+    {
+        if (segments.Count == 0)
+            return segments;
+
+        return segments.Select(segment =>
+        {
+            if (string.IsNullOrWhiteSpace(segment.Html))
+                return segment;
+
+            return new ContentSegment
+            {
+                Html = Highlighter.Apply(segment.Html),
+                Playground = segment.Playground,
+                RunnableSnippet = segment.RunnableSnippet
+            };
+        }).ToList();
     }
 
 }

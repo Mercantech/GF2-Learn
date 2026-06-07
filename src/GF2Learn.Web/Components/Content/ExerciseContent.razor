@@ -1,6 +1,7 @@
 @using GF2Learn.Web.Models
 @inject PlaygroundParser PlaygroundParser
 @inject MarkdownService Markdown
+@inject MarkdownCodeHighlighter Highlighter
 @inject ExercisePageBuilder ExercisePageBuilder
 
 <div class="markdown-body exercise-content">
@@ -75,7 +76,16 @@
             return;
         }
 
-        _segments = PlaygroundParser.BuildSegments(Item.Body, md => Markdown.ToHtml(md, Item.Slug));
+        _segments = PlaygroundParser.BuildSegments(Item.Body, md => Markdown.ToHtml(md, Item.Slug))
+            .Select(segment => string.IsNullOrWhiteSpace(segment.Html)
+                ? segment
+                : new ContentSegment
+                {
+                    Html = Highlighter.Apply(segment.Html),
+                    Playground = segment.Playground,
+                    RunnableSnippet = segment.RunnableSnippet
+                })
+            .ToList();
     }
 
     private Task HandleProgressChanged() => OnProgressChanged.InvokeAsync();

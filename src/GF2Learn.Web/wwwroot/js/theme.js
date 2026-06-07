@@ -18,14 +18,24 @@
     return systemPreference();
   }
 
+  function pathBase() {
+    var meta = document.querySelector('meta[name="gf2-path-base"]');
+    var base = meta ? meta.getAttribute("content") || "" : "";
+    if (base && base.charAt(0) !== "/") base = "/" + base;
+    if (base.endsWith("/")) base = base.slice(0, -1);
+    return base;
+  }
+
+  function hljsThemeHref(mode) {
+    var file = mode === "dark" ? "github-dark.min.css" : "github.min.css";
+    return pathBase() + "/vendor/highlightjs/styles/" + file;
+  }
+
   function syncHljsStylesheet(mode) {
     var link = document.getElementById("hljs-theme");
     if (!link) return;
-    var dark = mode === "dark";
-    var wanted = dark
-      ? "https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github-dark.min.css"
-      : "https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github.min.css";
-    if (!link.href.endsWith(dark ? "github-dark.min.css" : "github.min.css")) {
+    var wanted = hljsThemeHref(mode);
+    if (link.href.indexOf(wanted) === -1) {
       link.href = wanted;
     }
   }
