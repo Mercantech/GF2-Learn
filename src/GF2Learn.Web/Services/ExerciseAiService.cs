@@ -80,9 +80,18 @@ public sealed class ExerciseAiService(
             Du vurderer om en GF2-elev har løst en lille C#-opgave korrekt.
             Svar KUN med valid JSON i dette format (ingen markdown):
             {"solved":true|false,"feedback":"kort feedback på dansk"}
-            solved=true kun hvis opgaven er faktisk løst (korrekt logik og forventet adfærd).
-            Hvis elevens kode kun gentager skabelon/TODO uden løsning: solved=false.
-            feedback: 1-3 sætninger — rolig tone, evt. hvad der mangler (uden at give hele løsningen).
+
+            Vær large og elevvenlig i vurderingen:
+            - solved=true hvis opgavens kernkrav er opfyldt (korrekt logik, datatyper, loops, betingelser osv.).
+            - Det er OK hvis eleven har sjov med opgaven: fx sjove eller kreative tekster i Console.WriteLine,
+              ekstra cw-linjer, humor eller personlige detaljer — så længe den faglige opgave faktisk er løst.
+            - Kræv ikke ordret samme output som reference-løsningen. Forskellig formulering er fint.
+            - Hvis løsningen er rigtig men kreativ, roser du gerne det kort i feedback.
+            - solved=false kun ved reelle mangler: forkert logik, vigtige krav ikke opfyldt, kode der ikke kompilerer/kører,
+              eller kode der stadig kun er skabelon/TODO uden egentlig løsning.
+            - Afvis ikke bare fordi eleven skrev noget sjovt i cw, så længe opgaven ellers er korrekt.
+
+            feedback: 1-3 sætninger — rolig, opmuntrende tone. Nævn evt. hvad der mangler (uden hele løsningen).
             """;
 
         var reference = string.IsNullOrWhiteSpace(context.ReferenceSolutionCode)
@@ -99,7 +108,8 @@ public sealed class ExerciseAiService(
             {reference}
             ```
 
-            Vurder om elevens kode løser opgaven.
+            Vurder om elevens kode løser opgaven. Husk at være large: kreativt eller sjovt output i cw er OK,
+            hvis den faglige del er korrekt — og ros gerne kreativiteten kort.
             """);
 
         var raw = await CompleteRawAsync(system, user, _options.TemperatureCheck, jsonMode: true, cancellationToken);

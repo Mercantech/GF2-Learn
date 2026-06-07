@@ -8,5 +8,5 @@ public sealed class OpenAiOptions
     public string Model { get; set; } = "gpt-4o-mini";
     public int MaxTokens { get; set; } = 400;
     public double TemperatureHint { get; set; } = 0.55;
-    public double TemperatureCheck { get; set; } = 0.2;
+    public double TemperatureCheck { get; set; } = 0.35;
 }

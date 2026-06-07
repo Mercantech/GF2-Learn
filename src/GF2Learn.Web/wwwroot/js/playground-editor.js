@@ -1,6 +1,8 @@
 window.gf2Playground = {
   editors: {},
   editorOptions: {},
+  ctrlRunHelpers: {},
+  ctrlRunBound: {},
   lazyObservers: {},
   heightSyncScheduled: {},
   monacoLoadPromise: null,
@@ -227,16 +229,49 @@ window.gf2Playground = {
     });
   },
 
-  registerCtrlRun: function (elementId, dotNetHelper) {
+  invokeCtrlRun: function (elementId) {
+    var helper = this.ctrlRunHelpers[elementId];
+    if (!helper) return;
+
+    helper.invokeMethodAsync("TriggerCtrlRunAsync").catch(function (err) {
+      console.warn("gf2 Ctrl+Enter run:", err);
+    });
+  },
+
+  bindCtrlRun: function (elementId) {
     var editor = this.editors[elementId];
-    if (!editor || !window.monaco || !dotNetHelper) return;
+    var host = document.getElementById(elementId);
+    if (!editor || !host || !window.monaco || !this.ctrlRunHelpers[elementId]) return;
+    if (this.ctrlRunBound[elementId]) return;
 
     var monaco = window.monaco;
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function () {
-      dotNetHelper.invokeMethodAsync("TriggerCtrlRunAsync").catch(function () {
-        /* editor disposed */
-      });
-    });
+    var self = this;
+    var runCode = function () {
+      self.invokeCtrlRun(elementId);
+    };
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, runCode);
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.NumpadEnter, runCode);
+
+    host.addEventListener(
+      "keydown",
+      function (e) {
+        if (!(e.ctrlKey || e.metaKey) || e.key !== "Enter") return;
+        if (!editor.hasTextFocus || !editor.hasTextFocus()) return;
+        e.preventDefault();
+        e.stopPropagation();
+        runCode();
+      },
+      true
+    );
+
+    this.ctrlRunBound[elementId] = true;
+  },
+
+  registerCtrlRun: function (elementId, dotNetHelper) {
+    if (!dotNetHelper) return;
+    this.ctrlRunHelpers[elementId] = dotNetHelper;
+    this.bindCtrlRun(elementId);
   },
 
   registerTabSnippets: function (editor) {
@@ -450,11 +485,13 @@ window.gf2Playground = {
 
     self.markHostReady(host);
     self.applyContentHeight(elementId, editor.getContentHeight());
+    self.bindCtrlRun(elementId);
 
     await new Promise(function (resolve) {
       requestAnimationFrame(function () {
         self.applyContentHeight(elementId, editor.getContentHeight());
         self.markHostReady(host);
+        self.bindCtrlRun(elementId);
         if (window.gf2ExercisePage && window.gf2ExercisePage.checkReady) {
           window.gf2ExercisePage.checkReady();
         }
@@ -570,6 +607,8 @@ window.gf2Playground = {
   dispose: function (elementId) {
     this.detachLazyObserver(elementId);
     delete this.heightSyncScheduled[elementId];
+    delete this.ctrlRunHelpers[elementId];
+    delete this.ctrlRunBound[elementId];
 
     var editor = this.editors[elementId];
     if (editor) {

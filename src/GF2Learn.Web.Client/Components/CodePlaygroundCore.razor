@@ -190,6 +190,11 @@
         if (_editorReady)
             return;
 
+        _ctrlSaveRef ??= DotNetObjectReference.Create(this);
+
+        if (ShowRunToolbar)
+            await Js.InvokeVoidAsync("gf2Playground.registerCtrlRun", _editorId, _ctrlSaveRef);
+
         try
         {
             await Js.InvokeVoidAsync("gf2Playground.init", _editorId, StartupCode);
@@ -206,8 +211,8 @@
             }
         }
 
-        _editorReady = true;
-        _monacoMounted = true;
+        _editorReady = await WaitForEditorReadyAsync();
+        _monacoMounted = _editorReady;
         await ApplyStartupCodeOnceAsync();
 
         if (EnableCtrlSave && OnCtrlSave.HasDelegate)
@@ -283,18 +288,20 @@
         UseIconToolbar ? $"{RunLabel} (Ctrl+Enter)" : RunLabel;
 
     [JSInvokable]
-    public async Task TriggerCtrlSaveAsync()
-    {
-        if (OnCtrlSave.HasDelegate)
-            await OnCtrlSave.InvokeAsync();
-    }
+    public Task TriggerCtrlSaveAsync() =>
+        InvokeAsync(async () =>
+        {
+            if (OnCtrlSave.HasDelegate)
+                await OnCtrlSave.InvokeAsync();
+        });
 
     [JSInvokable]
-    public async Task TriggerCtrlRunAsync()
-    {
-        if (!_running)
-            await RunAsync();
-    }
+    public Task TriggerCtrlRunAsync() =>
+        InvokeAsync(async () =>
+        {
+            if (!_running)
+                await RunAsync();
+        });
 
     private static string EncodePendingCode(string code) =>
         Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
