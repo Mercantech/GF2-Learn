@@ -1,8 +1,4 @@
 (function (global) {
-  var processTimer = null;
-  var processRunning = false;
-  var processQueued = false;
-
   function pathBase() {
     var meta = document.querySelector('meta[name="gf2-path-base"]');
     var base = meta ? meta.getAttribute("content") || "" : "";
@@ -31,43 +27,13 @@
     return map[match[1].toLowerCase()] || match[1].toUpperCase();
   }
 
-  function isEnhanceablePre(pre) {
-    if (!pre || pre.tagName !== "PRE") return false;
-    if (pre.closest(".code-playground")) return false;
-    if (pre.closest(".landing-code-window")) return false;
-    if (pre.closest(".code-block")) return false;
-    if (pre.dataset.codeEnhanced === "1") return false;
-    return pre.querySelector(":scope > code") !== null;
-  }
-
-  function repairNestedCodeBlocks(root) {
-    if (!root || !root.querySelectorAll) return;
-    root.querySelectorAll(".code-block .code-block").forEach(function (innerShell) {
-      var outerShell = innerShell.parentElement;
-      while (outerShell && !outerShell.classList.contains("code-block")) {
-        outerShell = outerShell.parentElement;
-      }
-      if (!outerShell || outerShell === innerShell) return;
-
-      var innerPre = innerShell.querySelector("pre");
-      var innerBar = innerShell.querySelector(".code-block-bar");
-      if (innerPre) {
-        innerPre.dataset.codeEnhanced = "1";
-        outerShell.appendChild(innerPre);
-      }
-      if (innerBar) innerBar.remove();
-      innerShell.remove();
-    });
-  }
-
   function enhanceCodeBlocks(root) {
     if (!root) return;
-    repairNestedCodeBlocks(root);
-
     root.querySelectorAll("pre > code").forEach(function (code) {
       var pre = code.parentElement;
-      if (!isEnhanceablePre(pre)) return;
-
+      if (!pre || pre.dataset.codeEnhanced) return;
+      if (pre.closest(".code-playground")) return;
+      if (pre.closest(".landing-code-window")) return;
       pre.dataset.codeEnhanced = "1";
 
       var lang = langLabel(code);
@@ -75,7 +41,6 @@
 
       var shell = document.createElement("div");
       shell.className = "code-block";
-      shell.dataset.codeBlockShell = "1";
       pre.parentNode.insertBefore(shell, pre);
       shell.appendChild(pre);
 
@@ -149,7 +114,6 @@
         var result = hljs.highlight(code.textContent, { language: lang, ignoreIllegals: true });
         code.innerHTML = result.value;
         code.classList.add("hljs");
-        if (lang) code.classList.add("language-" + lang);
         code.dataset.highlighted = "yes";
         return true;
       }
@@ -164,42 +128,23 @@
   function highlightAll(root) {
     var scope = root && root.querySelectorAll ? root : document;
     var ok = false;
-    scope.querySelectorAll(".code-block pre > code, pre > code").forEach(function (code) {
+    scope.querySelectorAll("pre > code").forEach(function (code) {
       if (highlightCode(code)) ok = true;
     });
     return ok;
   }
 
-  function processNow(root) {
-    root = root || document;
-    processRunning = true;
-    try {
-      syncHljsTheme();
-      enhanceCodeBlocks(root);
-      return highlightAll(root);
-    } finally {
-      processRunning = false;
-      if (processQueued) {
-        processQueued = false;
-        scheduleProcess(root);
-      }
-    }
-  }
-
   function process(root) {
-    return processNow(root);
+    root = root || document;
+    syncHljsTheme();
+    enhanceCodeBlocks(root);
+    return highlightAll(root);
   }
 
   function scheduleProcess(root) {
-    if (processRunning) {
-      processQueued = true;
-      return;
-    }
-    if (processTimer) clearTimeout(processTimer);
-    processTimer = setTimeout(function () {
-      processTimer = null;
-      processNow(root || document);
-    }, 0);
+    requestAnimationFrame(function () {
+      process(root || document);
+    });
   }
 
   function highlightRoot(root) {
@@ -219,12 +164,7 @@
       if (watch.dataset.highlightObserved === "1") return;
       watch.dataset.highlightObserved = "1";
       var timer = null;
-      new MutationObserver(function (mutations) {
-        var fromUs = mutations.every(function (m) {
-          return m.target.closest && m.target.closest("[data-code-block-shell]");
-        });
-        if (fromUs) return;
-
+      new MutationObserver(function () {
         clearTimeout(timer);
         timer = setTimeout(function () {
           scheduleProcess(watch);
@@ -235,7 +175,7 @@
 
   function waitForHljs(attempt, root) {
     if (global.hljs) {
-      scheduleProcess(root || document);
+      process(root || document);
       return;
     }
     if (attempt >= 40) return;
@@ -248,8 +188,7 @@
     process: process,
     processRoot: process,
     highlightRoot: highlightRoot,
-    syncTheme: syncHljsTheme,
-    scheduleProcess: scheduleProcess
+    syncTheme: syncHljsTheme
   };
 
   global.addEventListener("gf2-theme-change", syncHljsTheme);
@@ -268,6 +207,6 @@
 
   global.addEventListener("gf2-enhanced-nav", function () {
     observeDynamicContent();
-    scheduleProcess(document);
+    waitForHljs(0, document);
   });
 })(window);

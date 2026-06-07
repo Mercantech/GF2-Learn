@@ -37,10 +37,6 @@
   document.addEventListener("gf2-enhanced-nav", enhancePlaygrounds);
 
   document.addEventListener("DOMContentLoaded", function () {
-    if (window.gf2Highlight && window.gf2Highlight.scheduleProcess) {
-      window.gf2Highlight.scheduleProcess(document);
-    } else if (window.gf2Highlight) {
-      window.gf2Highlight.process(document);
-    }
+    if (window.gf2Highlight) window.gf2Highlight.process(document);
   });
 })();
