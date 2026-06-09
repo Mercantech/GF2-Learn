@@ -38,6 +38,8 @@ builder.Services.AddSingleton<NavigationService>();
 builder.Services.AddSingleton<PlaygroundParser>();
 builder.Services.AddSingleton<RunnableCodeParser>();
 builder.Services.AddSingleton<ProjectSolutionCatalog>();
+builder.Services.AddSingleton<KnowledgeCheckProgressScope>();
+builder.Services.AddSingleton<ExerciseProgressScope>();
 builder.Services.AddSingleton<ExerciseAiContextService>();
 builder.Services.AddSingleton<ICSharpFormatService, CSharpFormatService>();
 
@@ -54,9 +56,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddDbContext<Gf2LearnDbContext>(options =>
         options.UseNpgsql(connectionString));
     builder.Services.AddScoped<IKnowledgeCheckProgressService, KnowledgeCheckProgressService>();
-    builder.Services.AddSingleton<KnowledgeCheckProgressScope>();
     builder.Services.AddScoped<IExerciseProgressService, ExerciseProgressService>();
-    builder.Services.AddSingleton<ExerciseProgressScope>();
     builder.Services.AddScoped<IPlaygroundProjectService, PlaygroundProjectService>();
 }
 
