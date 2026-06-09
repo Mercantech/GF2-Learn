@@ -40,6 +40,12 @@ for (int i = 0; i < 10; i++)
 Loopet udskriver tallene 0 til 9.
 
 
+:::video-list
+- [Branching and While Loops [Pt 10] | C# for Beginners](https://www.youtube.com/watch?v=GLzAkJb0eoA)
+- [For Loops [Pt 11] | C# for Beginners](https://www.youtube.com/watch?v=yuRdCZMuak0)
+:::
+
+
 ## while-løkken
 
 `while` gentager en blok, **så længe** betingelsen er sand — tjekkes *før* hver iteration:

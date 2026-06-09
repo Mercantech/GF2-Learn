@@ -27,6 +27,12 @@ Hent disse værktøjer inden første undervisningsdag:
 
 Opret en konto på [GitHub](https://github.com/) hvis du ikke har en. GitHub er en cloud-tjeneste, hvor du gemmer og deler din kode — tænk på det som Google Drive, men til programmeringsprojekter.
 
+:::video-list
+- [What is C#? [Pt 1] | C# for Beginners](https://www.youtube.com/watch?v=9THmGiSPjBQ)
+- [Hello World! [Pt 2] | C# for Beginners](https://www.youtube.com/watch?v=HFLALzkcjLM)
+- [Basics of VS Code and the C# DevKit [Pt 3] | C# for Beginners](https://www.youtube.com/watch?v=3ST-7TP09qk)
+:::
+
 
 ## GitHub og kursus-repoet
 

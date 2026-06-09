@@ -138,6 +138,13 @@ Lister er **reference-typer** — variablen peger på listen i hukommelsen, ikke
 I praksis vælger mange udviklere **liste** som standard — den er mere fleksibel.
 
 
+:::video-list
+- [List&lt;T&gt; and Collections of Data [Pt 12] | C# for Beginners](https://www.youtube.com/watch?v=M3UsM9l1m6c)
+- [Arrays, Lists, Indexing, and Foreach [Pt 13] | C# for Beginners](https://www.youtube.com/watch?v=7PDNqmBdtrE)
+- [Sorting and Searching Lists [Pt 14] | C# for Beginners](https://www.youtube.com/watch?v=2sp4gWCq3o4)
+:::
+
+
 ## Dictionary — nøgle og værdi
 
 En **Dictionary&lt;TKey, TValue&gt;** gemmer **nøgle/værdi-par**. Den er bygget som et **hash map**, så opslag på nøgle er meget effektivt — typisk **O(1)** (konstant tid).

@@ -31,6 +31,7 @@ public sealed partial class ContentPreprocessor
                 "git-step" => BuildGitStep(body),
                 "solution" => BuildSolution(body),
                 "code-playground" => string.Empty,
+                "video-list" => BuildVideoList(body),
                 "related-pensum" => BuildRelatedPensum(body),
                 "exercise" => BuildExercise(args, body, contentSlug, exercisePartIndex++),
                 "knowledge-check" => BuildKnowledgeCheck(body, contentSlug),
@@ -63,9 +64,50 @@ public sealed partial class ContentPreprocessor
     {
         "callout" => BuildCallout(args, body),
         "git-step" => BuildGitStep(body),
+        "video-list" => BuildVideoList(body),
         "related-pensum" => BuildRelatedPensum(body),
         _ => string.Empty
     };
+
+    private static string BuildVideoList(string body)
+    {
+        var videos = body.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(ParseVideoLine)
+            .Where(video => video is not null)
+            .Select(video => video!.Value)
+            .ToList();
+
+        if (videos.Count == 0)
+            return string.Empty;
+
+        var sb = new StringBuilder("""
+            <section class="video-list" aria-label="Videoer til kapitlet">
+            <div class="video-list-header">
+            <p class="video-list-kicker">Videoer</p>
+            <h2>Se det i praksis</h2>
+            </div>
+            <div class="video-list-grid">
+
+            """);
+
+        foreach (var (title, id) in videos)
+        {
+            var safeTitle = WebUtility.HtmlEncode(title);
+            var safeId = WebUtility.HtmlEncode(id);
+            sb.Append($"""
+                <article class="video-card">
+                <div class="video-embed">
+                <iframe src="https://www.youtube.com/embed/{safeId}" title="{safeTitle}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                </div>
+                <h3>{safeTitle}</h3>
+                </article>
+
+                """);
+        }
+
+        sb.Append("</div></section>\n\n");
+        return sb.ToString();
+    }
 
     private static string BuildExercise(string args, string body, string? contentSlug, int partIndex)
     {
@@ -138,6 +180,34 @@ public sealed partial class ContentPreprocessor
     {
         var match = Regex.Match(body, $@"^{key}:\s*(.+)$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
         return match.Success ? match.Groups[1].Value.Trim().Trim('"') : null;
+    }
+
+    private static (string Title, string Id)? ParseVideoLine(string line)
+    {
+        var trimmed = line.TrimStart('-', ' ').Trim();
+        if (string.IsNullOrWhiteSpace(trimmed))
+            return null;
+
+        var markdownLink = Regex.Match(trimmed, @"^\[(?<title>[^\]]+)\]\((?<url>[^)]+)\)$");
+        var title = markdownLink.Success ? markdownLink.Groups["title"].Value.Trim() : trimmed;
+        var url = markdownLink.Success ? markdownLink.Groups["url"].Value.Trim() : trimmed;
+        var id = ExtractYoutubeId(url);
+
+        return string.IsNullOrWhiteSpace(id) ? null : (title, id);
+    }
+
+    private static string? ExtractYoutubeId(string urlOrId)
+    {
+        var trimmed = urlOrId.Trim();
+        if (Regex.IsMatch(trimmed, @"^[A-Za-z0-9_-]{11}$"))
+            return trimmed;
+
+        var watchMatch = Regex.Match(trimmed, @"[?&]v=(?<id>[A-Za-z0-9_-]{11})");
+        if (watchMatch.Success)
+            return watchMatch.Groups["id"].Value;
+
+        var pathMatch = Regex.Match(trimmed, @"(?:youtu\.be/|youtube\.com/(?:embed/|shorts/))(?<id>[A-Za-z0-9_-]{11})");
+        return pathMatch.Success ? pathMatch.Groups["id"].Value : null;
     }
 
     private static string BuildKnowledgeCheck(string body, string? contentSlug)
@@ -214,4 +284,3 @@ public sealed partial class ContentPreprocessor
         return sb.ToString();
     }
 }
-

@@ -173,6 +173,12 @@ som kan skrives på flere linjer!";
 
 Interpolation er at foretrække i nyt kode — det er nemmere at læse.
 
+:::video-list
+- [Hello World, Introducing Strings! [Pt 4] | C# for Beginners](https://www.youtube.com/watch?v=lXheKhL6dDA)
+- [The Basics of Strings! [Pt 5] | C# for Beginners](https://www.youtube.com/watch?v=nus5SP3AoHM)
+- [Searching Strings [Pt 6] | C# for Beginners](https://www.youtube.com/watch?v=UETol82cPZk)
+:::
+
 
 ## Split, join og søgning
 

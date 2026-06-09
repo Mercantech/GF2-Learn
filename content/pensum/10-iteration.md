@@ -201,6 +201,17 @@ foreach (var (navn, alder) in ages)
 ```
 
 
+## Supplerende: LINQ og IEnumerable
+
+LINQ (**Language Integrated Query**) er en måde at filtrere, sortere og udvælge data fra collections uden at skrive alle loops selv. Du bruger det typisk ovenpå `List<T>`, arrays og andre typer, der kan gennemløbes som `IEnumerable<T>`.
+
+:::video-list
+- [Language Integrated Query (LINQ) and IEnumerable [Pt 15] | C# for Beginners](https://www.youtube.com/watch?v=4ro5UCqU0P4)
+- [LINQ Query Expressions From, Where, Orderby, and Select [Pt 16] | C# for Beginners](https://www.youtube.com/watch?v=Wy1pvmcEqKw)
+- [LINQ Method Syntax vs Query [Pt 17] | C# for Beginners](https://www.youtube.com/watch?v=jAPcP-QbCGA)
+:::
+
+
 ## Filtrering og akkumulering
 
 Iteration kombineres ofte med **if** og **sum**:

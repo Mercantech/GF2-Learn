@@ -42,6 +42,11 @@ Her udskrives `"Tallet er større end 10"`, fordi `num > 10` er `true`.
 Betingelsen i parentes skal altid evaluere til `bool`. Brug `{ }` omkring blokke med mere end én linje.
 
 
+:::video-list
+- [Branching, Ifs, and Conditional Logic [Pt 9] | C# for Beginners](https://www.youtube.com/watch?v=yH-ewL_u8w8)
+:::
+
+
 ## Else
 
 `else` definerer en **alternativ** kodeblok, der kører når `if`-betingelsen er falsk:

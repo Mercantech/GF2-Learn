@@ -100,6 +100,12 @@ int rest = 10 % 3;   // 1
 `10 % 3` er 1, fordi 10 = 3×3 + 1. Nyttigt til at tjekke om et tal er lige: `n % 2 == 0`.
 
 
+:::video-list
+- [Numbers, Integers, and Math [Pt 7] | C# for Beginners](https://www.youtube.com/watch?v=ZXCMBOxry8A)
+- [Numbers, Precision, Casting, Doubles, and More [Pt 8] | C# for Beginners](https://www.youtube.com/watch?v=Kg_k0vL0dD4)
+:::
+
+
 ## Sammenligningsoperatorer
 
 Sammenligningsoperatorer returnerer altid `bool` (true/false).

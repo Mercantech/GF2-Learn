@@ -270,6 +270,12 @@ Tre centrale principper (du uddyber dem senere):
 I GF2 fokuserer vi på **klasser, objekter og indkapsling**. Arv og polymorfi bygger ovenpå dette fundament.
 
 
+:::video-list
+- [Object-oriented Programming (OOP) [Pt 18] | C# for Beginners](https://www.youtube.com/watch?v=Vp0vVzJgJ5g)
+- [OOP with derived or abstract classes, overrides | IEnumerable [Pt 19] | C# for Beginners](https://www.youtube.com/watch?v=P1VJu5V3da8)
+:::
+
+
 ## Opsummering
 
 - En **klasse** er en skabelon med egenskaber og metoder

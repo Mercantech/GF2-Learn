@@ -2628,6 +2628,52 @@ a:hover { color: var(--accent-bright); }
 }
 .video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 
+.video-list {
+  margin: 2.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+.video-list-header {
+  margin-bottom: 1rem;
+}
+.video-list-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.video-list .video-list-header h2 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+.video-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+.video-card {
+  min-width: 0;
+}
+.video-card .video-embed {
+  margin: 0 0 0.7rem;
+  background: #050816;
+}
+.video-card h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
 /* Profile & auth */
 .profile-page { max-width: 40rem; margin: 0 auto; padding: 2rem 1.5rem; }
 .profile-card {
