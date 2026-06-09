@@ -67,6 +67,10 @@ Hver oktet er **8 bits**. Eksempel:
 
 IP-adresser identificerer enheder på et netværk. **Private** adresser (fx `192.168.x.x`, `10.x.x.x`) bruges internt. **Public** adresser er unikke på internettet.
 
+:::video-list
+- [IP Addresses Explained | NetworkChuck](https://www.youtube.com/watch?v=5WfiTHiU4x8)
+:::
+
 
 ## Projekt: Binær IP-omformer
 

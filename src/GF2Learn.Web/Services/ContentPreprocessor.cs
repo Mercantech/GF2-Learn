@@ -86,7 +86,7 @@ public sealed partial class ContentPreprocessor
             <p class="video-list-kicker">Videoer</p>
             <h2>Se det i praksis</h2>
             </div>
-            <div class="video-list-grid">
+            <div class="video-list-items">
 
             """);
 
@@ -188,12 +188,24 @@ public sealed partial class ContentPreprocessor
         if (string.IsNullOrWhiteSpace(trimmed))
             return null;
 
-        var markdownLink = Regex.Match(trimmed, @"^\[(?<title>[^\]]+)\]\((?<url>[^)]+)\)$");
-        var title = markdownLink.Success ? markdownLink.Groups["title"].Value.Trim() : trimmed;
-        var url = markdownLink.Success ? markdownLink.Groups["url"].Value.Trim() : trimmed;
+        var (title, url) = ParseMarkdownLink(trimmed);
         var id = ExtractYoutubeId(url);
 
         return string.IsNullOrWhiteSpace(id) ? null : (title, id);
+    }
+
+    private static (string Title, string Url) ParseMarkdownLink(string text)
+    {
+        var linkSeparator = text.LastIndexOf("](", StringComparison.Ordinal);
+        if (text.StartsWith('[') && linkSeparator > 0 && text.EndsWith(')'))
+        {
+            var title = text[1..linkSeparator].Trim();
+            var url = text[(linkSeparator + 2)..^1].Trim();
+            if (!string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(url))
+                return (title, url);
+        }
+
+        return (text, text);
     }
 
     private static string? ExtractYoutubeId(string urlOrId)

@@ -2655,10 +2655,10 @@ a:hover { color: var(--accent-bright); }
   color: var(--text);
   font-size: 1.1rem;
 }
-.video-list-grid {
+.video-list-items {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
 }
 .video-card {
   min-width: 0;
