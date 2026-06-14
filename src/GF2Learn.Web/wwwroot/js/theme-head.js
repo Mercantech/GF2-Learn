@@ -11,14 +11,14 @@
   }
 
   function hljsThemeHref(mode) {
-    var file = mode === "dark" ? "github-dark.min.css" : "github.min.css";
+    var file = mode === "light" ? "github.min.css" : "github-dark.min.css";
     return pathBase() + "/vendor/highlightjs/styles/" + file;
   }
 
   var mode;
   try {
     var stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") mode = stored;
+    if (stored === "light" || stored === "dark" || stored === "dos") mode = stored;
   } catch (e) { /* private browsing */ }
 
   if (!mode) {
@@ -27,7 +27,7 @@
 
   var root = document.documentElement;
   root.setAttribute("data-theme", mode);
-  root.style.colorScheme = mode;
+  root.style.colorScheme = mode === "light" ? "light" : "dark";
 
   var hljs = document.createElement("link");
   hljs.id = "hljs-theme";

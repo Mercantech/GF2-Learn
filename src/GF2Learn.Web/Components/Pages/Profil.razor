@@ -44,6 +44,53 @@
             <a href="/auth/logout" class="btn btn-ghost">Log ud</a>
         </div>
     </div>
+
+    <section class="profile-card theme-settings" aria-labelledby="theme-settings-title">
+        <div class="theme-settings-heading">
+            <div>
+                <span class="theme-settings-eyebrow">Indstillinger</span>
+                <h2 id="theme-settings-title">Design</h2>
+            </div>
+            <p>Vælg det tema, der skal bruges på denne enhed.</p>
+        </div>
+
+        <div class="theme-options" role="group" aria-label="Vælg design">
+            <button type="button" class="theme-option" data-theme-option="light" aria-pressed="false">
+                <span class="theme-option-preview theme-option-preview-light" aria-hidden="true">
+                    <span>GF2&gt;_</span>
+                </span>
+                <span class="theme-option-copy">
+                    <strong>Lys</strong>
+                    <small>Klar og rolig</small>
+                </span>
+                <span class="theme-option-check" aria-hidden="true">Valgt</span>
+            </button>
+
+            <button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false">
+                <span class="theme-option-preview theme-option-preview-dark" aria-hidden="true">
+                    <span>GF2&gt;_</span>
+                </span>
+                <span class="theme-option-copy">
+                    <strong>Mørk</strong>
+                    <small>Dæmpet og moderne</small>
+                </span>
+                <span class="theme-option-check" aria-hidden="true">Valgt</span>
+            </button>
+
+            <button type="button" class="theme-option" data-theme-option="dos" aria-pressed="false">
+                <span class="theme-option-preview theme-option-preview-dos" aria-hidden="true">
+                    <span>C:\GF2&gt;_</span>
+                </span>
+                <span class="theme-option-copy">
+                    <strong>DOS</strong>
+                    <small>Klassisk terminalgrøn</small>
+                </span>
+                <span class="theme-option-check" aria-hidden="true">Valgt</span>
+            </button>
+        </div>
+
+        <p class="theme-settings-status" data-theme-status aria-live="polite"></p>
+    </section>
 </div>
 
 @code {

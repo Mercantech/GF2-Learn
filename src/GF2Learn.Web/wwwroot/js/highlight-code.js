@@ -9,7 +9,7 @@
 
   function hljsThemeUrl() {
     var mode = document.documentElement.getAttribute("data-theme");
-    var dark = mode === "dark" ||
+    var dark = mode === "dark" || mode === "dos" ||
       (mode !== "light" && global.matchMedia && global.matchMedia("(prefers-color-scheme: dark)").matches);
     var file = dark ? "github-dark.min.css" : "github.min.css";
     return pathBase() + "/vendor/highlightjs/styles/" + file;

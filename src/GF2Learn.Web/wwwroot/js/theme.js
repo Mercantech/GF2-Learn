@@ -5,10 +5,14 @@
     return global.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
 
+  function isValidMode(mode) {
+    return mode === "light" || mode === "dark" || mode === "dos";
+  }
+
   function readMode() {
     try {
       var stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "light" || stored === "dark") return stored;
+      if (isValidMode(stored)) return stored;
       if (stored === "system") {
         var migrated = systemPreference();
         localStorage.setItem(STORAGE_KEY, migrated);
@@ -27,7 +31,7 @@
   }
 
   function hljsThemeHref(mode) {
-    var file = mode === "dark" ? "github-dark.min.css" : "github.min.css";
+    var file = mode === "light" ? "github.min.css" : "github-dark.min.css";
     return pathBase() + "/vendor/highlightjs/styles/" + file;
   }
 
@@ -44,7 +48,7 @@
     mode = mode || readMode();
     var root = document.documentElement;
     root.setAttribute("data-theme", mode);
-    root.style.colorScheme = mode;
+    root.style.colorScheme = mode === "light" ? "light" : "dark";
     updateToggleUi(mode);
     syncHljsStylesheet(mode);
     if (global.gf2Playground && global.gf2Playground.applyTheme) {
@@ -59,7 +63,7 @@
   }
 
   function setMode(mode) {
-    if (mode !== "light" && mode !== "dark") return;
+    if (!isValidMode(mode)) return;
     try {
       localStorage.setItem(STORAGE_KEY, mode);
     } catch { /* private browsing */ }
@@ -67,14 +71,26 @@
   }
 
   function toggle() {
-    setMode(readMode() === "dark" ? "light" : "dark");
+    setMode(readMode() === "light" ? "dark" : "light");
   }
 
   function updateToggleUi(mode) {
     document.querySelectorAll("[data-theme-toggle]").forEach(function (btn) {
-      var isDark = mode === "dark";
+      var isDark = mode !== "light";
       btn.classList.toggle("is-dark", isDark);
+      btn.classList.toggle("is-dos", mode === "dos");
       btn.setAttribute("aria-checked", isDark ? "true" : "false");
+    });
+
+    document.querySelectorAll("[data-theme-option]").forEach(function (btn) {
+      var selected = btn.dataset.themeOption === mode;
+      btn.classList.toggle("is-selected", selected);
+      btn.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
+
+    document.querySelectorAll("[data-theme-status]").forEach(function (status) {
+      var names = { light: "Lys", dark: "Mørk", dos: "DOS" };
+      status.textContent = "Aktivt design: " + names[mode];
     });
   }
 
@@ -83,6 +99,17 @@
       if (btn.dataset.themeWired) return;
       btn.dataset.themeWired = "1";
       btn.addEventListener("click", toggle);
+    });
+    updateToggleUi(readMode());
+  }
+
+  function wireThemeOptions() {
+    document.querySelectorAll("[data-theme-option]").forEach(function (btn) {
+      if (btn.dataset.themeOptionWired) return;
+      btn.dataset.themeOptionWired = "1";
+      btn.addEventListener("click", function () {
+        setMode(btn.dataset.themeOption);
+      });
     });
     updateToggleUi(readMode());
   }
@@ -97,6 +124,7 @@
 
   function onReady() {
     wireToggles();
+    wireThemeOptions();
     updateToggleUi(readMode());
   }
 
@@ -109,5 +137,6 @@
   document.addEventListener("gf2-enhanced-nav", function () {
     apply(readMode());
     wireToggles();
+    wireThemeOptions();
   });
 })(window);

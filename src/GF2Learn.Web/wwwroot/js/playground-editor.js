@@ -53,9 +53,12 @@ window.gf2Playground = {
 
   resolveTheme: function () {
     if (window.gf2Theme && window.gf2Theme.getEffective) {
-      return window.gf2Theme.getEffective() === "dark" ? "gf2-dark" : "gf2-light";
+      var effective = window.gf2Theme.getEffective();
+      if (effective === "dos") return "gf2-dos";
+      return effective === "dark" ? "gf2-dark" : "gf2-light";
     }
     var mode = document.documentElement.getAttribute("data-theme");
+    if (mode === "dos") return "gf2-dos";
     return mode === "dark" ? "gf2-dark" : "gf2-light";
   },
 
@@ -84,6 +87,30 @@ window.gf2Playground = {
         "editorLineNumber.foreground": "#4b5563",
         "editorCursor.foreground": "#22d3ee",
         "editor.selectionBackground": "#264f78"
+      }
+    });
+    monaco.editor.defineTheme("gf2-dos", {
+      base: "vs-dark",
+      inherit: true,
+      rules: [
+        { token: "", foreground: "70FF87", background: "020604" },
+        { token: "comment", foreground: "3B9B4C" },
+        { token: "keyword", foreground: "A6FFB4", fontStyle: "bold" },
+        { token: "string", foreground: "7DFF91" },
+        { token: "number", foreground: "C4FFCC" },
+        { token: "type", foreground: "59D96F" }
+      ],
+      colors: {
+        "editor.background": "#020604",
+        "editor.foreground": "#70ff87",
+        "editor.lineHighlightBackground": "#07140b",
+        "editorLineNumber.foreground": "#2f793c",
+        "editorLineNumber.activeForeground": "#8dff9d",
+        "editorCursor.foreground": "#b6ffc0",
+        "editor.selectionBackground": "#174b24",
+        "editor.inactiveSelectionBackground": "#0d2e16",
+        "editorIndentGuide.background1": "#12351a",
+        "editorIndentGuide.activeBackground1": "#2f793c"
       }
     });
     window.gf2Playground._themeDefined = true;
