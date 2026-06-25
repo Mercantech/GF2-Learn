@@ -155,49 +155,49 @@ branch: main
 ---
 q: Hvordan sætter du et **breakpoint** i Visual Studio?
 - Højreklik på filen i Solution Explorer
-- **Klik i den grå bjælke** ved siden af linjenummeret
+- Klik i den grå bjælke ved siden af linjenummeret
 - Tryk Ctrl+B i editoren uden markering
 correct: 1
 explain: Et **rødt stoppunkt** i marginen stopper programmet på den linje, når du kører med **F5 (Start Debugging)**.
 ---
 q: Hvad er forskellen på **F10 (Step Over)** og **F11 (Step Into)**?
 - De gør præcis det samme
-- **F10** kører næste linje uden at gå ind i metodekald; **F11** går **ind i** metoden
+- F10 kører næste linje uden at gå ind i metodekald; F11 går ind i metoden
 - F11 stopper programmet; F10 fortsætter til slut
 correct: 1
 explain: På `VisResultat(score);` — **F10** kører hele metoden og stopper på næste linje. **F11** hopper ind i `VisResultat` og stopper på første linje der.
 ---
 q: Hvor ser du **aktuelle variabelværdier** under debugging?
 - Kun i Output-vinduet
-- I **Locals**, **Autos** og **Watch** — plus hover over variabler i editoren
+- I Locals, Autos og Watch — plus hover over variabler i editoren
 - I Git History
 correct: 1
 explain: **Locals** viser variabler i nuværende scope. **Watch** lader dig følge specifikke udtryk. **Call Stack** viser, hvilke metoder der ledte til breakpointet.
 ---
 q: Hvad er en **logisk fejl**?
 - Rød understregning — programmet kompilerer ikke
-- Programmet **kører**, men giver **forkert resultat**
+- Programmet kører, men giver forkert resultat
 - En fejl i `.gitignore`
 correct: 1
 explain: **Compile-fejl** stopper kørslen. **Logiske fejl** er værre — koden kører, men fx `(a+b+c)/3` giver forkert gennemsnit ved heltalsdivision. Debuggeren hjælper her.
 ---
 q: Hvad gør **Shift+F11 (Step Out)**?
 - Sletter breakpointet
-- **Færdiggør nuværende metode** og stopper i kaldende kode
+- Færdiggør nuværende metode og stopper i kaldende kode
 - Genstarter debugging
 correct: 1
 explain: **Step Out** er nyttig, når du er gået **ind i** en metode med F11 og vil tilbage til kalderen uden at steppe linje for linje gennem resten.
 ---
 q: Hvad er et **condition breakpoint**?
 - Et breakpoint der kun virker én gang
-- Et breakpoint der **kun stopper**, når en betingelse er opfyldt — fx `i == 42`
+- Et breakpoint der kun stopper, når en betingelse er opfyldt — fx `i == 42`
 - Et breakpoint der automatisk retter koden
 correct: 1
 explain: **Condition breakpoints** sparer tid i løkker — programmet kører, indtil fx `score < 0` bliver sand. Højreklik på breakpointet for at sætte betingelsen.
 ---
 q: Hvorfor er **`try/catch`** relevant ved debugging?
 - Det erstatter alle breakpoints
-- Det **fanger runtime-exceptions** — så programmet ikke crasher, og du kan læse fejlbeskeden
+- Det fanger runtime-exceptions — så programmet ikke crasher, og du kan læse fejlbeskeden
 - Det gør koden hurtigere
 correct: 1
 explain: Uden **`catch`** stopper programmet ved fx `DivideByZeroException`. Med **`try/catch`** kan du vise brugervenlig besked og bruge debuggeren til at læse **stack trace**.

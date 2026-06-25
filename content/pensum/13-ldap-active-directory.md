@@ -288,49 +288,49 @@ Dette emne forbereder projektforløbet **Programmering i et enterprise**, hvor I
 ---
 q: Hvad bruges **LDAP** til i enterprise-sammenhæng?
 - At kompilere C# til maskinkode
-- **Protokollen** til at læse data fra Active Directory (brugere, grupper)
+- Protokollen til at læse data fra Active Directory (brugere, grupper)
 - At erstatte SQL-databaser i webapps
 correct: 1
 explain: **LDAP** er protokollen, C#-programmer bruger til at **kommunikere med AD** — hente brugere, grupper og søge på attributter som email og afdeling.
 ---
 q: Hvilken NuGet-pakke bruges til AD-forbindelse i kapitlet?
 - `Microsoft.EntityFrameworkCore`
-- **`System.DirectoryServices.Protocols`**
+- `System.DirectoryServices.Protocols`
 - `Newtonsoft.Json`
 correct: 1
 explain: Pakken **`System.DirectoryServices.Protocols`** giver **`LdapConnection`**, **`SearchRequest`** og relaterede typer til AD-kommunikation.
 ---
 q: Hvad gør **`connection.Bind()`**?
 - Lukker forbindelsen til AD
-- **Logger ind / tester forbindelsen** — kaster fejl hvis credentials er forkerte
+- Logger ind / tester forbindelsen — kaster fejl hvis credentials er forkerte
 - Sletter brugere i AD
 correct: 1
 explain: **`Bind`** autentificerer mod AD-serveren. Kald den **før** søgninger — uden succesfuld bind virker `SendRequest` ikke.
 ---
 q: Hvilket LDAP-filter henter **alle grupper** i eksemplet?
 - `(objectClass=user)`
-- **`(objectClass=group)`**
+- `(objectClass=group)`
 - `(department=IT)`
 correct: 1
 explain: **`(objectClass=group)`** finder objekter af typen gruppe. **`(objectClass=user)`** bruges til brugere. Filtre er centralt i AD-søgning.
 ---
 q: Hvorfor bruges `?? "N/A"` ved mapping af AD-attributter?
 - For at kryptere følsomme data
-- **Fallback når attributten mangler** — undgår null-referencer
+- Fallback når attributten mangler — undgår null-referencer
 - For at konvertere binær data til tekst
 correct: 1
 explain: Ikke alle AD-objekter har fx **mail** eller **department**. **`?.`** og **`?? "N/A"`** giver sikker læsning uden crash ved manglende felter.
 ---
 q: Hvad betyder **`SearchScope.Subtree`**?
 - Søg kun i roden af domænet
-- **Søg i hele domænet** under det angivne udgangspunkt
+- Søg i hele domænet under det angivne udgangspunkt
 - Søg kun i én bruger ad gangen
 correct: 1
 explain: **`Subtree`** gennemsøger hele træet under fx `DC=mags,DC=local` — ikke kun ét niveau. Det er typisk det, I vil bruge til "alle brugere".
 ---
 q: Hvad er **Single Sign-On (SSO)** i relation til AD?
 - At logge ind med forskellige passwords på hver app
-- **Én AD-login giver adgang** til flere systemer baseret på konto og rettigheder
+- Én AD-login giver adgang til flere systemer baseret på konto og rettigheder
 - At gemme passwords i klartekst i C#
 correct: 1
 explain: **AD** er central brugerdatabase — medarbejdere logger ind én gang, og apps tjekker AD for identitet og gruppemedlemskab i stedet for separate brugerlister.

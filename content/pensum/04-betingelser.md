@@ -403,49 +403,49 @@ branch: main
 ---
 q: Hvilken type skal betingelsen i en `if`-sætning evaluere til?
 - `int`
-- **`bool`** (true eller false)
+- `bool` (true eller false)
 - `string`
 correct: 1
 explain: Betingelsen i parentes efter `if` skal altid være **boolsk** — enten `true` eller `false`. Fx `num > 10` eller `score >= 60`.
 ---
 q: Hvad returnerer `Console.ReadLine()`?
 - Et heltal
-- En **string** (eller null)
+- En string (eller null)
 - En bool
 correct: 1
 explain: **`Console.ReadLine()`** læser brugerens input som tekst og returnerer en **`string?`**. Skal du bruge tal, skal du konvertere — fx med `TryParse`.
 ---
 q: Hvorfor er `int.TryParse` bedre end `int.Parse` på brugerinput?
 - `TryParse` er hurtigere
-- **`TryParse` crasher ikke** ved ugyldigt input — den returnerer true/false
+- `TryParse` crasher ikke ved ugyldigt input — den returnerer true/false
 - `Parse` kan kun bruges med positive tal
 correct: 1
 explain: **`int.Parse`** kaster en exception og crasher programmet, hvis brugeren skriver fx `"abc"`. **`TryParse`** returnerer `false` i stedet — så du kan vise en fejlbesked og spørge igen.
 ---
 q: Hvornår er `switch` særligt velegnet?
 - Når du skal sammenligne floating-point-tal med `==`
-- Når du har **mange faste værdier** at vælge imellem
+- Når du har mange faste værdier at vælge imellem
 - Når betingelsen skal være boolsk
 correct: 1
 explain: **`switch`** vælger handling baseret på **værdien** af en variabel — fx ugedage eller menuvalg. Til simple sand/falsk-beslutninger er `if/else` ofte bedre.
 ---
 q: Hvad gør ternary-operatoren `? :`?
 - Den laver en løkke med tre iterationer
-- Den er en **kompakt if-else** i én linje
+- Den er en kompakt if-else i én linje
 - Den konverterer tekst til tal
 correct: 1
 explain: `(betingelse) ? vaerdiHvisSand : vaerdiHvisFalsk` er en **if-else i én linje**. Fx `alder >= 18 ? "Voksen" : "Barn"`. Brug den kun til simple valg — kompleks logik hører i `if/else`.
 ---
 q: Hvad er **lokalt scope**?
 - Variabler der kan bruges overalt i programmet
-- Variabler der kun er synlige **inde i den blok**, de er erklæret i
+- Variabler der kun er synlige inde i den blok, de er erklæret i
 - Variabler der kun kan være strings
 correct: 1
 explain: En variabel erklæret **inde i en metode eller `{ }`-blok** har **lokalt scope** — den forsvinder, når blokken slutter. Det er den anbefalede tilgang frem for globale variabler.
 ---
 q: Hvad sker der, hvis du erklærer `int x = 20;` **inde i en metode**, når der allerede findes en global `int x = 10;`?
 - Compile-fejl — du må ikke have to variabler med samme navn
-- Den **lokale x skygger** for den globale — `x` inde i metoden er 20
+- Den lokale x skygger for den globale — `x` inde i metoden er 20
 - Den globale x overskrives automatisk til 20
 correct: 1
 explain: Den **lokale variabel skygger** (shadowing) for den globale. Inde i metoden refererer `x` til den lokale værdi (20). Uden for metoden er det stadig den globale (10).

@@ -294,13 +294,13 @@ branch: main
 ---
 q: Hvilken løkke bruger du, når du **kender antallet** af iterationer på forhånd?
 - `while`
-- **`for`**
+- `for`
 - `do-while`
 correct: 1
 explain: **`for`** har initialisering, betingelse og opdatering i én linje — perfekt når du ved, hvor mange gange koden skal gentages, fx `for (int i = 0; i < 10; i++)`.
 ---
 q: Hvad er forskellen på `while` og `do-while`?
-- `while` tjekker betingelsen **før** hver iteration; `do-while` kører **mindst én gang**
+- `while` tjekker betingelsen før hver iteration; `do-while` kører mindst én gang
 - `do-while` kan kun bruges med arrays
 - Der er ingen forskel
 correct: 0
@@ -308,35 +308,35 @@ explain: **`while`** tjekker betingelsen *før* koden kører — den kan springe
 ---
 q: Hvad gør **`break`** i en løkke?
 - Springer resten af den nuværende iteration over
-- **Afslutter løkken** med det samme
+- Afslutter løkken med det samme
 - Genstarter løkken fra begyndelsen
 correct: 1
 explain: **`break`** stopper løkken helt og fortsætter koden efter løkken. Brug det, når du har fundet det, du leder efter, og ikke har brug for flere iterationer.
 ---
 q: Hvad gør **`continue`** i en løkke?
 - Afslutter hele programmet
-- **Springer resten af den nuværende iteration over** og går til næste
+- Springer resten af den nuværende iteration over og går til næste
 - Sletter det nuværende element i listen
 correct: 1
 explain: **`continue`** hopper til næste iteration uden at køre resten af koden i den nuværende. Fx spring lige tal over med `if (i % 2 == 0) continue;`.
 ---
 q: Hvorfor bør du undgå at kalde `.Add()` på en liste **under en `foreach`**?
 - Det gør koden langsommere
-- Det giver en **runtime-fejl** — samlingen må ikke ændres under foreach
+- Det giver en runtime-fejl — samlingen må ikke ændres under foreach
 - `.Add()` virker kun i `for`-løkker
 correct: 1
 explain: Under en **`foreach`** må samlingens størrelse ikke ændres. Tilføjelse eller fjernelse under gennemløb giver fejl. Brug **`for`** baglæns, hvis du skal fjerne elementer under iteration.
 ---
 q: Hvad er forskellen på `.Length` på et array og `.Count` på en liste?
 - De betyder det samme — brug `.Length` overalt
-- **`.Length`** på array, **`.Count`** på `List<T>` — begge giver antal elementer
+- `.Length` på array, `.Count` på `List<T>` — begge giver antal elementer
 - `.Count` virker kun på strings
 correct: 1
 explain: Arrays bruger **`.Length`**, lister bruger **`.Count`**. Begge fortæller, hvor mange elementer der er — men syntaksen er forskellig, fordi det er forskellige typer.
 ---
 q: Hvordan gennemløber du en **Dictionary** med både nøgle og værdi?
 - `foreach (string key in dict)` — værdien hentes automatisk
-- **`foreach (KeyValuePair<K,V> kvp in dict)`** og brug `kvp.Key` og `kvp.Value`
+- `foreach (KeyValuePair<K,V> kvp in dict)` og brug `kvp.Key` og `kvp.Value`
 - Dictionaries kan ikke itereres — kun opslag med `[key]`
 correct: 1
 explain: **`foreach`** over en dictionary giver **`KeyValuePair`**-elementer med **`.Key`** og **`.Value`**. Du kan også iterere over `.Keys` eller `.Values` separat.

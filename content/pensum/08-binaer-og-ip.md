@@ -254,49 +254,49 @@ Console.WriteLine(a >> 1); // 2  — højreskift (÷ 2)
 ---
 q: Hvad er en **oktet** i en IPv4-adresse?
 - Et tal mellem 0 og 1024
-- Et **8-bit tal** (0–255 decimal) — én af fire dele i adressen
+- Et 8-bit tal (0–255 decimal) — én af fire dele i adressen
 - Antallet af bits i hele IP-adressen
 correct: 1
 explain: En IPv4-adresse har **4 oktetter** adskilt af punktum. Hver oktet er **8 bits**, dvs. decimal **0–255** — fx `192.168.1.1`.
 ---
 q: Hvad er decimalværdien af binær **`1010`**?
 - 8
-- **10**
+- 10
 - 12
 correct: 1
 explain: `1010` = 1×8 + 0×4 + 1×2 + 0×1 = **10**. Læg potenserne **128, 64, 32, 16, 8, 4, 2, 1** sammen, hvor bit er `1`.
 ---
 q: Hvorfor må I **ikke** bruge `Convert.ToString(n, 2)` i IP-projektet?
 - Funktionen findes ikke i C#
-- Pensum kræver, at I bygger konvertering med **loops og if/else** selv
+- Pensum kræver, at I bygger konvertering med loops og if/else selv
 - Den giver forkerte resultater for IP-adresser
 correct: 1
 explain: Projektet tester jeres forståelse af **binær logik** — I skal bruge potens-array, loops og betingelser, som vist i kapitlet, ikke indbyggede konverteringsfunktioner.
 ---
 q: Hvad skal hver **binære gruppe** i input have for IP-omformeren?
 - Præcis 4 tegn
-- **Præcis 8 bits** — kun `0` og `1`
+- Præcis 8 bits — kun `0` og `1`
 - Et vilkårligt antal cifre
 correct: 1
 explain: Hver oktet er **8 bits**. Input som `10111011.01001011...` skal have **4 grupper à 8 tegn**, kun `0` og `1`, adskilt af punktum.
 ---
 q: Hvordan konverterer `OctetFraBinaer` fra binær til decimal?
 - Den dividerer tallet med 2 gentagne gange
-- Den **lægger potenser sammen**, hvor bit på position `i` er `'1'`
+- Den lægger potenser sammen, hvor bit på position `i` er `'1'`
 - Den bruger `Convert.ToInt32`
 correct: 1
 explain: Metoden går bit for bit og lægger **128, 64, 32 … 1** til resultatet, når `binaer[i] == '1'`. Det er grundprincippet for binær → decimal.
 ---
 q: Hvad er potens-rækkefølgen for en **8-bit oktet** (fra venstre)?
 - 1, 2, 4, 8, 16, 32, 64, 128
-- **128, 64, 32, 16, 8, 4, 2, 1**
+- 128, 64, 32, 16, 8, 4, 2, 1
 - 10, 100, 1000 …
 correct: 1
 explain: Venstre bit er **128** (2⁷), højre er **1** (2⁰). Husk rækkefølgen — den bruges både ved binær → decimal og decimal → binær.
 ---
 q: Hvad skal validering tjekke for **decimal input** per oktet?
 - At tallet er et lige tal
-- At tallet er mellem **0 og 255** (typisk med `TryParse`)
+- At tallet er mellem 0 og 255 (typisk med `TryParse`)
 - At tallet har præcis 8 cifre
 correct: 1
 explain: En oktet kan maksimalt være **255** (`11111111`). Brug **`int.TryParse`** og tjek `tal >= 0 && tal <= 255` for hver del efter `Split('.')`.

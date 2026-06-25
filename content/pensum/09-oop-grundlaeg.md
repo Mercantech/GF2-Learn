@@ -289,49 +289,49 @@ I GF2 fokuserer vi på **klasser, objekter og indkapsling**. Arv og polymorfi by
 ---
 q: Hvad er forskellen på en **klasse** og et **objekt**?
 - De betyder det samme i C#
-- **Klasse** = skabelon; **objekt** = konkret instans med egne værdier
+- Klasse = skabelon; objekt = konkret instans med egne værdier
 - Objekt oprettes før klasse
 correct: 1
 explain: En **klasse** (fx `Car`) definerer struktur og adfærd. Et **objekt** oprettes med `new Car()` og har **egne værdier** for egenskaberne.
 ---
 q: Hvordan opretter du et nyt objekt i C#?
 - `Car myCar = Car();`
-- **`Car myCar = new Car();`**
+- `Car myCar = new Car();`
 - `create Car myCar;`
 correct: 1
 explain: Nøgleordet **`new`** allokerer et nyt objekt i hukommelsen. Uden `new` får du compile-fejl — C# kræver eksplicit instansiering.
 ---
 q: Hvad er en **object initializer**?
 - En metode der sletter objekter
-- **Syntaks `{ Brand = "Ford", ... }`** der sætter egenskaber ved oprettelse
+- Syntaks `{ Brand = "Ford", ... }` der sætter egenskaber ved oprettelse
 - En constructor der kun tager strings
 correct: 1
 explain: Med **object initializer** kan du sætte properties direkte: `new Car { Brand = "Ford", Year = 1961 }` — kortere end at tildele hver property på separate linjer.
 ---
 q: Hvad er **indkapsling** (encapsulation)?
 - At arve fra en base-klasse
-- At **skjule intern data** og kun eksponere det nødvendige via properties/metoder
+- At skjule intern data og kun eksponere det nødvendige via properties/metoder
 - At oprette mange objekter af samme klasse
 correct: 1
 explain: Fx `public double Saldo { get; private set; }` — **Saldo** kan læses udefra, men kun klassens egne metoder (`Indsaet`, `Hæv`) kan ændre den.
 ---
 q: Kan to objekter af samme klasse have **forskellige værdier** for egenskaberne?
 - Nej — alle objekter deler samme data
-- **Ja** — hvert objekt har egne værdier, men deler samme metoder
+- Ja — hvert objekt har egne værdier, men deler samme metoder
 - Kun hvis de oprettes med `static`
 correct: 1
 explain: `bil1` og `bil2` kan have forskellig `Brand` og `Year`, men begge kan kalde `StartEngine()` — **samme adfærd**, **forskellig tilstand**.
 ---
 q: Hvad er forskellen på et **felt** og en **property**?
 - Properties kan ikke have get/set
-- **Property** bruger `{ get; set; }` og er foretrukket i moderne C# frem for offentlige felter
+- Property bruger `{ get; set; }` og er foretrukket i moderne C# frem for offentlige felter
 - Felter er hurtigere og bør altid bruges
 correct: 1
 explain: Offentlige felter (`public string Brand`) er fine til læring. **Properties** giver bedre kontrol — fx `private set` — og er standard i professionel C#.
 ---
 q: Objekter i C# er typisk **reference-typer**. Hvad betyder det?
 - Variablen indeholder en kopi af hele objektet
-- **Variablen peger på objektet** i hukommelsen — ikke en kopi
+- Variablen peger på objektet i hukommelsen — ikke en kopi
 - Objekter gemmes kun på disken
 correct: 1
 explain: Når du skriver `var p1 = new Person { ... }`, peger **`p1`** på objektet i hukommelsen. Flere variabler kan pege på samme objekt — det er grundlaget for reference-semantik.

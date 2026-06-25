@@ -225,49 +225,49 @@ Brug parenteser, når du er i tvivl — det gør koden læsbar og undgår fejl.
 ---
 q: Hvad er forskellen på et **statement** og et **expression** i C#?
 - Et statement evalueres til en værdi; et expression udfører en handling
-- Et **expression** evalueres til én værdi; et **statement** udfører en handling
+- Et expression evalueres til én værdi; et statement udfører en handling
 - Der er ingen forskel — begge termer betyder det samme
 correct: 1
 explain: `2 + 3` er et **expression** — det *er* værdien 5. `Console.WriteLine("Hej");` er et **statement** — det *gør* noget uden at producere en værdi, du kan gemme.
 ---
 q: Hvad er resultatet af `10 / 4` når begge operandi er `int`?
 - `2.5`
-- **`2`** (heltalsdivision)
+- `2` (heltalsdivision)
 - `3`
 correct: 1
 explain: Når begge operandi er **heltal**, laver `/` heltalsdivision og dropper decimaldelen. For at få `2.5` skal mindst én operand være decimaltal — fx `10 / 4.0`.
 ---
 q: Hvad returnerer `10 % 3`?
 - `3`
-- **`1`** (resten ved division)
+- `1` (resten ved division)
 - `0`
 correct: 1
 explain: **`%` (modulus)** giver resten ved heltalsdivision. 10 = 3×3 + **1**, så resultatet er 1. Det er nyttigt til at tjekke om et tal er lige: `n % 2 == 0`.
 ---
 q: Hvilken operator bruger du til at sammenligne to værdier for lighed?
 - `=`
-- **`==`**
+- `==`
 - `:=`
 correct: 1
 explain: **`==`** sammenligner to værdier og returnerer `true` eller `false`. **`=`** er **tildeling** — den gemmer en værdi i en variabel. `if (x = 5)` er en fejl; det skal være `if (x == 5)`.
 ---
 q: Hvornår evalueres højre side **ikke** i udtrykket `A && B`?
 - Aldrig — begge sider evalueres altid
-- Når **A er false** (short-circuit)
+- Når A er false (short-circuit)
 - Når B er true
 correct: 1
 explain: Med **`&&`** evalueres B kun, hvis A er **true** — det kaldes **short-circuit**. Det beskytter mod fejl, fx `tal != 0 && 10/tal > 2` crasher ikke, når `tal` er 0.
 ---
 q: Hvad er resultatet af `!(5 > 3)`?
 - `true`
-- **`false`**
+- `false`
 - `5`
 correct: 1
 explain: **`!`** (logisk IKKE) vender en boolsk værdi. `5 > 3` er `true`, og `!true` bliver **`false`**.
 ---
 q: Hvilken operator har **lavest prioritet** i udtrykket `a && b || c`?
 - `&&`
-- **`||`**
+- `||`
 - `!`
 correct: 1
 explain: Operator-prioritet (fra højest til lavest): parenteser → `* / %` → `+ -` → sammenligning → `!` → **`&&`** → **`||`**. Derfor evalueres `||` sidst — brug parenteser, når du er i tvivl.

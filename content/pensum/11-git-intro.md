@@ -104,49 +104,49 @@ I GitHub Desktop vises ændringer visuelt — grøn for tilføjet, rød for fjer
 ---
 q: Hvad er formålet med **Git**?
 - At kompilere C#-kode automatisk
-- At gemme **historik over ændringer** i kode og samarbejde uden at overskrive hinanden
+- At gemme historik over ændringer i kode og samarbejde uden at overskrive hinanden
 - At hoste websider på internettet
 correct: 1
 explain: **Git** er et versionsstyringssystem — det gemmer **snapshots (commits)** af dit projekt, så du kan gå tilbage, sammenligne og arbejde sammen i team.
 ---
 q: Hvad er den korrekte rækkefølge i den daglige Git-workflow?
 - push → commit → add → ændringer
-- **ændringer → add → commit → push**
+- ændringer → add → commit → push
 - commit → ændringer → push → add
 correct: 1
 explain: Først laver du **ændringer**, så **`git add`** (stage), **`git commit`** (gem lokalt), og til sidst **`git push`** (upload til GitHub).
 ---
 q: Hvad gør **`git add .`**?
 - Uploader commits til GitHub
-- **Stager alle ændrede filer** til næste commit
+- Stager alle ændrede filer til næste commit
 - Sletter filer, der ikke er tracked
 correct: 1
 explain: **`git add`** vælger, hvad der skal med i næste commit. `.` betyder alle ændringer i mappen. Uden `add` kommer ændringerne ikke med i commit.
 ---
 q: Hvad indeholder den skjulte **`.git`-mappe**?
 - Kun dine kildefiler
-- **Hele repository-historikken** — slet aldrig denne mappe
+- Hele repository-historikken — slet aldrig denne mappe
 - Visual Studio-indstillinger
 correct: 1
 explain: **`.git`** oprettes ved `git init` og gemmer al commit-historik. Sletter du den, mister du versionsstyringen for projektet.
 ---
 q: Hvad er formålet med en **`.gitignore`-fil**?
 - At gemme adgangskoder sikkert
-- At fortælle Git, **hvilke filer den skal ignorere** — fx `bin/` og `obj/`
+- At fortælle Git, hvilke filer den skal ignorere — fx `bin/` og `obj/`
 - At erstatte commit-beskeder
 correct: 1
 explain: **`.gitignore`** holder build-output og IDE-filer ude af repoet — så I ikke committer unødvendige eller store filer.
 ---
 q: Hvilken commit-besked følger **god praksis**?
 - `fix`
-- **`feat: tilfoej validering af brugerinput`**
+- `feat: tilfoej validering af brugerinput`
 - `asdf`
 correct: 1
 explain: En god besked forklarer **hvad** der ændredes og **hvorfor** — fx `feat:`, `fix:`, `docs:`. Vage beskeder som `fix` eller `update` gør historikken ubrugelig.
 ---
 q: Hvad er forskellen på **Git** og **GitHub**?
 - De er det samme produkt
-- **Git** kører lokalt; **GitHub** er en cloud-tjeneste der hoster repos og tilføjer PR/issues
+- Git kører lokalt; GitHub er en cloud-tjeneste der hoster repos og tilføjer PR/issues
 - GitHub kompilerer koden; Git kører den
 correct: 1
 explain: **Git** er værktøjet på din maskine. **GitHub** er en platform, hvor du **pusher** commits, samarbejder og laver pull requests.

@@ -279,49 +279,49 @@ branch: main
 ---
 q: Hvad betyder **`void`** som returtype på en metode?
 - Metoden returnerer en tom string
-- Metoden **returnerer ingen værdi**
+- Metoden returnerer ingen værdi
 - Metoden kan kun kaldes én gang
 correct: 1
 explain: **`void`** betyder, at metoden udfører en handling (fx udskriver tekst) men **sender intet resultat tilbage**. Metoder med andre returtyper skal bruge `return`.
 ---
 q: Hvad er **overloading**?
 - At kalde en metode flere gange i træk
-- **Flere metoder med samme navn** men forskellige parametre
+- Flere metoder med samme navn men forskellige parametre
 - At overskrive en metode i en underklasse
 correct: 1
 explain: **Overloading** lader dig definere fx `Add(int a, int b)` og `Add(double a, double b)` — compileren vælger den rigtige ud fra **antal og type** af parametre.
 ---
 q: Hvad gør et **valgfrit parameter** med standardværdi?
 - Det gør parameteren til en global variabel
-- Kaldet kan **udelade** parameteren — standardværdien bruges
+- Kaldet kan udelade parameteren — standardværdien bruges
 - Det tvinger kalderen til at sende argumentet
 correct: 1
 explain: Med `int times = 1` kan du kalde `PrintMessage("Hej")` **uden** andet argument — `times` bliver automatisk 1. Send `3` for at overskrive standardværdien.
 ---
 q: Hvad er **base case** i en rekursiv metode?
 - Den første linje i metoden
-- Det **stop-scenario**, der afslutter rekursionen
+- Det stop-scenario, der afslutter rekursionen
 - En fejl, der stopper programmet
 correct: 1
 explain: Rekursion kræver altid en **base case** — ellers kalder metoden sig selv for evigt. I `Factorial`: `if (n <= 1) return 1;` stopper rekursionen.
 ---
 q: Hvornår bør du bruge en metode med **returværdi** frem for `void`?
 - Når metoden kun printer til konsollen
-- Når metoden **beregner et resultat**, du skal bruge videre i koden
+- Når metoden beregner et resultat, du skal bruge videre i koden
 - Når metoden har mere end tre parametre
 correct: 1
 explain: Brug **returværdi**, når metoden *producerer* data — fx `ErPositiv(int tal)` returnerer `bool`. Brug **`void`**, når den kun har en sideeffekt som print.
 ---
 q: Hvad er forskellen på en **static** metode og en **instansmetode**?
 - Static metoder er langsommere
-- **Static** kaldes på klassen; **instans** kaldes på et **objekt** (`new Program()`)
+- Static kaldes på klassen; instans kaldes på et objekt (`new Program()`)
 - Instansmetoder kan ikke have parametre
 correct: 1
 explain: **`static void SigHej(...)`** kaldes direkte: `SigHej("Ada")`. Instansmetoder som `program.SayHello()` kræver et **objekt** oprettet med `new`.
 ---
 q: Hvad er **Single Responsibility** i forbindelse med metoder?
 - Hver klasse må kun have én metode
-- **Hver metode gør én ting** — det gør koden læsbar og vedligeholdelig
+- Hver metode gør én ting — det gør koden læsbar og vedligeholdelig
 - Metoder må kun have ét parameter
 correct: 1
 explain: Opdel kode i metoder, der hver løser **ét klart problem** — fx `LaesScore()` og `VisResultat()`. Det gør det nemmere at finde fejl og genbruge logik.

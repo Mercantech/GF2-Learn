@@ -273,14 +273,14 @@ branch: main
 ---
 q: Hvad sker der, når du skriver `int x = 5;` og derefter `x = "hej";`?
 - Programmet kompilerer og kører — `x` bliver til en string
-- **Compile-fejl** — en `int`-variabel kan ikke få en string-værdi
+- Compile-fejl — en `int`-variabel kan ikke få en string-værdi
 - Programmet kører, men kaster en runtime-fejl
 correct: 1
 explain: C# er **statisk typet**. Når `x` er erklæret som `int`, kan den kun indeholde heltal. At tildele `"hej"` giver en fejl **før** programmet kører — compileren fanger det med det samme.
 ---
 q: Hvad er sandt om **strings** i C#?
 - En string kan ændres direkte i hukommelsen, når du kalder `.Replace()`
-- Strings er **immutable** — metoder som `.Replace()` returnerer en **ny** string
+- Strings er immutable — metoder som `.Replace()` returnerer en ny string
 - `string` er en primitiv type på linje med `int` og `bool`
 correct: 1
 explain: Strings kan ikke ændres efter oprettelse. Når du skriver `sentence.Replace("quick", "slow")`, oprettes en **ny** string — den originale er uændret. Teknisk set er `string` en **klasse** (reference-type), ikke en primitiv type.
@@ -308,14 +308,14 @@ explain: `bool` er C#s sandhedsværdi-type og kan **kun** være `true` eller `fa
 ---
 q: Hvad gør `$"Velkommen, {navn}!"`?
 - Skriver kun den bogstavelige tekst `{navn}` uden erstatning
-- **Indsætter** værdien af variablen `navn` i strengen (string interpolation)
+- Indsætter værdien af variablen `navn` i strengen (string interpolation)
 - Konverterer automatisk `navn` til store bogstaver
 correct: 1
 explain: `$"..."` er **string interpolation**. Alt mellem `{` og `}` evalueres og indsættes i teksten. Det er ofte mere læsbart end `"Velkommen, " + navn + "!"`.
 ---
 q: Hvad er forskellen på `.Length` og `.ToUpper()` på en string?
 - Begge er metoder og kræver `()`
-- `.Length` er en **property** (uden parenteser), `.ToUpper()` er en **metode** (med `()`)
+- `.Length` er en property (uden parenteser), `.ToUpper()` er en metode (med `()`)
 - `.Length` returnerer en ny string, `.ToUpper()` returnerer et tal
 correct: 1
 explain: `.Length` fortæller hvor mange tegn strengen har — det er en property, så du skriver `sentence.Length`. `.ToUpper()` er en metode der returnerer en **ny** string i store bogstaver: `sentence.ToUpper()`.

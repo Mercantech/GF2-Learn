@@ -379,42 +379,42 @@ Før du afleverer — spørg dig selv:
 ---
 q: Hvad er hovedbudskabet i **KISS**?
 - Kode skal altid være så kort som muligt
-- Vælg den **simpleste forståelige** løsning der virker
+- Vælg den simpleste forståelige løsning der virker
 - Du må aldrig bruge metoder eller loops
 correct: 1
 explain: KISS handler om **forståelighed** — ikke om at presse alt ind på én linje eller imponere med avancerede tricks.
 ---
 q: Hvilken version følger KISS bedst?
 - `if (a) { if (b) { if (c) { Do(); } } }`
-- **Tidlig `return` når input er ugyldigt, derefter normal logik**
+- Tidlig `return` når input er ugyldigt, derefter normal logik
 - En `Dictionary` med delegates til en menu med tre valg
 correct: 1
 explain: **Tidlig exit** og flade strukturer gør koden nemmere at følge — især når du debugger.
 ---
 q: Hvornår er en almindelig `for`-løkke bedre end LINQ one-liners i GF2?
 - Når du vil vise at du kender avanceret C#
-- **Når læsbarhed og pensumniveau er vigtigere end "smart" kode**
+- Når læsbarhed og pensumniveau er vigtigere end "smart" kode
 - Når programmet skal køre hurtigere
 correct: 1
 explain: I GF2 er en **klassisk for-løkke** ofte det rigtige valg — den er eksplicit og let at forklare til eksamen.
 ---
 q: Hvad er **ikke** KISS?
 - At dele `Main` op i små metoder
-- **At kopiere samme blok kode mange steder i stedet for at genbruge**
+- At kopiere samme blok kode mange steder i stedet for at genbruge
 - At bruge beskrivende variabelnavne
 correct: 1
 explain: Gentagen kode er et **DRY**-problem. KISS og DRY arbejder sammen — simpel *struktur*, ikke copy-paste.
 ---
 q: Hvilken fejlbesked til brugeren følger KISS?
 - `ERR_CODE_42`
-- **`Kunne ikke gemme — tjek at mappen findes.`**
+- `Kunne ikke gemme — tjek at mappen findes.`
 - `Exception in thread main`
 correct: 1
 explain: Brugeren skal forstå beskeden **uden** at kende interne fejlkoder.
 ---
 q: Du skal vise tre menuvalg i et konsolprogram. KISS-valget er ofte:
 - `Dictionary<int, Action>` med lambdaer
-- **`if / else if` med tydelige strenge som `"1"`, `"2"`, `"3"`**
+- `if / else if` med tydelige strenge som `"1"`, `"2"`, `"3"`
 - Et generelt menu-framework med ti klasser
 correct: 1
 explain: Til få valg er **if/else** helt rigeligt — simpelt at læse og rette.

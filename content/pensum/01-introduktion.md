@@ -173,13 +173,13 @@ explain: Når programmet starter, leder runtime efter en **`Main`-metode** og be
 ---
 q: Hvad betyder `void` i signaturen `static void Main(string[] args)`?
 - Metoden returnerer en string
-- Metoden **returnerer ingenting**
+- Metoden returnerer ingenting
 - Metoden kan kun kaldes én gang
 correct: 1
 explain: **`void`** betyder, at metoden ikke sender en værdi tilbage. Hvis den skulle returnere fx et tal, ville returtypen være `int` i stedet for `void`.
 ---
 q: Hvad er forskellen på `Console.WriteLine` og `Console.Write`?
-- `WriteLine` skriver en linje og **springer ned**; `Write` skriver uden linjeskift
+- `WriteLine` skriver en linje og springer ned; `Write` skriver uden linjeskift
 - `Write` er hurtigere end `WriteLine`
 - `WriteLine` kan kun bruges med strings
 correct: 0
@@ -187,28 +187,28 @@ explain: **`WriteLine`** afslutter outputtet med et linjeskift. **`Write`** skri
 ---
 q: Hvad gør et **namespace** i C#?
 - Det starter programmet automatisk
-- Det **organiserer kode** og adskiller den fra andre dele af programmet
+- Det organiserer kode og adskiller den fra andre dele af programmet
 - Det er det samme som en klasse
 correct: 1
 explain: Et **namespace** grupperer relateret kode (klasser, metoder) og hjælper med at undgå navnekonflikter. Det er ikke det samme som en klasse — en namespace kan indeholde mange klasser.
 ---
 q: Hvad er formålet med en **Git commit**?
 - At slette gamle filer fra projektet
-- At gemme et **snapshot** af koden på et bestemt tidspunkt
+- At gemme et snapshot af koden på et bestemt tidspunkt
 - At uploade kode direkte til Visual Studio
 correct: 1
 explain: En **commit** er et snapshot af projektet med en besked om, hvad der blev ændret. Det gør det muligt at gå tilbage i historikken og se præcis, hvad der skete hvornår.
 ---
 q: Hvilket værktøj er den **primære IDE** til C#-udvikling i GF2?
 - VS Code
-- **Visual Studio**
+- Visual Studio
 - GitHub Desktop
 correct: 1
 explain: **Visual Studio** er den fulde IDE til C# — her opretter, kører og debugger du projekter. VS Code er en let editor til scripts og markdown. GitHub Desktop håndterer Git, ikke selve kodningen.
 ---
 q: Hvad betyder `static` på `Main`-metoden?
 - Metoden kan kun kaldes fra internettet
-- Metoden kan kaldes **uden** at oprette et objekt af klassen
+- Metoden kan kaldes uden at oprette et objekt af klassen
 - Metoden gemmer data permanent på disken
 correct: 1
 explain: **`static`** betyder, at metoden hører til klassen selv — ikke til et specifikt objekt. Derfor kan runtime kalde `Main` direkte uden `new Program()`.

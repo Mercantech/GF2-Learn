@@ -110,49 +110,49 @@ Dette workflow er identisk med det, I møder i praktik og job.
 ---
 q: Hvad er en **branch** i Git?
 - En backup-fil på din computer
-- En **parallel version** af koden — en forgrening fra hovedtidslinjen
+- En parallel version af koden — en forgrening fra hovedtidslinjen
 - En commit-besked med flere linjer
 correct: 1
 explain: En **branch** lader dig arbejde på fx en feature uden at påvirke **`main`**. Når arbejdet er færdigt, **merges** det tilbage.
 ---
 q: Hvad gør **`git checkout -b feature/navn`**?
 - Sletter en eksisterende branch
-- **Opretter en ny branch og skifter** til den med det samme
+- Opretter en ny branch og skifter til den med det samme
 - Merger feature ind i main
 correct: 1
 explain: **`-b`** opretter branchen; **checkout** skifter til den. Derefter committer du på feature-branchen, ikke på `main`.
 ---
 q: Hvad er en **merge-konflikt**?
 - Når Git nægter at oprette en branch
-- Når **samme linje** er ændret i begge branches — Git kan ikke vælge automatisk
+- Når samme linje er ændret i begge branches — Git kan ikke vælge automatisk
 - Når `git push` fejler pga. dårlig internetforbindelse
 correct: 1
 explain: Konflikter vises med markører som `<<<<<<< HEAD`. Du **løser manuelt** — vælg eller kombiner koden, fjern markørerne, `git add` og commit.
 ---
 q: Hvad er **`main`** i feature branch workflow?
 - En midlertidig branch der slettes efter hver commit
-- **Hovedtidslinjen** — den stabile version, features merges ind i
+- Hovedtidslinjen — den stabile version, features merges ind i
 - En fil der indeholder alle branches
 correct: 1
 explain: **`main`** er standard-hovedbranchen. Features udvikles på separate branches og merges til **`main`**, når de er testet og færdige.
 ---
 q: Hvorfor bør du **`git pull`** på `main` før du opretter en ny branch?
 - For at slette gamle commits
-- For at **hente seneste ændringer** — så din nye branch starter fra opdateret kode
+- For at hente seneste ændringer — så din nye branch starter fra opdateret kode
 - Pull opretter automatisk en feature branch
 correct: 1
 explain: **`git pull`** synkroniserer med GitHub. Uden det kan din branch bygge på **forældet** `main` og give unødvendige konflikter ved merge.
 ---
 q: Hvad gør **`git merge feature/jobliste`** når du står på `main`?
 - Sletter feature-branchen
-- **Fletter ændringerne** fra feature-branchen ind i den nuværende branch (`main`)
+- Fletter ændringerne fra feature-branchen ind i den nuværende branch (`main`)
 - Kopierer main til feature-branchen
 correct: 1
 explain: **Merge** kombinerer to branches. Du skal typisk stå på **`main`** (mål-branchen) og merge feature **ind i** den.
 ---
 q: Hvad betyder **`-u origin`** ved `git push -u origin feature/ny-funktion`?
 - Upload kun én fil
-- **Linker den lokale branch til GitHub** — senere kan du bare skrive `git push`
+- Linker den lokale branch til GitHub — senere kan du bare skrive `git push`
 - Tvinger en merge uden konflikt-tjek
 correct: 1
 explain: **Upstream (`-u`)** husker forbindelsen mellem lokal branch og remote. Efter første push med `-u` er `git push` nok til at sende nye commits.

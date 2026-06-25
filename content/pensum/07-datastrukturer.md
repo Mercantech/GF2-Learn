@@ -262,49 +262,49 @@ branch: main
 ---
 q: Hvad er hovedforskellen på et **array** og en **List&lt;T&gt;**?
 - Arrays kan kun indeholde strings
-- Et array har **fast størrelse**; en liste kan **vokse og krympe** dynamisk
+- Et array har fast størrelse; en liste kan vokse og krympe dynamisk
 - Lister er primitiv type; arrays er reference-type
 correct: 1
 explain: **Arrays** allokeres med fast længde ved oprettelse. **Lister** understøtter `.Add()` og `.Remove()` — vælg liste, når du ikke kender antallet på forhånd.
 ---
 q: Hvilket indeks har **første element** i et array?
 - `1`
-- **`0`**
+- `0`
 - `-1`
 correct: 1
 explain: C# (som de fleste sprog) bruger **0-baseret indeksering**. Første element er `array[0]`, sidste er `array[Length - 1]`.
 ---
 q: Hvornår er en **Dictionary** det rigtige valg?
 - Når du skal gemme mange tal i rækkefølge uden navne
-- Når du skal **slå data op via en nøgle** (fx navn → alder)
+- Når du skal slå data op via en nøgle (fx navn → alder)
 - Når størrelsen er kendt og aldrig ændres
 correct: 1
 explain: En **Dictionary** gemmer **nøgle/værdi-par** — som en telefonbog. Opslag via nøgle er typisk **O(1)** takket være hash-fordeling.
 ---
 q: Hvad returnerer `ageMap.TryGetValue("Ada", out int alder)` hvis nøglen **ikke findes**?
 - Den kaster en exception
-- **`false`** — og `alder` får standardværdien 0
+- `false` — og `alder` får standardværdien 0
 - `true` med alder sat til -1
 correct: 1
 explain: **`TryGetValue`** er sikkert opslag — den returnerer **`false`** uden at crashe, hvis nøglen mangler. Direkte `map["Ada"]` kaster fejl, når nøglen ikke findes.
 ---
 q: Hvad er gyldige indeks for et array med **Length = 10**?
 - `0` til `10` (inklusiv)
-- **`0` til `9`**
+- `0` til `9`
 - `1` til `10`
 correct: 1
 explain: Med længde 10 er gyldige indeks **`0` til `9`**. `array[10]` giver **IndexOutOfRangeException** — det er en almindelig begynderfejl.
 ---
 q: Hvilken property bruger du til antal elementer i en **List&lt;string&gt;**?
 - `.Length`
-- **`.Count`**
+- `.Count`
 - `.Size`
 correct: 1
 explain: Lister bruger **`.Count`**. Arrays bruger **`.Length`**. Bland dem ikke — compileren giver fejl, hvis du bruger den forkerte.
 ---
 q: Ifølge huskereglen i kapitlet — hvornår vælger du et **array**?
 - Når du ikke ved, hvor mange elementer der kommer
-- Når du **kender størrelsen på forhånd** og den ikke skal ændres — fx 7 ugedage
+- Når du kender størrelsen på forhånd og den ikke skal ændres — fx 7 ugedage
 - Når du skal slå op på navn
 correct: 1
 explain: **Array** → kendt, fast antal. **Liste** → ukendt eller varierende antal. **Dictionary** → opslag på nøgle/navn.

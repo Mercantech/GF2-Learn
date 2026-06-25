@@ -480,42 +480,42 @@ Konstanten er **ét navngivet sted** for tallet 3.
 ---
 q: Hvad betyder **DRY**?
 - Du må kun have én fil i projektet
-- **Gentag ikke den samme logik** — samle den ét sted
+- Gentag ikke den samme logik — samle den ét sted
 - Du må aldrig kopiere kode fra internettet
 correct: 1
 explain: DRY handler om **vedligeholdelse**: én rettelse ét sted i stedet for at jage fejl i mange kopier.
 ---
 q: Hvilket er et tydeligt DRY-brud?
 - To `WriteLine` med forskellig tekst
-- **Samme `if (score >= 60)` kopieret tre steder i programmet**
+- Samme `if (score >= 60)` kopieret tre steder i programmet
 - To variabler der begge hedder `count`
 correct: 1
 explain: Samme **grænse/regel** på flere steder bør typisk være en **metode** eller **konstant**.
 ---
 q: Hvad er den bedste DRY-løsning til gentagen "=== Rapport ===" udskrift?
 - Kopier blokken igen med nye variabler
-- **Metoden `PrintReport(name, score)` kaldt fra flere steder**
+- Metoden `PrintReport(name, score)` kaldt fra flere steder
 - En generisk `Print(object a, object b, object c, object d)` med 12 parametre
 correct: 1
 explain: En **navngiven metode** med få parametre samler formatet uden at blive uforståelig.
 ---
 q: Hvad er **Rule of Three**?
 - Du må højst have tre variabler
-- **Overvej at abstrahere når samme mønster gentager sig ca. tre gange**
+- Overvej at abstrahere når samme mønster gentager sig ca. tre gange
 - Du skal altid lave præcis tre metoder
 correct: 1
 explain: Tommelfingerregel mod **for tidlig** abstraktion — to gentagelser kan være OK i små opgaver.
 ---
 q: Hvordan arbejder DRY og KISS sammen?
 - De modarbejder altid hinanden
-- **KISS: hold det enkelt — DRY: saml tydelige gentagelser uden at over-komplicere**
+- KISS: hold det enkelt — DRY: saml tydelige gentagelser uden at over-komplicere
 - KISS betyder at du aldrig må bruge metoder
 correct: 1
 explain: Først **simpel** kode — derefter **genbrug** når mønsteret er klart. Dårlig DRY (for generisk) bryder KISS.
 ---
 q: Hvorfor er `const int PassingScore = 60;` et DRY-trick?
 - Fordi const gør programmet hurtigere
-- **Fordi tallet 60 kun defineres ét sted med et navn**
+- Fordi tallet 60 kun defineres ét sted med et navn
 - Fordi compileren kræver det
 correct: 1
 explain: **Magic numbers** spredt i koden er et DRY-problem — konstanten er ét sted at ændre grænsen.

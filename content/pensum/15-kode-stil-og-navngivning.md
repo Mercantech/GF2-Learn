@@ -209,7 +209,7 @@ Brug `// TODO:` til ting, du skal lave senere — som i GF2-opgaverne.
 ---
 q: Hvorfor er beskrivende variabelnavne vigtige?
 - De gør programmet hurtigere at køre
-- De gør koden **lettere at læse og forstå** — også for dig selv om en uge
+- De gør koden lettere at læse og forstå — også for dig selv om en uge
 - De er kun påkrævet i store virksomheder
 correct: 1
 explain: Gode navne som `totalPrice` og `studentCount` sparer tid, når du (eller en lærer) skal finde fejl eller videreudvikle koden.
@@ -217,20 +217,20 @@ explain: Gode navne som `totalPrice` og `studentCount` sparer tid, når du (elle
 q: Hvilket metodenavn følger bedst C#-konvention?
 - `data()`
 - `stuff()`
-- **`PrintWelcomeMessage()`**
+- `PrintWelcomeMessage()`
 correct: 2
 explain: Metoder i C# bruger **PascalCase** og beskriver en **handling** med et verbum — fx `Print`, `Calculate`, `Read`.
 ---
 q: Hvad er formålet med en **tom linje** mellem to kodestykker?
 - Den er påkrævet af compileren
-- Den adskiller **logiske trin** og gør koden mere overskuelig
+- Den adskiller logiske trin og gør koden mere overskuelig
 - Den gør filen mindre
 correct: 1
 explain: Tomme linjer er som afsnit i en tekst — de hjælper øjet med at se, hvor én idé slutter og den næste begynder.
 ---
 q: Hvad gør **Ctrl+Shift+F** i GF2 Learn editoren?
 - Gemmer din løsning
-- **Formaterer koden** (indrykning og linjeskift)
+- Formaterer koden (indrykning og linjeskift)
 - Kører programmet
 correct: 1
 explain: Formatering retter indrykning og klammer, så koden følger almindelig C#-stil — især nyttigt efter copy-paste.
@@ -238,13 +238,13 @@ explain: Formatering retter indrykning og klammer, så koden følger almindelig 
 q: Hvilken kommentar er **bedst**?
 - `int age = 18; // sætter age til 18`
 - `// TODO: lav opgave 2`
-- **`const int VotingAge = 18; // minimumsalder i eksemplet`**
+- `const int VotingAge = 18; // minimumsalder i eksemplet`
 correct: 2
 explain: God kommentar forklarer **hvorfor** eller markerer **arbejde der mangler** — ikke det, koden allerede siger tydeligt.
 ---
 q: Hvad betyder det, at en metode har **ét ansvar**?
 - Den må kun have én parameter
-- Den **gør én tydelig ting** — fx kun at læse input eller kun at udskrive
+- Den gør én tydelig ting — fx kun at læse input eller kun at udskrive
 - Den må kun kaldes én gang
 correct: 1
 explain: Korte metoder som `ReadScore()` og `PrintResult()` gør koden nemmere at teste, læse og rette end én lang `Main` med alt i én blok.

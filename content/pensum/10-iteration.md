@@ -282,49 +282,49 @@ branch: main
 ---
 q: Hvornår er **`foreach`** særligt velegnet?
 - Når du skal ændre samlingens størrelse under gennemløb
-- Når du skal **gennemløbe alle elementer** uden at håndtere indeks
+- Når du skal gennemløbe alle elementer uden at håndtere indeks
 - Kun til dictionaries — ikke arrays
 correct: 1
 explain: **`foreach`** er den simpleste måde at læse hvert element i en array, liste eller dictionary — uden at skrive `for (int i = 0; i < ...`.
 ---
 q: Hvad bruger du til antal elementer i en **List&lt;T&gt;** i en `for`-løkke?
 - `.Length`
-- **`.Count`**
+- `.Count`
 - `.Size`
 correct: 1
 explain: Lister bruger **`.Count`**. Arrays bruger **`.Length`**. I `for (int i = 0; i < names.Count; i++)` skal det være `.Count` for lister.
 ---
 q: Hvad er formålet med **nested loops**?
 - At køre samme kode hurtigere
-- At gennemløbe **strukturer indeni strukturer** — fx lister af lister eller bits per oktet
+- At gennemløbe strukturer indeni strukturer — fx lister af lister eller bits per oktet
 - At erstatte `foreach` helt
 correct: 1
 explain: **Nested loops** (løkke inde i løkke) bruges til 2D-data — fx matrix eller IP-omformeren: ydre løkke over 4 oktetter, indre over 8 bits.
 ---
 q: Hvordan får du **kun nøglerne** fra en Dictionary?
 - `foreach (int value in ages.Values)`
-- **`foreach (string key in ages.Keys)`**
+- `foreach (string key in ages.Keys)`
 - `ages.GetKeys()`
 correct: 1
 explain: **`.Keys`** giver alle nøgler, **`.Values`** alle værdier, og **`foreach (var (navn, alder) in ages)`** giver begge (deconstruction).
 ---
 q: Hvorfor bør du undgå `.Add()`/`.Remove()` på en liste **under `foreach`**?
 - Det gør outputtet uleseligt
-- Det giver **runtime-fejl** — samlingen må ikke modificeres under foreach
+- Det giver runtime-fejl — samlingen må ikke modificeres under foreach
 - Det er langsommere end `while`
 correct: 1
 explain: Modificering under **`foreach`** invalidérer enumerator'en. Brug **`for`** baglæns eller kopiér til `ToList()`, hvis du skal fjerne under iteration.
 ---
 q: Hvad er mønsteret **akkumulering** i en løkke?
 - At slette alle elementer én for én
-- **Initialiser sum → loop → læg værdier til sum** → beregn fx gennemsnit
+- Initialiser sum → loop → læg værdier til sum → beregn fx gennemsnit
 - At bruge `break` efter første element
 correct: 1
 explain: Fx `int sum = 0; foreach (var score in scores.Values) sum += score;` — derefter `gennemsnit = (double)sum / scores.Count`. Det genbruges konstant i GF2.
 ---
 q: Hvornår vælger du **`for` med indeks** frem for `foreach`?
 - Aldrig — `foreach` er altid bedst
-- Når du har brug for **positionen** (indeks) eller skal ændre elementer på bestemte pladser
+- Når du har brug for positionen (indeks) eller skal ændre elementer på bestemte pladser
 - Kun i Git-projekter
 correct: 1
 explain: **`for`** giver adgang til **`i`** og `collection[i]` — nødvendigt til nested strukturer, baglæns fjernelse og når indeks betyder noget (fx bit-position i binær oktet).
