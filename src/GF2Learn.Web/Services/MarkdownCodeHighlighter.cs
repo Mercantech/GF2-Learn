@@ -81,7 +81,6 @@ public sealed partial class MarkdownCodeHighlighter
 
     private static string HighlightCSharp(string code)
     {
-        var encoded = WebUtility.HtmlEncode(code);
         var placeholders = new List<(string Key, string Html)>();
         var index = 0;
 
@@ -92,27 +91,30 @@ public sealed partial class MarkdownCodeHighlighter
             return key;
         }
 
-        encoded = CommentRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-comment")));
-        encoded = InterpolatedStringRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-string")));
-        encoded = StringRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-string")));
-        encoded = NumberRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-number")));
-        encoded = BuiltInRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-built_in")));
+        var working = code;
+        working = CommentRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-comment")));
+        working = InterpolatedStringRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-string")));
+        working = StringRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-string")));
+        working = CharRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-string")));
+        working = NumberRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-number")));
+        working = BuiltInRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-built_in")));
 
         foreach (var keyword in CSharpKeywords)
         {
             var pattern = $@"\b{Regex.Escape(keyword)}\b";
-            encoded = Regex.Replace(encoded, pattern, m => Reserve(Span(m.Value, "hljs-keyword")));
+            working = Regex.Replace(working, pattern, m => Reserve(Span(m.Value, "hljs-keyword")));
         }
 
-        foreach (var (key, html) in placeholders)
-            encoded = encoded.Replace(key, html, StringComparison.Ordinal);
+        working = WebUtility.HtmlEncode(working);
 
-        return encoded;
+        foreach (var (key, html) in placeholders)
+            working = working.Replace(key, html, StringComparison.Ordinal);
+
+        return working;
     }
 
     private static string HighlightBash(string code)
     {
-        var encoded = WebUtility.HtmlEncode(code);
         var placeholders = new List<(string Key, string Html)>();
         var index = 0;
 
@@ -123,14 +125,17 @@ public sealed partial class MarkdownCodeHighlighter
             return key;
         }
 
-        encoded = BashCommentRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-comment")));
-        encoded = StringRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-string")));
-        encoded = BashFlagRegex().Replace(encoded, m => Reserve(Span(m.Value, "hljs-keyword")));
+        var working = code;
+        working = BashCommentRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-comment")));
+        working = StringRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-string")));
+        working = BashFlagRegex().Replace(working, m => Reserve(Span(m.Value, "hljs-keyword")));
+
+        working = WebUtility.HtmlEncode(working);
 
         foreach (var (key, html) in placeholders)
-            encoded = encoded.Replace(key, html, StringComparison.Ordinal);
+            working = working.Replace(key, html, StringComparison.Ordinal);
 
-        return encoded;
+        return working;
     }
 
     private static string PlaceholderKey(int index)
@@ -142,7 +147,7 @@ public sealed partial class MarkdownCodeHighlighter
     }
 
     private static string Span(string text, string cssClass) =>
-        $"<span class=\"{cssClass}\">{text}</span>";
+        $"<span class=\"{cssClass}\">{WebUtility.HtmlEncode(text)}</span>";
 
     [GeneratedRegex(@"(?m)//[^\n]*")]
     private static partial Regex CommentRegex();
@@ -155,6 +160,9 @@ public sealed partial class MarkdownCodeHighlighter
 
     [GeneratedRegex(@"""([^""\\]|\\.)*""")]
     private static partial Regex StringRegex();
+
+    [GeneratedRegex(@"'([^'\\]|\\.)'")]
+    private static partial Regex CharRegex();
 
     [GeneratedRegex(@"\b\d+(?:\.\d+)?\b")]
     private static partial Regex NumberRegex();

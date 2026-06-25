@@ -27,6 +27,24 @@
     return map[match[1].toLowerCase()] || match[1].toUpperCase();
   }
 
+  var isProcessing = false;
+  var processTimer = null;
+
+  function unwrapCodeBlocks(root) {
+    var selector = ".markdown-body .code-block, .curriculum-content .code-block";
+    var scope = root && root.querySelectorAll ? root : document;
+    var shell;
+    while ((shell = scope.querySelector(selector))) {
+      var pre = shell.querySelector(":scope > pre");
+      var parent = shell.parentNode;
+      if (pre && parent) {
+        pre.removeAttribute("data-code-enhanced");
+        parent.insertBefore(pre, shell);
+      }
+      shell.remove();
+    }
+  }
+
   function enhanceCodeBlocks(root) {
     if (!root) return;
     root.querySelectorAll("pre > code").forEach(function (code) {
@@ -34,6 +52,10 @@
       if (!pre || pre.dataset.codeEnhanced) return;
       if (pre.closest(".code-playground")) return;
       if (pre.closest(".landing-code-window")) return;
+      if (pre.closest(".code-block")) {
+        pre.dataset.codeEnhanced = "1";
+        return;
+      }
       pre.dataset.codeEnhanced = "1";
 
       var lang = langLabel(code);
@@ -136,15 +158,23 @@
 
   function process(root) {
     root = root || document;
-    syncHljsTheme();
-    enhanceCodeBlocks(root);
-    return highlightAll(root);
+    isProcessing = true;
+    try {
+      unwrapCodeBlocks(root);
+      syncHljsTheme();
+      enhanceCodeBlocks(root);
+      return highlightAll(root);
+    } finally {
+      isProcessing = false;
+    }
   }
 
   function scheduleProcess(root) {
-    requestAnimationFrame(function () {
+    clearTimeout(processTimer);
+    processTimer = setTimeout(function () {
+      processTimer = null;
       process(root || document);
-    });
+    }, 80);
   }
 
   function highlightRoot(root) {
@@ -165,6 +195,7 @@
       watch.dataset.highlightObserved = "1";
       var timer = null;
       new MutationObserver(function () {
+        if (isProcessing) return;
         clearTimeout(timer);
         timer = setTimeout(function () {
           scheduleProcess(watch);
@@ -188,7 +219,8 @@
     process: process,
     processRoot: process,
     highlightRoot: highlightRoot,
-    syncTheme: syncHljsTheme
+    syncTheme: syncHljsTheme,
+    unwrapCodeBlocks: unwrapCodeBlocks
   };
 
   global.addEventListener("gf2-theme-change", syncHljsTheme);
@@ -207,6 +239,5 @@
 
   global.addEventListener("gf2-enhanced-nav", function () {
     observeDynamicContent();
-    waitForHljs(0, document);
   });
 })(window);

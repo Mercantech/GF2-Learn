@@ -4,6 +4,9 @@
     if (global.gf2Playground && global.gf2Playground.disposeStale) {
       global.gf2Playground.disposeStale();
     }
+    if (global.gf2Highlight && global.gf2Highlight.unwrapCodeBlocks) {
+      global.gf2Highlight.unwrapCodeBlocks(document);
+    }
   }
 
   /** Kør EFTER DOM er opdateret — må ikke dispose Monaco (det ødelægger nye editorer). */
