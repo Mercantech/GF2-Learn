@@ -648,7 +648,7 @@ window.gf2Playground = {
     for (var i = 0; i < ids.length; i++) {
       var id = ids[i];
       var host = document.getElementById(id);
-      if (!host || !document.body.contains(host)) {
+      if (!host || !document.body.contains(host) || !this.hostHasEditor(host)) {
         self.dispose(id);
       }
     }
@@ -679,9 +679,36 @@ window.gf2Playground = {
     var self = this;
     document.querySelectorAll(".playground-editor-host").forEach(function (host) {
       if (!host.id || self.hostHasEditor(host)) return;
-      var code = self.decodePendingCode(host.dataset.pendingCode);
-      if (code) self.initWhenVisible(host.id, code);
+      if (self.editors[host.id]) self.dispose(host.id);
+      if (!host.hasAttribute("data-pending-code")) return;
+      var code = self.decodePendingCode(host.getAttribute("data-pending-code"));
+      self.initWhenVisible(host.id, code);
     });
+  },
+
+  ensureMountedWithRetries: function () {
+    var self = this;
+    var delays = [0, 100, 250, 500, 1000, 2000];
+    for (var i = 0; i < delays.length; i++) {
+      (function (delay) {
+        setTimeout(function () {
+          self.ensureMounted();
+        }, delay);
+      })(delays[i]);
+    }
+  },
+
+  observePlaygroundHosts: function () {
+    if (this._hostObserver) return;
+    var self = this;
+    var timer = null;
+    this._hostObserver = new MutationObserver(function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        self.ensureMounted();
+      }, 80);
+    });
+    this._hostObserver.observe(document.body, { childList: true, subtree: true });
   },
 
   getValue: function (elementId) {
@@ -736,3 +763,20 @@ window.gf2Playground = {
     }
   }
 };
+
+(function () {
+  function bootPlaygroundObservers() {
+    if (window.gf2Playground) {
+      window.gf2Playground.observePlaygroundHosts();
+      window.gf2Playground.ensureMountedWithRetries();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootPlaygroundObservers);
+  } else {
+    bootPlaygroundObservers();
+  }
+
+  window.addEventListener("gf2-enhanced-nav", bootPlaygroundObservers);
+})();

@@ -195,10 +195,19 @@
     {
         if (_editorReady)
         {
-            if (!_startupCodeApplied)
-                await ApplyStartupCodeOnceAsync();
+            if (await IsEditorMountedAsync())
+            {
+                if (!_startupCodeApplied)
+                    await ApplyStartupCodeOnceAsync();
 
-            return;
+                return;
+            }
+
+            _editorReady = false;
+            _mountInProgress = false;
+            _startupCodeApplied = false;
+            _ctrlSaveRegistered = false;
+            _ctrlRunRegistered = false;
         }
 
         if (_mountInProgress)
@@ -260,6 +269,18 @@
     }
 
     public bool IsEditorReady => _editorReady;
+
+    private async Task<bool> IsEditorMountedAsync()
+    {
+        try
+        {
+            return await Js.InvokeAsync<bool>("gf2Playground.isReady", _editorId);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     public async Task<bool> WaitForEditorReadyAsync(int maxWaitMs = 8000)
     {
