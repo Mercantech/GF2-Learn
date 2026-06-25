@@ -165,7 +165,7 @@ public sealed partial class ContentPreprocessor
             .Where(l => !string.IsNullOrWhiteSpace(l));
         var sb = new StringBuilder("<div class=\"related-pensum\"><p class=\"related-label\">Related curriculum</p><ul>");
         foreach (var slug in links)
-            sb.Append($"<li><a href=\"/curriculum/{WebUtility.HtmlEncode(slug)}\">{WebUtility.HtmlEncode(slug)}</a></li>");
+            sb.Append($"<li><a href=\"/curriculum/{WebUtility.HtmlEncode(slug)}\" data-enhance-nav=\"false\">{WebUtility.HtmlEncode(slug)}</a></li>");
         sb.Append("</ul></div>\n\n");
         return sb.ToString();
     }

@@ -35,7 +35,7 @@
             <div class="index-list">
                 @foreach (var item in groupItems)
                 {
-                    <a href="@item.Href" class="index-item" data-curriculum-slug="@item.Slug">
+                    <a href="@item.Href" class="index-item" data-curriculum-slug="@item.Slug" data-enhance-nav="false">
                         <span class="index-order">@item.Order.ToString("D2")</span>
                         <div class="index-item-body">
                             <strong>@item.Title</strong>

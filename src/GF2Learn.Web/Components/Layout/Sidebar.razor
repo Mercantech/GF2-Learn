@@ -23,7 +23,7 @@
                     <li>
                         <a href="@item.Href"
                            class="sidebar-link @(active ? "active" : null)"
-                           data-enhance-nav="@(Nav.Section == ContentSectionType.Exercises ? "false" : null)"
+                           data-enhance-nav="@(Nav.Section is ContentSectionType.Exercises or ContentSectionType.Curriculum ? "false" : null)"
                            data-curriculum-slug="@(Nav.Section == ContentSectionType.Curriculum ? item.Slug : null)"
                            data-exercise-slug="@(Nav.Section == ContentSectionType.Exercises ? item.Slug : null)">
                             <span class="sidebar-link-text">@item.Title</span>
