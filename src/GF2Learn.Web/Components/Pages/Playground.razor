@@ -1,7 +1,9 @@
 @page "/playground"
-@layout PlaygroundLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject NavigationManager Navigation
 
-<PageTitle>Playground — GF2 Learn</PageTitle>
-
-<PlaygroundWorkspace />
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/curriculum", replace: true);
+    }
+}

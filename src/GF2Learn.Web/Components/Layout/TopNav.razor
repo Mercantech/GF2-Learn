@@ -11,9 +11,6 @@
     <a href="/projects" class="tab @Active(ContentSectionType.Projects)">
         <span class="tab-icon">🚀</span> Projects
     </a>
-    <a href="/playground" class="tab @PlaygroundActive()">
-        <span class="tab-icon">⌨️</span> Playground
-    </a>
 </nav>
 
 @code {
@@ -29,9 +26,4 @@
         };
         return path.Contains(segment, StringComparison.OrdinalIgnoreCase) ? "active" : null;
     }
-
-    private string? PlaygroundActive() =>
-        new Uri(Navigation.Uri).AbsolutePath.StartsWith("/playground", StringComparison.OrdinalIgnoreCase)
-            ? "active"
-            : null;
 }
