@@ -1,18 +1,35 @@
-﻿# Dokploy + Cloudflare port exposure: web bruger host-netværk så localhost:WEB_HOST_PORT
-# rammer appen direkte (bridge port mapping udelades ofte af Dokploy).
+﻿# Dokploy-deploy: docker compose up -d --build
+#
+# Routing:
+#   1. Cloudflare: *.gf2.dk (wildcard CNAME → tunnel)
+#   2. Tunnel ingress: *.gf2.dk → http://localhost:80
+#   3. Traefik (Dokploy): Host(`${APP_DOMAIN}`) → web:8080
+#
+# Sæt APP_DOMAIN i .env (default: learn.gf2.dk).
 services:
   web:
-    build: .
-    network_mode: host
+    build:
+      context: .
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:
-      ASPNETCORE_URLS: http://+:${WEB_HOST_PORT:-8031}
-      ConnectionStrings__DefaultConnection: Host=127.0.0.1;Port=${POSTGRES_HOST_PORT:-5422};Database=${POSTGRES_DB:-gf2learn};Username=${POSTGRES_USER:-gf2};Password=${POSTGRES_PASSWORD:-changeme}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-gf2learn};Username=${POSTGRES_USER:-gf2};Password=${POSTGRES_PASSWORD:-changeme}
       ContentPath: /app/content
       GF2_BEHIND_REVERSE_PROXY: "true"
+    networks:
+      - dokploy-network
+      - internal
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.gf2-learn-web.rule=Host(`${APP_DOMAIN:-learn.gf2.dk}`)
+      - traefik.http.routers.gf2-learn-web.entrypoints=web
+      - traefik.http.routers.gf2-learn-web.service=gf2-learn-web
+      - traefik.http.services.gf2-learn-web.loadbalancer.server.port=8080
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${WEB_HOST_PORT:-8031}/health || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -32,8 +49,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-gf2learn}
       POSTGRES_USER: ${POSTGRES_USER:-gf2}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-    ports:
-      - "127.0.0.1:${POSTGRES_HOST_PORT:-5422}:5432"
+    networks:
+      - internal
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -43,6 +60,11 @@ services:
       retries: 10
       start_period: 10s
     restart: unless-stopped
+
+networks:
+  dokploy-network:
+    external: true
+  internal:
 
 volumes:
   pgdata:
