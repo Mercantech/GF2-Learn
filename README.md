@@ -132,20 +132,25 @@ Manuel test (efter `dotnet run`):
 
 ## Docker
 
+**Lokal (Windows/macOS/Linux):**
+
 ```bash
-cp .env.example .env   # udfyld MercantecAuth__ClientSecret og POSTGRES_PASSWORD
-docker compose up -d --build
+cp .env.example .env   # udfyld secrets ved behov
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 ```
 
-| Tjeneste | URL / port |
-|----------|------------|
-| **Web** | Lytter på host **`WEB_HOST_PORT`** (standard `8031`) via `network_mode: host` |
-| **Offentlig** | `https://learn-dev.gf2.dk` via Cloudflare tunnel til `http://127.0.0.1:8031` |
-| Postgres | `127.0.0.1:5422` fra host (web forbinder via samme port) |
+| Tjeneste | URL |
+|----------|-----|
+| **Web** | http://localhost:8031 |
+| **Health** | http://localhost:8031/health |
+
+**Videnscenter-branding:** sæt `VidenscenterBranding__Enabled=true` i `.env` på VC-afleveringsversionen; `false` (standard) internt hos Mercantec uden VAT-logoer.
+
+**Dokploy (prod/dev på server):** kun `docker-compose.yml` — kræver `dokploy-network` og Traefik.
 
 OAuth redirect for lokal Docker (tilføj i Auth Admin hvis du tester login):
 
-`http://localhost:2020/signin-mercantec`
+`http://localhost:8031/signin-mercantec`
 
 Videnstjek-progression gemmes i Postgres ved login (migrationer kører automatisk ved opstart).
 

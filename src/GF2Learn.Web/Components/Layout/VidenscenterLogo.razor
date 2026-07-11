@@ -1,0 +1,80 @@
+<div class="videnscenter-branding @SizeClass @CssClass">
+    <a href="https://videnscenterportalen.dk/vat/"
+       target="_blank"
+       rel="noopener"
+       class="videnscenter-logo-link"
+       title="Videnscenter for Automation og Teknologi">
+        <img src="/images/partners/logo-vat-color.svg"
+             alt="Videnscenter for Automation og Teknologi"
+             class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--light"
+             width="@VatWidth"
+             height="@VatHeight" />
+        <img src="/images/partners/logo-vat-white.svg"
+             alt="Videnscenter for Automation og Teknologi"
+             class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--dark"
+             width="@VatWidth"
+             height="@VatHeight" />
+    </a>
+    @if (ShowPortal)
+    {
+        <a href="https://videnscenterportalen.dk/"
+           target="_blank"
+           rel="noopener"
+           class="videnscenter-logo-link"
+           title="Videnscenterportalen">
+            <img src="/images/partners/logo-videnscenterportalen-dark.svg"
+                 alt="Videnscenterportalen"
+                 class="videnscenter-logo videnscenter-logo--portal videnscenter-logo--light"
+                 width="@PortalWidth"
+                 height="@PortalHeight" />
+            <img src="/images/partners/logo-videnscenterportalen.svg"
+                 alt="Videnscenterportalen"
+                 class="videnscenter-logo videnscenter-logo--portal videnscenter-logo--dark"
+                 width="@PortalWidth"
+                 height="@PortalHeight" />
+        </a>
+    }
+</div>
+
+@code {
+    [Parameter] public string Size { get; set; } = "footer";
+
+    [Parameter] public bool ShowPortal { get; set; } = true;
+
+    [Parameter] public string? CssClass { get; set; }
+
+    private string SizeClass => Size switch
+    {
+        "header" => "videnscenter-branding--header",
+        "hero" => "videnscenter-branding--hero",
+        _ => "videnscenter-branding--footer"
+    };
+
+    private int VatWidth => Size switch
+    {
+        "header" => 220,
+        "hero" => 320,
+        _ => 280
+    };
+
+    private int VatHeight => Size switch
+    {
+        "header" => 44,
+        "hero" => 64,
+        _ => 56
+    };
+
+    private int PortalWidth => Size switch
+    {
+        "header" => 150,
+        "hero" => 210,
+        _ => 190
+    };
+
+    private int PortalHeight => Size switch
+    {
+        "header" => 30,
+        "hero" => 42,
+        _ => 38
+    };
+}

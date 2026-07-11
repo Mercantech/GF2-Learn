@@ -1,0 +1,19 @@
+# Lokal Docker (uden Dokploy/Traefik).
+#
+#   cp .env.example .env   # første gang
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+#
+# App: http://localhost:8031  (health: /health)
+
+services:
+  web:
+    ports:
+      - "${WEB_HOST_PORT:-8031}:8080"
+    environment:
+      GF2_BEHIND_REVERSE_PROXY: "false"
+    networks:
+      - internal
+
+networks:
+  dokploy-network:
+    external: false

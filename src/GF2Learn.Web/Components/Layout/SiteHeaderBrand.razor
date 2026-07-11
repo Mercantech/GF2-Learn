@@ -1,0 +1,14 @@
+@using GF2Learn.Web.Options
+@using Microsoft.Extensions.Options
+@inject IOptions<VidenscenterBrandingOptions> VidenscenterBranding
+
+<div class="site-header-brand @(VidenscenterBranding.Value.Enabled ? "site-header-brand--vc" : null)">
+    @if (VidenscenterBranding.Value.Enabled)
+    {
+        <VidenscenterLogo Size="header" ShowPortal="true" />
+    }
+    <a href="/" class="site-logo">
+        <span class="site-logo-mark">&lt;/&gt;</span>
+        <span class="site-logo-text">GF2<span class="site-logo-accent">Learn</span></span>
+    </a>
+</div>

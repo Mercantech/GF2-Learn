@@ -1,11 +1,11 @@
 ﻿# Dokploy-deploy: docker compose up -d --build
 #
-# Routing:
-#   1. Cloudflare: *.gf2.dk (wildcard CNAME → tunnel)
-#   2. Tunnel ingress: *.gf2.dk → http://localhost:80
-#   3. Traefik (Dokploy): Host(`${APP_DOMAIN}`) → web:8080
+# Routing (Traefik på dokploy-network):
+#   Prod: APP_DOMAIN=learn.gf2.dk  (Cloudflare *.gf2.dk → tunnel → Traefik)
+#   Dev:  APP_DOMAIN=vc.mercantec.tech  (Cloudflare *.mercantec.tech → samme Traefik)
 #
-# Sæt APP_DOMAIN i .env (default: learn.gf2.dk).
+# Samme server / samme Traefik: sæt UNIKT TRAEFIK_PREFIX per Dokploy-app (fx gf2learn-prod / gf2learn-dev).
+# Ellers kolliderer router-labels mellem miljøer.
 services:
   web:
     build:
@@ -24,10 +24,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
-      - traefik.http.routers.gf2-learn-web.rule=Host(`${APP_DOMAIN:-learn.gf2.dk}`)
-      - traefik.http.routers.gf2-learn-web.entrypoints=web
-      - traefik.http.routers.gf2-learn-web.service=gf2-learn-web
-      - traefik.http.services.gf2-learn-web.loadbalancer.server.port=8080
+      - traefik.http.routers.${TRAEFIK_PREFIX:-gf2-learn}-web.rule=Host(`${APP_DOMAIN:-learn.gf2.dk}`)
+      - traefik.http.routers.${TRAEFIK_PREFIX:-gf2-learn}-web.entrypoints=web
+      - traefik.http.routers.${TRAEFIK_PREFIX:-gf2-learn}-web.service=${TRAEFIK_PREFIX:-gf2-learn}-web
+      - traefik.http.services.${TRAEFIK_PREFIX:-gf2-learn}-web.loadbalancer.server.port=8080
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 15s

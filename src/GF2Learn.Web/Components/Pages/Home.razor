@@ -1,13 +1,20 @@
 ﻿@page "/"
 @layout LandingLayout
+@using GF2Learn.Web.Options
+@using Microsoft.Extensions.Options
 @inject ContentService Content
+@inject IOptions<VidenscenterBrandingOptions> VidenscenterBranding
 
 <PageTitle>GF2 Learn — Your C# and Git learning platform</PageTitle>
 
-<section class="landing-hero">
+<section class="landing-hero @(VcBrandingEnabled ? "landing-hero--vc" : null)">
     <div class="landing-hero-bg" aria-hidden="true"></div>
     <div class="landing-hero-inner">
         <div class="landing-hero-copy">
+            @if (VcBrandingEnabled)
+            {
+                <LandingVcHero />
+            }
             <p class="landing-badge">Grundforløb 2 · Programmering</p>
             <h1>Learn C# and Git —<br /><span class="landing-gradient-text">step by step</span></h1>
             <p class="landing-hero-lead">
@@ -209,7 +216,17 @@
 </section>
 
 <section class="landing-features">
-    <div class="landing-features-grid">
+    <div class="landing-features-grid @(VcBrandingEnabled ? "landing-features-grid--4" : null)">
+        @if (VcBrandingEnabled)
+        {
+            <div class="feature-item feature-item--vc">
+                <div class="feature-item-vc-mark">
+                    <VidenscenterLogo Size="footer" ShowPortal="false" />
+                </div>
+                <h3>Udviklet med VC-støtte</h3>
+                <p>Platformen er udviklet med støtte fra Videnscenter for Automation og Teknologi og deles via Videnscenterportalen.</p>
+            </div>
+        }
         <div class="feature-item">
             <h3>Git from day 1</h3>
             <p>Versionsstyring er vævet ind i hele forløbet — ikke et tillæg til sidst.</p>
@@ -225,8 +242,12 @@
     </div>
 </section>
 
-<section class="landing-cta">
+<section class="landing-cta @(VcBrandingEnabled ? "landing-cta--vc" : null)">
     <div class="landing-cta-inner">
+        @if (VcBrandingEnabled)
+        {
+            <VidenscenterLogo Size="footer" ShowPortal="true" CssClass="landing-cta-vc-logos" />
+        }
         <h2>Ready to get started?</h2>
         <p>Start med introduktionen til programmering — det tager kun få minutter.</p>
         <a href="/curriculum/01-introduktion" class="btn btn-primary btn-lg">Gå til første lektion</a>
@@ -234,6 +255,8 @@
 </section>
 
 @code {
+    private bool VcBrandingEnabled => VidenscenterBranding.Value.Enabled;
+
     private int CurriculumCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Curriculum);
     private int ExercisesCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Exercises);
     private int ProjectsCount => Content.GetAll().Count(i => i.Section == ContentSectionType.Projects && i.IsOverview);

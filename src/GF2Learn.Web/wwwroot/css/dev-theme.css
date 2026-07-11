@@ -277,6 +277,18 @@ a:hover { color: var(--accent-bright); }
   padding: 0 1.5rem;
   height: var(--header-h);
 }
+.site-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.site-header-brand--vc .videnscenter-branding {
+  flex-shrink: 0;
+  padding-right: 1.25rem;
+  border-right: 1px solid var(--border);
+}
 .site-logo {
   display: flex;
   align-items: center;
@@ -1077,6 +1089,76 @@ a:hover { color: var(--accent-bright); }
   overflow: hidden;
   padding: 4rem 1.5rem 5rem;
 }
+.landing-hero--vc .landing-hero-bg {
+  background:
+    radial-gradient(ellipse 90% 70% at 10% -5%, rgba(24, 138, 156, 0.22), transparent),
+    radial-gradient(ellipse 60% 50% at 90% 20%, rgba(24, 138, 156, 0.12), transparent),
+    radial-gradient(ellipse 80% 60% at 50% -10%, var(--hero-glow-a), transparent),
+    radial-gradient(ellipse 50% 40% at 80% 60%, var(--hero-glow-b), transparent);
+}
+.landing-hero--vc .landing-gradient-text {
+  background: linear-gradient(135deg, #188a9c 0%, #0ea5e9 55%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.landing-hero--vc .landing-badge {
+  background: rgba(24, 138, 156, 0.12);
+  border-color: rgba(24, 138, 156, 0.35);
+  color: #188a9c;
+}
+:root[data-theme="dark"] .landing-hero--vc .landing-badge,
+:root[data-theme="dos"] .landing-hero--vc .landing-badge {
+  color: #5eead4;
+  border-color: rgba(94, 234, 212, 0.35);
+  background: rgba(24, 138, 156, 0.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .landing-hero--vc .landing-badge {
+    color: #5eead4;
+    border-color: rgba(94, 234, 212, 0.35);
+    background: rgba(24, 138, 156, 0.18);
+  }
+}
+.landing-vc-hero { margin: 0 0 1.35rem; }
+.landing-vc-hero-card {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 100%;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(24, 138, 156, 0.35);
+  background: linear-gradient(145deg, rgba(24, 138, 156, 0.14) 0%, rgba(24, 138, 156, 0.06) 100%);
+  box-shadow: 0 8px 32px rgba(24, 138, 156, 0.12);
+}
+.landing-vc-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+}
+.landing-vc-hero-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.landing-vc-hero-kicker--accent { color: #188a9c; }
+:root[data-theme="dark"] .landing-vc-hero-kicker--accent,
+:root[data-theme="dos"] .landing-vc-hero-kicker--accent { color: #5eead4; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .landing-vc-hero-kicker--accent { color: #5eead4; }
+}
+.landing-vc-hero-dot {
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 50%;
+  background: rgba(24, 138, 156, 0.55);
+}
+.landing-vc-hero-logos.videnscenter-branding--hero .videnscenter-logo--vat { max-height: 3.5rem; }
+.landing-vc-hero-logos.videnscenter-branding--hero .videnscenter-logo--portal { max-height: 2.5rem; }
 .landing-hero-bg {
   position: absolute;
   inset: 0;
@@ -1379,6 +1461,9 @@ a:hover { color: var(--accent-bright); }
   grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
 }
+.landing-features-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
 .feature-item {
   padding: 1.5rem;
   border-radius: var(--radius-lg);
@@ -1387,12 +1472,35 @@ a:hover { color: var(--accent-bright); }
 }
 .feature-item h3 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 600; color: var(--accent-teal); }
 .feature-item p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+.feature-item--vc {
+  border-color: rgba(24, 138, 156, 0.35);
+  background: linear-gradient(160deg, rgba(24, 138, 156, 0.1) 0%, var(--bg-card) 100%);
+}
+.feature-item-vc-mark {
+  margin-bottom: 0.85rem;
+}
+.feature-item-vc-mark .videnscenter-branding--footer .videnscenter-logo--vat { max-height: 2.35rem; }
 
 /* CTA */
 .landing-cta {
   padding: 4rem 1.5rem 5rem;
   text-align: center;
 }
+.landing-cta--vc {
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(24, 138, 156, 0.08) 100%),
+    var(--bg);
+}
+.landing-cta--vc .landing-cta-inner {
+  border-color: rgba(24, 138, 156, 0.28);
+  background: linear-gradient(135deg, rgba(24, 138, 156, 0.1), rgba(14, 165, 233, 0.06));
+}
+.landing-cta-vc-logos {
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+.landing-cta--vc .videnscenter-branding--footer .videnscenter-logo--vat { max-height: 2.75rem; }
+.landing-cta--vc .videnscenter-branding--footer .videnscenter-logo--portal { max-height: 2rem; }
 .landing-cta-inner {
   max-width: 36rem;
   margin: 0 auto;
@@ -1408,8 +1516,35 @@ a:hover { color: var(--accent-bright); }
 .site-footer {
   border-top: 1px solid var(--border);
   background: var(--bg-elevated);
-  padding: 2.5rem 1.5rem 1.5rem;
+  padding: 0 1.5rem 1.5rem;
 }
+.site-footer-vat-bar {
+  background: linear-gradient(135deg, #188a9c 0%, #147a8a 100%);
+  margin: 0 -1.5rem 2rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.site-footer-vat-bar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  max-width: var(--layout-max);
+  margin: 0 auto;
+}
+.site-footer-vat-label {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+}
+.site-footer-vat-bar .videnscenter-logo--light { display: none !important; }
+.site-footer-vat-bar .videnscenter-logo--dark { display: block !important; }
+.site-footer-vat-bar .videnscenter-logo--vat { max-height: 3.25rem; }
+.site-footer-vat-bar .videnscenter-logo--portal { max-height: 2.35rem; opacity: 0.95; }
 .site-footer-inner {
   display: flex;
   justify-content: space-between;
@@ -1417,7 +1552,30 @@ a:hover { color: var(--accent-bright); }
   max-width: var(--layout-max);
   margin: 0 auto 1.5rem;
 }
-.site-footer-brand p { color: var(--text-muted); font-size: 0.85rem; margin: 0.35rem 0 0; max-width: 16rem; }
+.site-footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  max-width: 20rem;
+}
+.site-footer-gf2 {
+  color: var(--text);
+  text-decoration: none;
+}
+.site-footer-gf2:hover { text-decoration: none; opacity: 0.9; }
+.site-footer-brand p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.5;
+}
+.site-footer-brand p a {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.site-footer-brand p a:hover { color: var(--accent); }
 .site-footer-links { display: flex; gap: 3rem; }
 .site-footer-links div { display: flex; flex-direction: column; gap: 0.35rem; }
 .site-footer-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin: 0 0 0.25rem; }
@@ -1434,52 +1592,48 @@ a:hover { color: var(--accent-bright); }
   margin-left: auto;
   margin-right: auto;
 }
-.site-footer-partners {
+.site-footer-copy a {
+  color: var(--text-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.site-footer-copy a:hover { color: var(--accent); }
+.videnscenter-branding {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 2rem 3rem;
-  max-width: var(--layout-max);
-  margin: 0 auto;
-  padding-top: 1.75rem;
-  border-top: 1px solid var(--border);
+  align-items: center;
+  gap: 0.85rem 1.25rem;
 }
-.site-footer-partner {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: min(100%, 16rem);
-}
-.site-footer-partner a {
+.videnscenter-branding--header .videnscenter-logo--vat { max-height: 2.35rem; }
+.videnscenter-branding--header .videnscenter-logo--portal { max-height: 1.65rem; opacity: 0.92; }
+.videnscenter-branding--hero .videnscenter-logo--vat { max-height: 3.5rem; }
+.videnscenter-branding--hero .videnscenter-logo--portal { max-height: 2.5rem; opacity: 0.95; }
+.videnscenter-branding--footer .videnscenter-logo--vat { max-height: 3rem; }
+.videnscenter-branding--footer .videnscenter-logo--portal { max-height: 2.15rem; opacity: 0.92; }
+.videnscenter-logo-link {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+  line-height: 0;
 }
-.site-footer-partner a:hover { opacity: 0.85; }
-.site-footer-partner p {
-  margin: 0;
-  color: var(--text-dim);
-  font-size: 0.78rem;
-  max-width: 18rem;
-}
-.site-footer-logo {
+.videnscenter-logo-link:hover { opacity: 0.9; }
+.videnscenter-logo {
   display: block;
   width: auto;
-  max-width: 100%;
-  height: 2.25rem;
+  max-width: min(100%, 20rem);
+  height: auto;
 }
-.site-footer-logo--dark { display: none; }
+.videnscenter-logo--dark { display: none; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .site-footer-logo--light { display: none; }
-  :root:not([data-theme="light"]) .site-footer-logo--dark { display: block; }
+  :root:not([data-theme="light"]) .videnscenter-logo--light { display: none; }
+  :root:not([data-theme="light"]) .videnscenter-logo--dark { display: block; }
 }
-:root[data-theme="dark"] .site-footer-logo--light,
-:root[data-theme="dos"] .site-footer-logo--light { display: none; }
-:root[data-theme="dark"] .site-footer-logo--dark,
-:root[data-theme="dos"] .site-footer-logo--dark { display: block; }
-:root[data-theme="light"] .site-footer-logo--light { display: block; }
-:root[data-theme="light"] .site-footer-logo--dark { display: none; }
+:root[data-theme="dark"] .videnscenter-logo--light,
+:root[data-theme="dos"] .videnscenter-logo--light { display: none; }
+:root[data-theme="dark"] .videnscenter-logo--dark,
+:root[data-theme="dos"] .videnscenter-logo--dark { display: block; }
+:root[data-theme="light"] .videnscenter-logo--light { display: block; }
+:root[data-theme="light"] .videnscenter-logo--dark { display: none; }
 
 /* ─── Content meta & markdown ─── */
 .content-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.75rem 0 0; }
@@ -3243,7 +3397,8 @@ a:hover { color: var(--accent-bright); }
   .landing-hero-visual { order: -1; }
   .pathway-grid { grid-template-columns: 1fr; }
   .journey-steps { grid-template-columns: repeat(2, 1fr); }
-  .landing-features-grid { grid-template-columns: 1fr; }
+  .landing-features-grid,
+  .landing-features-grid--4 { grid-template-columns: repeat(2, 1fr); }
   .landing-stats-inner { grid-template-columns: repeat(2, 1fr); }
   .site-footer-inner { flex-direction: column; }
 }
@@ -3253,6 +3408,18 @@ a:hover { color: var(--accent-bright); }
     grid-template-columns: 1fr;
     justify-content: stretch;
   }
+  .site-header-brand { gap: 0.75rem; }
+  .site-header-brand--vc .videnscenter-branding {
+    padding-right: 0.75rem;
+    gap: 0.5rem 0.75rem;
+  }
+  .videnscenter-branding--header .videnscenter-logo--vat { max-height: 1.85rem; }
+  .videnscenter-branding--header .videnscenter-logo--portal { max-height: 1.35rem; }
+  .landing-vc-hero-logos.videnscenter-branding--hero .videnscenter-logo--vat { max-height: 2.75rem; }
+  .landing-vc-hero-logos.videnscenter-branding--hero .videnscenter-logo--portal { max-height: 2rem; }
+  .landing-features-grid,
+  .landing-features-grid--4 { grid-template-columns: 1fr; }
+  .site-footer-vat-bar-inner { flex-direction: column; align-items: flex-start; }
   .sidebar {
     position: static;
     height: auto;

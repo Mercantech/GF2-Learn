@@ -44,6 +44,8 @@ builder.Services.AddSingleton<ExerciseAiContextService>();
 builder.Services.AddSingleton<ICSharpFormatService, CSharpFormatService>();
 
 builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
+builder.Services.Configure<VidenscenterBrandingOptions>(
+    builder.Configuration.GetSection(VidenscenterBrandingOptions.SectionName));
 builder.Services.AddHttpClient<IExerciseAiService, ExerciseAiService>(client =>
 {
     client.BaseAddress = new Uri("https://api.openai.com/");

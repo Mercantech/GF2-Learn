@@ -1,10 +1,25 @@
 @using GF2Learn.Web.Auth
+@using GF2Learn.Web.Options
+@using Microsoft.Extensions.Options
 @inject NavigationManager Navigation
+@inject IOptions<VidenscenterBrandingOptions> VidenscenterBranding
 
 <footer class="site-footer">
+    @if (VidenscenterBranding.Value.Enabled)
+    {
+        <div class="site-footer-vat-bar">
+            <div class="site-footer-vat-bar-inner">
+                <p class="site-footer-vat-label">Udviklet med støtte fra</p>
+                <VidenscenterLogo Size="footer" ShowPortal="true" />
+            </div>
+        </div>
+    }
+
     <div class="site-footer-inner">
         <div class="site-footer-brand">
-            <span class="site-logo-text">GF2<span class="site-logo-accent">Learn</span></span>
+            <a href="/" class="site-footer-gf2">
+                <span class="site-logo-text">GF2<span class="site-logo-accent">Learn</span></span>
+            </a>
             <p>Læringsplatform til Grundforløb 2 programmering på Mercantec.</p>
         </div>
         <div class="site-footer-links">
@@ -21,23 +36,5 @@
             </div>
         </div>
     </div>
-
-    <div class="site-footer-partners">
-        <div class="site-footer-partner">
-            <a href="https://videnscenterportalen.dk/vat/" target="_blank" rel="noopener" title="Videnscenter for Automation og Teknologi">
-                <img src="images/partners/logo-vat-color.svg" alt="Videnscenter for Automation og Teknologi" class="site-footer-logo site-footer-logo--light" width="220" height="44" />
-                <img src="images/partners/logo-vat-white.svg" alt="Videnscenter for Automation og Teknologi" class="site-footer-logo site-footer-logo--dark" width="220" height="44" />
-            </a>
-            <p>Et udviklingsprojekt støttet af Videnscenter for Automation og Teknologi</p>
-        </div>
-        <div class="site-footer-partner">
-            <a href="https://videnscenterportalen.dk/" target="_blank" rel="noopener" title="Videnscenterportalen">
-                <img src="images/partners/logo-videnscenterportalen-dark.svg" alt="Videnscenterportalen" class="site-footer-logo site-footer-logo--light" width="180" height="36" />
-                <img src="images/partners/logo-videnscenterportalen.svg" alt="Videnscenterportalen" class="site-footer-logo site-footer-logo--dark" width="180" height="36" />
-            </a>
-            <p>En del af Videnscenterportalen</p>
-        </div>
-    </div>
-
     <p class="site-footer-copy">GF2 Data &amp; Kommunikation · C# og Git</p>
 </footer>
