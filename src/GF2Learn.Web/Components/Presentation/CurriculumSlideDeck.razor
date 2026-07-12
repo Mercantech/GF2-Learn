@@ -4,7 +4,7 @@
 @using Microsoft.Extensions.Options
 @inject IOptions<VidenscenterBrandingOptions> VcBranding
 
-<div class="slide-deck"
+<div class="slide-deck @(VcBranding.Value.Enabled ? "slide-deck--vc" : null)"
      data-slide-deck
      data-slide-count="@Slides.Count">
     <header class="slide-deck-toolbar">
@@ -65,6 +65,13 @@
                     <div class="slide-deck-slide-body">
                         <CurriculumSlideView Slide="slide" />
                     </div>
+
+                    @if (VcBranding.Value.Enabled)
+                    {
+                        <div class="slide-deck-slide-branding" aria-hidden="true">
+                            <VidenscenterLogo Size="deck" ShowPortal="false" />
+                        </div>
+                    }
                 </article>
             }
         </div>
@@ -78,13 +85,6 @@
             ›
         </button>
     </div>
-
-    @if (VcBranding.Value.Enabled)
-    {
-        <div class="slide-deck-branding" aria-hidden="true">
-            <VidenscenterLogo Size="footer" ShowPortal="false" />
-        </div>
-    }
 
     <footer class="slide-deck-footer">
         <div class="slide-deck-progress">
