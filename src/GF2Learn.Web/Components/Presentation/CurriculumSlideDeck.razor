@@ -51,6 +51,13 @@
                          data-slide-index="@i"
                          hidden="@(!isActive)"
                          @key="i">
+                    @if (VcBranding.Value.Enabled)
+                    {
+                        <div class="slide-deck-slide-branding">
+                            <VidenscenterLogo Size="deck" ShowPortal="false" />
+                        </div>
+                    }
+
                     @if (!string.IsNullOrWhiteSpace(slide.Title) && slide.Kind != CurriculumSlideKind.Title)
                     {
                         <header class="slide-deck-slide-header">
@@ -65,13 +72,6 @@
                     <div class="slide-deck-slide-body">
                         <CurriculumSlideView Slide="slide" />
                     </div>
-
-                    @if (VcBranding.Value.Enabled)
-                    {
-                        <div class="slide-deck-slide-branding" aria-hidden="true">
-                            <VidenscenterLogo Size="deck" ShowPortal="false" />
-                        </div>
-                    }
                 </article>
             }
         </div>

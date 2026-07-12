@@ -3724,19 +3724,31 @@ a:hover { color: var(--accent-bright); }
 
 .slide-deck-slide-branding {
   position: absolute;
-  right: 1rem;
-  bottom: 0.85rem;
-  z-index: 3;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  z-index: 20;
   pointer-events: auto;
-  opacity: 0.95;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--bg) 25%, transparent);
 }
 .slide-deck-slide-branding .videnscenter-branding {
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.25rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
 }
 .slide-deck-slide-branding .videnscenter-branding--deck .videnscenter-logo--vat {
-  max-height: 2.15rem;
+  max-height: 2.35rem;
+  width: auto;
+}
+.slide-deck-slide-branding .videnscenter-logo-link {
+  pointer-events: auto;
+}
+.slide-deck--vc .slide-deck-slide-branding {
+  border-color: var(--slide-vc-accent-border);
+  background: color-mix(in srgb, var(--surface) 94%, var(--slide-vc-accent-soft));
 }
 
 /* VC-tema på slide-præsentation */
@@ -3830,9 +3842,6 @@ a:hover { color: var(--accent-bright); }
 }
 .slide-deck--vc .slide-deck-overview-number {
   color: var(--slide-vc-accent);
-}
-.slide-deck--vc .slide-deck-slide-body {
-  padding-bottom: 3.25rem;
 }
 
 .slide-deck-footer {
@@ -3996,10 +4005,11 @@ a:hover { color: var(--accent-bright); }
     max-height: none;
   }
   .slide-deck-slide-branding {
-    right: 0.65rem;
-    bottom: 0.65rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    padding: 0.25rem 0.4rem;
   }
   .slide-deck-slide-branding .videnscenter-branding--deck .videnscenter-logo--vat {
-    max-height: 1.65rem;
+    max-height: 1.85rem;
   }
 }
