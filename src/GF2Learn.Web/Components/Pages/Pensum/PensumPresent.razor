@@ -40,7 +40,7 @@ else
     private IReadOnlyList<CurriculumSlide> _slides = [];
     private List<KnowledgeCheckAnswerDto> _savedAnswers = [];
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         _savedAnswers = [];
 
@@ -51,6 +51,12 @@ else
         }
 
         _slides = SlideBuilder.Build(Item);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Item is null)
+            return;
 
         var http = HttpContextAccessor.HttpContext;
         if (http?.User.Identity?.IsAuthenticated != true)
@@ -64,5 +70,7 @@ else
         _savedAnswers = (await ProgressScope.TryExecuteAsync(
             (svc, ct) => svc.GetAnswersAsync(userSub, Slug, ct),
             fallback: (IReadOnlyList<KnowledgeCheckAnswerDto>)[])).ToList();
+
+        StateHasChanged();
     }
 }
