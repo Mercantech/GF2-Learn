@@ -37,6 +37,7 @@ builder.Services.AddSingleton<ContentService>();
 builder.Services.AddSingleton<NavigationService>();
 builder.Services.AddSingleton<PlaygroundParser>();
 builder.Services.AddSingleton<RunnableCodeParser>();
+builder.Services.AddSingleton<CurriculumSlideBuilder>();
 builder.Services.AddSingleton<ProjectSolutionCatalog>();
 builder.Services.AddSingleton<KnowledgeCheckProgressScope>();
 builder.Services.AddSingleton<ExerciseProgressScope>();

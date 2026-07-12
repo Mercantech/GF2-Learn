@@ -3437,3 +3437,448 @@ a:hover { color: var(--accent-bright); }
   .theme-settings-heading p { max-width: none; text-align: left; }
   .theme-options { grid-template-columns: 1fr; }
 }
+
+/* ── Slide deck (PowerPoint-lignende præsentation) ── */
+.slide-deck-layout {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.slide-deck {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background:
+    radial-gradient(1200px 600px at 100% 0%, var(--accent-glow), transparent 55%),
+    radial-gradient(900px 500px at 0% 100%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%),
+    var(--bg);
+}
+
+.slide-deck-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 12;
+}
+
+.slide-deck-toolbar-start,
+.slide-deck-toolbar-end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.slide-deck-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.slide-deck-exit:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.slide-deck-chapter {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(40vw, 28rem);
+}
+
+.slide-deck-btn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.slide-deck-btn:hover,
+.slide-deck-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.slide-deck-stage {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0.75rem 0.5rem;
+  min-height: 0;
+}
+
+.slide-deck-nav {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  color: var(--text);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+}
+.slide-deck-nav:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+.slide-deck-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.slide-deck-slide {
+  position: relative;
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  max-height: calc(100dvh - 9rem);
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--text) 6%, transparent) inset,
+    0 24px 48px color-mix(in srgb, var(--bg) 35%, transparent);
+  overflow: hidden;
+}
+
+.slide-deck-slide-header {
+  padding: 1rem 1.5rem 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.slide-deck-slide-title {
+  margin: 0;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.slide-deck-slide-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.slide-deck-slide-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.slide-deck-slide--title .slide-deck-slide-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.slide-deck-slide--video .slide-deck-slide-body,
+.slide-deck-slide--quiz .slide-deck-slide-body,
+.slide-deck-slide--codeexample .slide-deck-slide-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.slide-title-content {
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+}
+.slide-main-title {
+  margin: 0 0 1rem;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.slide-intro {
+  margin: 0 auto 1.5rem;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  text-align: left;
+}
+.slide-goals {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--border);
+  background: var(--accent-glow);
+  text-align: left;
+}
+.slide-goals-heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.slide-goals-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.slide-video-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+}
+.slide-video-embed {
+  flex: 1;
+  min-height: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #000;
+}
+.slide-video-embed iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 16rem;
+  border: 0;
+}
+.slide-video-caption {
+  margin: 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.slide-quiz-content .knowledge-check {
+  margin: 0;
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+.slide-quiz-content .kc-heading {
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+.slide-quiz-content .kc-prompt {
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+}
+.slide-quiz-content .kc-options {
+  margin-top: 1rem;
+}
+
+.slide-body-content {
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+}
+.slide-body-content h2,
+.slide-body-content h3 {
+  margin-top: 0;
+}
+.slide-deck-slide--codeexample .curriculum-runnable-playground,
+.slide-deck-slide--codeexample .playground-shell {
+  flex: 1;
+  min-height: 14rem;
+}
+
+.slide-deck-branding {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 4.5rem;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0.92;
+}
+.slide-deck-branding .videnscenter-branding {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+.slide-deck-branding .videnscenter-branding--footer .videnscenter-logo--vat {
+  max-height: 2.5rem;
+}
+
+.slide-deck-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1.25rem 1rem;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  position: relative;
+  z-index: 12;
+}
+
+.slide-deck-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+.slide-deck-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: color-mix(in srgb, var(--text-muted) 35%, transparent);
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+.slide-deck-dot:hover {
+  transform: scale(1.15);
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.slide-deck-dot--active {
+  background: var(--accent);
+  transform: scale(1.2);
+}
+
+.slide-deck-counter {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.slide-deck-counter-current {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.slide-deck-overview {
+  position: absolute;
+  inset: 3.25rem 0 3.5rem;
+  z-index: 10;
+  padding: 1rem 1.25rem;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  overflow: auto;
+}
+.slide-deck-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.75rem;
+}
+.slide-deck-overview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.slide-deck-overview-item:hover,
+.slide-deck-overview-item--active {
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 12%, transparent);
+  transform: translateY(-1px);
+}
+.slide-deck-overview-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.slide-deck-overview-kind {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.slide-deck-overview-title {
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.slide-deck-missing {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.curriculum-present-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: border-color 0.15s, background 0.15s;
+}
+.curriculum-present-link:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.slide-deck:fullscreen {
+  background: var(--bg);
+}
+.slide-deck:fullscreen .slide-deck-slide {
+  max-height: calc(100dvh - 8rem);
+}
+
+@media (max-width: 900px) {
+  .slide-deck-toolbar-end .slide-deck-btn { padding-inline: 0.55rem; }
+  .slide-deck-exit-label { display: none; }
+  .slide-deck-stage {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 0.5rem;
+  }
+  .slide-deck-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    opacity: 0.85;
+  }
+  .slide-deck-nav--prev { left: 0.35rem; }
+  .slide-deck-nav--next { right: 0.35rem; }
+  .slide-deck-slide {
+    aspect-ratio: auto;
+    min-height: calc(100dvh - 10rem);
+    max-height: none;
+  }
+  .slide-deck-branding {
+    right: 0.75rem;
+    bottom: 4.25rem;
+  }
+  .slide-deck-branding .videnscenter-branding--footer .videnscenter-logo--vat {
+    max-height: 1.85rem;
+  }
+}

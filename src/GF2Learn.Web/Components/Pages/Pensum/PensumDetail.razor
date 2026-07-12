@@ -21,6 +21,10 @@ else
                 <p class="breadcrumb"><a href="/curriculum" data-enhance-nav="false">Curriculum</a> / @Item.Title</p>
                 <h1>@Item.Title</h1>
                 <ContentMeta Item="Item" />
+                <a href="/curriculum/@Slug/present" class="curriculum-present-link" data-enhance-nav="false">
+                    <span aria-hidden="true">▶</span>
+                    Præsenter som slides
+                </a>
             </header>
             <LearningGoals Item="Item" />
             <MarkdownContent @key="Slug" Item="Item" />

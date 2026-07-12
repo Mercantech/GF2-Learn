@@ -113,8 +113,27 @@
     progressEl.hidden = false;
 
     if (answered === total) {
-      markChapterCompleteInNav(section.dataset.contentSlug);
+      maybeMarkChapterComplete(section);
     }
+  }
+
+  function maybeMarkChapterComplete(section) {
+    var contentSlug = section.dataset.contentSlug;
+    if (!contentSlug) return;
+
+    if (section.classList.contains("knowledge-check--slide")) {
+      var totalQuestions = parseInt(section.dataset.totalQuestions, 10);
+      if (!totalQuestions) return;
+
+      loadAnswers(contentSlug).then(function (answers) {
+        if (answers.length >= totalQuestions) {
+          markChapterCompleteInNav(contentSlug);
+        }
+      });
+      return;
+    }
+
+    markChapterCompleteInNav(contentSlug);
   }
 
   function saveAnswer(contentSlug, questionIndex, selectedOriginalIndex, isCorrect) {
@@ -172,11 +191,7 @@
 
         saveAnswer(contentSlug, questionIndex, selectedOriginal, isCorrect).then(function (response) {
           if (response.ok) {
-            var total = section.querySelectorAll(".kc-question").length;
-            var answered = section.querySelectorAll(".kc-question.kc-answered").length;
-            if (total > 0 && answered === total) {
-              markChapterCompleteInNav(contentSlug);
-            }
+            maybeMarkChapterComplete(section);
             return;
           }
 

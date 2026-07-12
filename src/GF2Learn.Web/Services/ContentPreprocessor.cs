@@ -222,17 +222,67 @@ public sealed partial class ContentPreprocessor
         return pathMatch.Success ? pathMatch.Groups["id"].Value : null;
     }
 
-    private static string BuildKnowledgeCheck(string body, string? contentSlug)
+    public IReadOnlyList<(string Title, string YouTubeId)> ParseVideoList(string body) =>
+        body.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(ParseVideoLine)
+            .Where(video => video is not null)
+            .Select(video => video!.Value)
+            .ToList();
+
+    public IReadOnlyList<string> BuildKnowledgeCheckQuestionSlides(string body, string? contentSlug)
     {
-        var blocks = body.Split("---", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var sb = new StringBuilder();
+        var questions = ParseKnowledgeCheckQuestions(body);
+        if (questions.Count == 0)
+            return [];
+
         var slugAttr = string.IsNullOrWhiteSpace(contentSlug)
             ? string.Empty
             : $" data-content-slug=\"{WebUtility.HtmlEncode(contentSlug)}\"";
+        var total = questions.Count;
+
+        return questions.Select((parsed, index) =>
+        {
+            var sb = new StringBuilder();
+            sb.Append($"<section class=\"knowledge-check knowledge-check--slide\"{slugAttr} data-total-questions=\"{total}\">");
+            sb.Append("<h2 class=\"kc-heading\">Test din viden</h2>");
+            sb.Append($"<p class=\"kc-progress\">Spørgsmål {index + 1} af {total}</p>");
+            sb.Append(RenderKnowledgeCheckQuestionHtml(parsed, index));
+            sb.Append("</section>");
+            return sb.ToString();
+        }).ToList();
+    }
+
+    private static string BuildKnowledgeCheck(string body, string? contentSlug)
+    {
+        var questions = ParseKnowledgeCheckQuestions(body);
+        if (questions.Count == 0)
+            return string.Empty;
+
+        var slugAttr = string.IsNullOrWhiteSpace(contentSlug)
+            ? string.Empty
+            : $" data-content-slug=\"{WebUtility.HtmlEncode(contentSlug)}\"";
+        var sb = new StringBuilder();
         sb.Append($"<section class=\"knowledge-check\"{slugAttr}><h2 class=\"kc-heading\">Test din viden</h2>");
         sb.Append("<p class=\"kc-progress\" hidden></p>");
 
-        var questionNumber = 0;
+        for (var i = 0; i < questions.Count; i++)
+            sb.Append(RenderKnowledgeCheckQuestionHtml(questions[i], i));
+
+        sb.Append("</section>\n\n");
+        return sb.ToString();
+    }
+
+    private sealed record KnowledgeCheckQuestion(
+        string Question,
+        IReadOnlyList<string> Options,
+        int CorrectIndex,
+        string Explanation);
+
+    private static List<KnowledgeCheckQuestion> ParseKnowledgeCheckQuestions(string body)
+    {
+        var blocks = body.Split("---", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var questions = new List<KnowledgeCheckQuestion>();
+
         foreach (var block in blocks)
         {
             var lines = block.Split('\n', StringSplitOptions.TrimEntries);
@@ -276,23 +326,30 @@ public sealed partial class ContentPreprocessor
             if (correct < 0 || correct >= options.Count)
                 continue;
 
-            questionNumber++;
-            var questionIndex = questionNumber - 1;
-            sb.Append($"<div class=\"kc-question\" data-correct=\"{correct.Value}\" data-question-index=\"{questionIndex}\">");
-            sb.Append($"<p class=\"kc-number\">Spørgsmål {questionNumber}</p>");
-            sb.Append($"<div class=\"kc-prompt\">{RenderInlineMarkdown(question)}</div>");
-            sb.Append("<ul class=\"kc-options\">");
-            for (var i = 0; i < options.Count; i++)
-                sb.Append($"<li><button type=\"button\" class=\"kc-option\" data-original-index=\"{i}\">{RenderInlineMarkdown(options[i])}</button></li>");
-            sb.Append("</ul>");
-            var explanation = string.Join("\n", explainLines);
-            sb.Append("<div class=\"kc-feedback\" hidden>");
-            sb.Append("<p class=\"kc-verdict\"></p>");
-            sb.Append($"<div class=\"kc-explanation\">{RenderInlineMarkdown(explanation)}</div>");
-            sb.Append("</div></div>");
+            questions.Add(new KnowledgeCheckQuestion(
+                question,
+                options,
+                correct.Value,
+                string.Join("\n", explainLines)));
         }
 
-        sb.Append("</section>\n\n");
+        return questions;
+    }
+
+    private static string RenderKnowledgeCheckQuestionHtml(KnowledgeCheckQuestion parsed, int questionIndex)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"<div class=\"kc-question\" data-correct=\"{parsed.CorrectIndex}\" data-question-index=\"{questionIndex}\">");
+        sb.Append($"<p class=\"kc-number\">Spørgsmål {questionIndex + 1}</p>");
+        sb.Append($"<div class=\"kc-prompt\">{RenderInlineMarkdown(parsed.Question)}</div>");
+        sb.Append("<ul class=\"kc-options\">");
+        for (var i = 0; i < parsed.Options.Count; i++)
+            sb.Append($"<li><button type=\"button\" class=\"kc-option\" data-original-index=\"{i}\">{RenderInlineMarkdown(parsed.Options[i])}</button></li>");
+        sb.Append("</ul>");
+        sb.Append("<div class=\"kc-feedback\" hidden>");
+        sb.Append("<p class=\"kc-verdict\"></p>");
+        sb.Append($"<div class=\"kc-explanation\">{RenderInlineMarkdown(parsed.Explanation)}</div>");
+        sb.Append("</div></div>");
         return sb.ToString();
     }
 }

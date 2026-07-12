@@ -15,8 +15,6 @@
     var prefix = curriculumPrefix();
     return pathname === prefix || pathname.startsWith(prefix + "/");
   }
-
-  /** Pensum bruger WASM + Monaco — fuld sideindlæsning er mere pålidelig end enhanced navigation. */
   function forceFullLoadForCurriculumLinks() {
     document.addEventListener(
       "click",

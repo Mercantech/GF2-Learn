@@ -1,0 +1,68 @@
+@page "/curriculum/{Slug}/present"
+@layout SlideDeckLayout
+@using System.Security.Claims
+@using GF2Learn.Web.Models
+@using GF2Learn.Web.Services
+@inject ContentService Content
+@inject CurriculumSlideBuilder SlideBuilder
+@inject IHttpContextAccessor HttpContextAccessor
+@inject KnowledgeCheckProgressScope ProgressScope
+
+<PageTitle>@(Item?.Title ?? "Præsentation") — GF2 Learn</PageTitle>
+
+@if (Item is null)
+{
+    <div class="slide-deck-missing">
+        <p>Emnet blev ikke fundet.</p>
+        <a href="/curriculum" data-enhance-nav="false">Tilbage til curriculum</a>
+    </div>
+}
+else if (_slides.Count == 0)
+{
+    <div class="slide-deck-missing">
+        <p>Der er intet indhold at præsentere for dette emne.</p>
+        <a href="@Item.Href" data-enhance-nav="false">Tilbage til @Item.Title</a>
+    </div>
+}
+else
+{
+    <CurriculumSlideDeck Slides="_slides"
+                         ChapterTitle="@Item.Title"
+                         ContentSlug="@Slug"
+                         ExitHref="@Item.Href"
+                         SavedAnswers="_savedAnswers" />
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private ContentItem? Item => Content.GetCurriculum(Slug);
+    private IReadOnlyList<CurriculumSlide> _slides = [];
+    private List<KnowledgeCheckAnswerDto> _savedAnswers = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _savedAnswers = [];
+
+        if (Item is null)
+        {
+            _slides = [];
+            return;
+        }
+
+        _slides = SlideBuilder.Build(Item);
+
+        var http = HttpContextAccessor.HttpContext;
+        if (http?.User.Identity?.IsAuthenticated != true)
+            return;
+
+        var userSub = http.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? http.User.FindFirstValue("sub");
+        if (userSub is null)
+            return;
+
+        _savedAnswers = (await ProgressScope.TryExecuteAsync(
+            (svc, ct) => svc.GetAnswersAsync(userSub, Slug, ct),
+            fallback: (IReadOnlyList<KnowledgeCheckAnswerDto>)[])).ToList();
+    }
+}

@@ -1,0 +1,286 @@
+@using System.Text.Json
+@using GF2Learn.Web.Models
+@using GF2Learn.Web.Options
+@using Microsoft.Extensions.Options
+@implements IAsyncDisposable
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject IJSRuntime Js
+@inject IOptions<VidenscenterBrandingOptions> VcBranding
+
+<div class="slide-deck @(_overviewOpen ? "slide-deck--overview-open" : null)"
+     @ref="_deckRef">
+    <header class="slide-deck-toolbar">
+        <div class="slide-deck-toolbar-start">
+            <a href="@ExitHref" class="slide-deck-exit" title="Afslut præsentation (Esc)">
+                <span aria-hidden="true">✕</span>
+                <span class="slide-deck-exit-label">Afslut</span>
+            </a>
+            <span class="slide-deck-chapter">@ChapterTitle</span>
+        </div>
+        <div class="slide-deck-toolbar-end">
+            <button type="button"
+                    class="slide-deck-btn"
+                    title="Overblik (G)"
+                    aria-pressed="@_overviewOpen"
+                    @onclick="ToggleOverview">
+                Overblik
+            </button>
+            <button type="button"
+                    class="slide-deck-btn"
+                    title="Fuldskærm (F)"
+                    @onclick="ToggleFullscreen">
+                Fuldskærm
+            </button>
+        </div>
+    </header>
+
+    <div class="slide-deck-stage">
+        <button type="button"
+                class="slide-deck-nav slide-deck-nav--prev"
+                title="Forrige (←)"
+                disabled="@(_currentIndex == 0)"
+                @onclick="PreviousSlide"
+                aria-label="Forrige slide">
+            ‹
+        </button>
+
+        <article class="slide-deck-slide slide-deck-slide--@CurrentSlide.Kind.ToString().ToLowerInvariant()"
+                 @ref="_slideRef">
+            @if (!string.IsNullOrWhiteSpace(CurrentSlide.Title) && CurrentSlide.Kind != CurriculumSlideKind.Title)
+            {
+                <header class="slide-deck-slide-header">
+                    <h2 class="slide-deck-slide-title">@CurrentSlide.Title</h2>
+                    @if (!string.IsNullOrWhiteSpace(CurrentSlide.Subtitle) && CurrentSlide.Kind != CurriculumSlideKind.Video)
+                    {
+                        <p class="slide-deck-slide-subtitle">@CurrentSlide.Subtitle</p>
+                    }
+                </header>
+            }
+
+            <div class="slide-deck-slide-body">
+                <CurriculumSlideView Slide="CurrentSlide" />
+            </div>
+        </article>
+
+        <button type="button"
+                class="slide-deck-nav slide-deck-nav--next"
+                title="Næste (→)"
+                disabled="@(_currentIndex >= Slides.Count - 1)"
+                @onclick="NextSlide"
+                aria-label="Næste slide">
+            ›
+        </button>
+    </div>
+
+    @if (VcBranding.Value.Enabled)
+    {
+        <div class="slide-deck-branding" aria-hidden="true">
+            <VidenscenterLogo Size="footer" ShowPortal="false" />
+        </div>
+    }
+
+    <footer class="slide-deck-footer">
+        <div class="slide-deck-progress">
+            @for (var i = 0; i < Slides.Count; i++)
+            {
+                var index = i;
+                <button type="button"
+                        class="slide-deck-dot @(_currentIndex == index ? "slide-deck-dot--active" : null)"
+                        title="@Slides[index].Title — slide @(index + 1)"
+                        aria-label="Gå til slide @(index + 1)"
+                        aria-current="@(_currentIndex == index ? "step" : null)"
+                        @onclick="() => GoToSlide(index)">
+                </button>
+            }
+        </div>
+        <p class="slide-deck-counter">
+            <span class="slide-deck-counter-current">@(_currentIndex + 1)</span>
+            <span class="slide-deck-counter-sep">/</span>
+            <span class="slide-deck-counter-total">@Slides.Count</span>
+        </p>
+    </footer>
+
+    @if (_overviewOpen)
+    {
+        <aside class="slide-deck-overview" aria-label="Slide-overblik">
+            <div class="slide-deck-overview-grid">
+                @for (var i = 0; i < Slides.Count; i++)
+                {
+                    var index = i;
+                    var slide = Slides[index];
+                    <button type="button"
+                            class="slide-deck-overview-item @(_currentIndex == index ? "slide-deck-overview-item--active" : null)"
+                            @onclick="() => GoToSlide(index)">
+                        <span class="slide-deck-overview-number">@(index + 1)</span>
+                        <span class="slide-deck-overview-kind">@KindLabel(slide.Kind)</span>
+                        <strong class="slide-deck-overview-title">@OverviewTitle(slide)</strong>
+                    </button>
+                }
+            </div>
+        </aside>
+    }
+
+    @if (_savedAnswers.Count > 0)
+    {
+        <script type="application/json" id="kc-bootstrap-@ContentSlug">@JsonSerializer.Serialize(_savedAnswers, JsonOptions)</script>
+    }
+</div>
+
+@code {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    [Parameter, EditorRequired] public IReadOnlyList<CurriculumSlide> Slides { get; set; } = [];
+    [Parameter, EditorRequired] public string ChapterTitle { get; set; } = "";
+    [Parameter, EditorRequired] public string ContentSlug { get; set; } = "";
+    [Parameter, EditorRequired] public string ExitHref { get; set; } = "";
+
+    [Parameter] public IReadOnlyList<KnowledgeCheckAnswerDto> SavedAnswers { get; set; } = [];
+
+    private ElementReference _deckRef;
+    private ElementReference _slideRef;
+    private DotNetObjectReference<CurriculumSlideDeck>? _dotNetRef;
+    private int _currentIndex;
+    private bool _overviewOpen;
+    private List<KnowledgeCheckAnswerDto> _savedAnswers = [];
+    private bool _initialized;
+
+    private CurriculumSlide CurrentSlide => Slides[_currentIndex];
+
+    protected override void OnParametersSet()
+    {
+        _savedAnswers = SavedAnswers.ToList();
+        if (_currentIndex >= Slides.Count)
+            _currentIndex = Math.Max(0, Slides.Count - 1);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await Js.InvokeVoidAsync("gf2SlideDeck.init", _deckRef, _dotNetRef);
+                _initialized = true;
+            }
+            catch (JSException)
+            {
+                // JS not ready yet — keyboard nav activates on next render
+            }
+        }
+
+        if (_initialized)
+        {
+            try
+            {
+                await Js.InvokeVoidAsync("gf2SlideDeck.onSlideChanged", _slideRef);
+            }
+            catch (JSException)
+            {
+            }
+        }
+    }
+
+    [JSInvokable]
+    public Task NextSlide()
+    {
+        if (_currentIndex < Slides.Count - 1)
+        {
+            _currentIndex++;
+            _overviewOpen = false;
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task PreviousSlide()
+    {
+        if (_currentIndex > 0)
+        {
+            _currentIndex--;
+            _overviewOpen = false;
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task GoToSlide(int index)
+    {
+        if (index >= 0 && index < Slides.Count)
+        {
+            _currentIndex = index;
+            _overviewOpen = false;
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task GoToLastSlide()
+    {
+        if (Slides.Count > 0)
+        {
+            _currentIndex = Slides.Count - 1;
+            _overviewOpen = false;
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task ToggleOverviewFromJs()
+    {
+        _overviewOpen = !_overviewOpen;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private void ToggleOverview() => _overviewOpen = !_overviewOpen;
+
+    private async Task ToggleFullscreen() =>
+        await Js.InvokeVoidAsync("gf2SlideDeck.toggleFullscreen", _deckRef);
+
+    private static string KindLabel(CurriculumSlideKind kind) => kind switch
+    {
+        CurriculumSlideKind.Title => "Titel",
+        CurriculumSlideKind.Content => "Indhold",
+        CurriculumSlideKind.CodeExample => "Kode",
+        CurriculumSlideKind.Video => "Video",
+        CurriculumSlideKind.Quiz => "Quiz",
+        _ => "Slide"
+    };
+
+    private static string OverviewTitle(CurriculumSlide slide) => slide.Kind switch
+    {
+        CurriculumSlideKind.Title => slide.Title,
+        CurriculumSlideKind.Video => slide.VideoTitle ?? slide.Title,
+        CurriculumSlideKind.Quiz => $"{slide.Title} — {slide.Subtitle}",
+        CurriculumSlideKind.CodeExample => $"{slide.Title} — {slide.Subtitle ?? "Kode"}",
+        _ => string.IsNullOrWhiteSpace(slide.Subtitle) ? slide.Title : $"{slide.Title}: {slide.Subtitle}",
+    };
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_dotNetRef is not null)
+        {
+            try
+            {
+                await Js.InvokeVoidAsync("gf2SlideDeck.dispose");
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+
+            _dotNetRef.Dispose();
+        }
+    }
+}

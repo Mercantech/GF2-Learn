@@ -1,0 +1,74 @@
+@using GF2Learn.Web.Models
+
+@if (Slide.Kind == CurriculumSlideKind.Title)
+{
+    <div class="slide-title-content">
+        <h1 class="slide-main-title">@Slide.Title</h1>
+        @if (!string.IsNullOrWhiteSpace(Slide.Subtitle))
+        {
+            <div class="slide-intro markdown-body">@((MarkupString)IntroHtml)</div>
+        }
+        @if (Slide.LearningGoals.Count > 0)
+        {
+            <section class="slide-goals">
+                <h2 class="slide-goals-heading">Læringsmål</h2>
+                <ul class="slide-goals-list">
+                    @foreach (var goal in Slide.LearningGoals)
+                    {
+                        <li>@goal</li>
+                    }
+                </ul>
+            </section>
+        }
+    </div>
+}
+else if (Slide.Kind == CurriculumSlideKind.Video && !string.IsNullOrWhiteSpace(Slide.YoutubeId))
+{
+    <div class="slide-video-content">
+        <div class="slide-video-embed">
+            <iframe src="@($"https://www.youtube.com/embed/{Slide.YoutubeId}")"
+                    title="@(Slide.VideoTitle ?? "Video")"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                    loading="lazy"></iframe>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Slide.VideoTitle))
+        {
+            <p class="slide-video-caption">@Slide.VideoTitle</p>
+        }
+    </div>
+}
+else if (Slide.Kind == CurriculumSlideKind.Quiz && !string.IsNullOrWhiteSpace(Slide.QuizHtml))
+{
+    <div class="slide-quiz-content curriculum-content">
+        @((MarkupString)Slide.QuizHtml)
+    </div>
+}
+else
+{
+    <div class="slide-body-content markdown-body curriculum-content">
+        @for (var i = 0; i < Slide.Segments.Count; i++)
+        {
+            var segment = Slide.Segments[i];
+            if (segment.IsRunnableSnippet && segment.RunnableSnippet is not null)
+            {
+                <RunnableCodeSnippet @key="@($"slide-run-{i}")"
+                                     Code="@segment.RunnableSnippet.Code" />
+            }
+            else if (!string.IsNullOrWhiteSpace(segment.Html))
+            {
+                @((MarkupString)segment.Html)
+            }
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public CurriculumSlide Slide { get; set; } = default!;
+
+    [Inject] private MarkdownService Markdown { get; set; } = default!;
+
+    private string IntroHtml => string.IsNullOrWhiteSpace(Slide.Subtitle)
+        ? string.Empty
+        : Markdown.ToHtml(Slide.Subtitle, null);
+}
