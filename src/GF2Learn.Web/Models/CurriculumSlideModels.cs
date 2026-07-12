@@ -19,4 +19,5 @@ public sealed class CurriculumSlide
     public string? VideoTitle { get; init; }
     public string? QuizHtml { get; init; }
     public IReadOnlyList<string> LearningGoals { get; init; } = [];
+    public bool IsCompact { get; init; }
 }

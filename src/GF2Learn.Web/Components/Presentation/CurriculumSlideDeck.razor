@@ -43,21 +43,23 @@
         </button>
 
         <div class="slide-deck-slides">
+            @if (VcBranding.Value.Enabled)
+            {
+                <div class="slide-deck-frame-branding">
+                    <div class="slide-deck-frame-branding-inner">
+                        <SlideVcLogo />
+                    </div>
+                </div>
+            }
+
             @for (var i = 0; i < Slides.Count; i++)
             {
                 var slide = Slides[i];
                 var isActive = i == 0;
-                <article class="slide-deck-slide slide-deck-slide-panel @(isActive ? "slide-deck-slide-panel--active" : null) slide-deck-slide--@slide.Kind.ToString().ToLowerInvariant()"
+                <article class="slide-deck-slide slide-deck-slide-panel @(isActive ? "slide-deck-slide-panel--active" : null) @(slide.IsCompact ? "slide-deck-slide--compact" : null) slide-deck-slide--@slide.Kind.ToString().ToLowerInvariant()"
                          data-slide-index="@i"
                          hidden="@(!isActive)"
                          @key="i">
-                    @if (VcBranding.Value.Enabled)
-                    {
-                        <div class="slide-deck-slide-branding">
-                            <VidenscenterLogo Size="deck" ShowPortal="false" />
-                        </div>
-                    }
-
                     @if (!string.IsNullOrWhiteSpace(slide.Title) && slide.Kind != CurriculumSlideKind.Title)
                     {
                         <header class="slide-deck-slide-header">

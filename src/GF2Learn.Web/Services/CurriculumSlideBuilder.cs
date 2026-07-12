@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.RegularExpressions;
 using GF2Learn.Web.Models;
 
@@ -41,7 +42,8 @@ public sealed partial class CurriculumSlideBuilder
             Kind = CurriculumSlideKind.Title,
             Title = item.Title,
             Subtitle = intro,
-            LearningGoals = item.Kompetencemaal
+            LearningGoals = item.Kompetencemaal,
+            IsCompact = item.Kompetencemaal.Count == 0 && (intro?.Length ?? 0) <= 180
         });
 
         if (!string.IsNullOrWhiteSpace(item.YoutubeId))
@@ -248,14 +250,41 @@ public sealed partial class CurriculumSlideBuilder
     private static CurriculumSlide CreateContentSlide(
         string sectionTitle,
         string? subtitle,
-        IReadOnlyList<ContentSegment> segments) =>
-        new()
+        IReadOnlyList<ContentSegment> segments)
+    {
+        var html = string.Concat(segments.Select(s => s.Html ?? string.Empty));
+        return new CurriculumSlide
         {
             Kind = CurriculumSlideKind.Content,
             Title = sectionTitle,
             Subtitle = subtitle,
-            Segments = segments
+            Segments = segments,
+            IsCompact = IsCompactContent(html, segments)
         };
+    }
+
+    private static bool IsCompactContent(string html, IReadOnlyList<ContentSegment> segments)
+    {
+        if (segments.Any(s => s.IsRunnableSnippet))
+            return false;
+
+        if (html.Contains("<pre", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (html.Contains("<table", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (Regex.Matches(html, "<li\\b", RegexOptions.IgnoreCase).Count > 4)
+            return false;
+
+        var text = StripHtml(html);
+        return text.Length <= 340;
+    }
+
+    private static string StripHtml(string html) =>
+        WebUtility.HtmlDecode(Regex.Replace(html, "<[^>]+>", " "))
+            .Replace('\u00a0', ' ')
+            .Trim();
 
     private IReadOnlyList<ContentSegment> HighlightSegments(IReadOnlyList<ContentSegment> segments) =>
         segments.Select(segment =>

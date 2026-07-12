@@ -1,0 +1,31 @@
+@inject IConfiguration Configuration
+
+<a href="https://videnscenterportalen.dk/vat/"
+   class="slide-vc-logo"
+   style="@StyleAttribute"
+   target="_blank"
+   rel="noopener"
+   title="Videnscenter for Automation og Teknologi"
+   aria-label="Videnscenter for Automation og Teknologi">
+</a>
+
+@code {
+    private string PathPrefix
+    {
+        get
+        {
+            var pathBase = Configuration["PathBase"] ?? "";
+            if (string.IsNullOrWhiteSpace(pathBase))
+                return string.Empty;
+
+            if (!pathBase.StartsWith('/'))
+                pathBase = "/" + pathBase;
+
+            return pathBase.TrimEnd('/');
+        }
+    }
+
+    private string StyleAttribute =>
+        $"--slide-vc-logo-light: url('{PathPrefix}/images/partners/logo-vat-color.svg'); " +
+        $"--slide-vc-logo-dark: url('{PathPrefix}/images/partners/logo-vat-white.svg');";
+}
