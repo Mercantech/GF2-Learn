@@ -213,19 +213,7 @@ public static class PlaygroundSourceBuilder
                 private static readonly string[] __stdin = {{stdinInit}};
                 private static int __stdinIdx;
 
-                private static void __Emit(object? value) =>
-                    __sb.Append(__Str(value));
-
-                private static void __Emit(string format, params object?[] args) =>
-                    __sb.Append(args.Length == 0 ? format : __Format(format, args));
-
-                private static void __EmitLine() => __sb.AppendLine();
-
-                private static void __EmitLine(object? value) =>
-                    __sb.AppendLine(__Str(value));
-
-                private static void __EmitLine(string format, params object?[] args) =>
-                    __sb.AppendLine(args.Length == 0 ? format : __Format(format, args));
+            {{ConsoleEmitMethods(useInteractiveStdin)}}
 
             {{PlaygroundRuntimeHelpers.Source}}
 
@@ -286,19 +274,7 @@ public static class PlaygroundSourceBuilder
                 private static readonly string[] __stdin = {{stdinInit}};
                 private static int __stdinIdx;
 
-                private static void __Emit(object? value) =>
-                    __sb.Append(__Str(value));
-
-                private static void __Emit(string format, params object?[] args) =>
-                    __sb.Append(args.Length == 0 ? format : __Format(format, args));
-
-                private static void __EmitLine() => __sb.AppendLine();
-
-                private static void __EmitLine(object? value) =>
-                    __sb.AppendLine(__Str(value));
-
-                private static void __EmitLine(string format, params object?[] args) =>
-                    __sb.AppendLine(args.Length == 0 ? format : __Format(format, args));
+            {{ConsoleEmitMethods(useInteractiveStdin)}}
 
             {{PlaygroundRuntimeHelpers.Source}}
 
@@ -345,8 +321,71 @@ public static class PlaygroundSourceBuilder
                 public static Func<string?>? Provider;
                 public static string ReadLine() => Provider?.Invoke() ?? string.Empty;
             }
+
+            public static class __StdoutHook
+            {
+                public static Action<string>? OnWrite;
+                public static Action<string>? OnWriteLine;
+
+                public static void Write(string text) => OnWrite?.Invoke(text);
+
+                public static void WriteLine(string text) => OnWriteLine?.Invoke(text);
+            }
             """
             : string.Empty;
+
+    private static string ConsoleEmitMethods(bool useInteractiveStdout) =>
+        useInteractiveStdout
+            ? """
+                private static void __Emit(object? value)
+                {
+                    var text = __Str(value);
+                    __sb.Append(text);
+                    __StdoutHook.Write(text);
+                }
+
+                private static void __Emit(string format, params object?[] args)
+                {
+                    var text = args.Length == 0 ? format : __Format(format, args);
+                    __sb.Append(text);
+                    __StdoutHook.Write(text);
+                }
+
+                private static void __EmitLine()
+                {
+                    __sb.AppendLine();
+                    __StdoutHook.WriteLine(string.Empty);
+                }
+
+                private static void __EmitLine(object? value)
+                {
+                    var text = __Str(value);
+                    __sb.AppendLine(text);
+                    __StdoutHook.WriteLine(text);
+                }
+
+                private static void __EmitLine(string format, params object?[] args)
+                {
+                    var text = args.Length == 0 ? format : __Format(format, args);
+                    __sb.AppendLine(text);
+                    __StdoutHook.WriteLine(text);
+                }
+            """
+            : """
+                private static void __Emit(object? value) =>
+                    __sb.Append(__Str(value));
+
+                private static void __Emit(string format, params object?[] args) =>
+                    __sb.Append(args.Length == 0 ? format : __Format(format, args));
+
+                private static void __EmitLine() => __sb.AppendLine();
+
+                private static void __EmitLine(object? value) =>
+                    __sb.AppendLine(__Str(value));
+
+                private static void __EmitLine(string format, params object?[] args) =>
+                    __sb.AppendLine(args.Length == 0 ? format : __Format(format, args));
+            """;
 
     /// <summary>
     /// Strips playground directives and returns setup lines plus the visible snippet body.

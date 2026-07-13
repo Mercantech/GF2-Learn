@@ -1,6 +1,4 @@
-@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
-@using GF2Learn.Web.Client.Components.ProjectDemos.Extended
-@using GF2Learn.Web.Client.Components.ProjectDemos.Mvp
+@using GF2Learn.Web.Client.Components.ProjectDemos
 
 @if (!string.IsNullOrWhiteSpace(ConsoleCode))
 {
@@ -9,39 +7,28 @@
         <div class="project-solution-console-intro">
             <p class="project-solution-note">
                 Her kører I <strong>reference-løsningen</strong> som en færdig konsol-app (<code>.exe</code>) i browseren —
-                samme adfærd som i Visual Studio-terminalen, men <strong>uden at se C#-koden</strong>.
+                uden at se C#-koden. Programmet venter ved hvert <code>ReadLine()</code>, præcis som i Visual Studio-terminalen.
             </p>
             <ul class="project-solution-console-steps">
-                <li><strong>Terminalvinduet</strong> nedenfor viser output fra <code>Console.WriteLine</code> / <code>Write</code>.</li>
-                <li><strong>Simuleret tastatur</strong> er det, brugeren «taster». Hvert felt = ét <code>ReadLine()</code>; <code>valg</code>, <code>firma</code> osv. er variabelnavnene i jeres kode.</li>
-                <li>Ændr værdierne og tryk <strong>Kør igen</strong> for at prøve andre menuvalg.</li>
+                <li>Tryk <strong>Start program</strong> — terminalen viser output fra <code>Console.WriteLine</code>.</li>
+                <li>Når programmet beder om input, skriver du <strong>ét svar ad gangen</strong> i feltet nederst og trykker Enter.</li>
+                <li>Fortsæt til programmet er færdigt — prøv menuvalg, gæt, sten/saks/papir osv.</li>
             </ul>
             @if (!string.IsNullOrWhiteSpace(ConsoleScenarioHint))
             {
-                <p class="project-solution-scenario"><strong>Denne demo:</strong> @ConsoleScenarioHint</p>
+                <p class="project-solution-scenario"><strong>Forslag til flow:</strong> @ConsoleScenarioHint</p>
             }
             <p class="project-solution-note-muted">
-                Til aflevering laver I jeres <strong>eget</strong> konsolprojekt i GitHub (menu, validering, README med skærmbillede) — brug demoen som inspiration til flow, ikke som copy-paste.
+                Første start kan tage et øjeblik (C#-runtime indlæses i browseren). Til aflevering laver I jeres eget konsolprojekt i GitHub.
             </p>
         </div>
-        <ConsoleProgramRunner Code="@ConsoleCode" WindowTitle="@ConsoleWindowTitle" />
+        <InteractiveConsoleProgramRunner Code="@ConsoleCode" WindowTitle="@ConsoleWindowTitle" />
     </section>
 }
 
-@if (ShowMvp)
+@if (ShowMvp || ShowExtended)
 {
-    <section class="project-solution-section">
-        <h2 class="project-solution-heading">Blazor — grunddemo (MVP)</h2>
-        @RenderMvp()
-    </section>
-}
-
-@if (ShowExtended)
-{
-    <section class="project-solution-section">
-        <h2 class="project-solution-heading">Blazor — udvidet reference</h2>
-        @RenderExtended()
-    </section>
+    <ProjectSolutionBlazorDemos Slug="@Slug" ShowMvp="ShowMvp" ShowExtended="ShowExtended" />
 }
 
 @code {
@@ -64,31 +51,9 @@
     private string? ConsoleScenarioHint => Slug switch
     {
         "projekt-jobsoegning" =>
-            "Vis listen (menu 2) → tilføj NovaTech-stilling (1 + firma/titel/status) → vis listen igen (2) → afslut (3).",
+            "2 (vis) → 1 (tilføj) → firma/titel/status → 2 → 3 (afslut).",
         "projekt-1-hjemmespil" =>
-            "Hovedmenu → gæt tal (50, 75, 62) → sten/saks/papir (2 runder) → tic-tac-toe (4 træk) → afslut.",
+            "1 (gæt tal) → 50 → 75 → 62 → 2 (RPS) → sten → j → papir → n → 3 (Tic-Tac-Toe) → 5, 1, 9, 3 → 4 (afslut).",
         _ => null
-    };
-
-    private RenderFragment RenderMvp() => Slug switch
-    {
-        "projekt-1-hjemmespil" => builder => { builder.OpenComponent<HjemmespilMvpDemo>(0); builder.CloseComponent(); },
-        "projekt-huskeliste" => builder => { builder.OpenComponent<HuskelisteMvpDemo>(0); builder.CloseComponent(); },
-        "projekt-jobsoegning" => builder => { builder.OpenComponent<JobsoegningMvpDemo>(0); builder.CloseComponent(); },
-        "projekt-2-binaer" => builder => { builder.OpenComponent<BinaerMvpDemo>(0); builder.CloseComponent(); },
-        "projekt-bibliotek" => builder => { builder.OpenComponent<BibliotekMvpDemo>(0); builder.CloseComponent(); },
-        "projekt-log-parser" => builder => { builder.OpenComponent<LogParserMvpDemo>(0); builder.CloseComponent(); },
-        _ => builder => { builder.AddContent(0, "Ingen grunddemo for dette projekt."); }
-    };
-
-    private RenderFragment RenderExtended() => Slug switch
-    {
-        "projekt-1-hjemmespil" => builder => { builder.OpenComponent<HjemmespilExtendedDemo>(0); builder.CloseComponent(); },
-        "projekt-huskeliste" => builder => { builder.OpenComponent<HuskelisteExtendedDemo>(0); builder.CloseComponent(); },
-        "projekt-jobsoegning" => builder => { builder.OpenComponent<JobsoegningExtendedDemo>(0); builder.CloseComponent(); },
-        "projekt-2-binaer" => builder => { builder.OpenComponent<BinaerExtendedDemo>(0); builder.CloseComponent(); },
-        "projekt-bibliotek" => builder => { builder.OpenComponent<BibliotekExtendedDemo>(0); builder.CloseComponent(); },
-        "projekt-log-parser" => builder => { builder.OpenComponent<LogParserExtendedDemo>(0); builder.CloseComponent(); },
-        _ => builder => { builder.AddContent(0, "Ingen udvidet demo for dette projekt."); }
     };
 }

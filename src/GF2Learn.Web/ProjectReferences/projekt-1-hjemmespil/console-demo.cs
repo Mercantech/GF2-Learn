@@ -1,19 +1,4 @@
 // gf2-setup: var random = new Random(7);
-// gf2-input: valg: 1
-// gf2-input: gæt: 50
-// gf2-input: gæt: 75
-// gf2-input: gæt: 62
-// gf2-input: valg: 2
-// gf2-input: rpsValg: sten
-// gf2-input: igen: j
-// gf2-input: rpsValg: papir
-// gf2-input: igen: n
-// gf2-input: valg: 3
-// gf2-input: felt: 5
-// gf2-input: felt: 1
-// gf2-input: felt: 9
-// gf2-input: felt: 3
-// gf2-input: valg: 4
 
 Console.WriteLine("=====================================");
 Console.WriteLine("   TIDSFORDRIVSSPIL — reference (konsol)");

@@ -962,6 +962,22 @@ a:hover { color: var(--accent-bright); }
   padding: 0;
   background: #0a0a0a;
 }
+.console-app--interactive .playground-terminal {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.console-app--interactive .console-app-toolbar {
+  padding: 0.65rem 1rem;
+  border-top: 1px solid #222;
+  background: #111;
+}
+.console-app-running-label {
+  font-size: 0.85rem;
+  color: #a3a3a3;
+  font-family: var(--font-mono);
+}
 .console-app-screen {
   margin: 0;
   min-height: 14rem;

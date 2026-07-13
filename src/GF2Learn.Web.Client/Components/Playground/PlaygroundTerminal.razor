@@ -16,10 +16,10 @@
         <input type="text"
                class="playground-terminal-input"
                placeholder="@(WaitingForInput ? "Indtast svar og tryk Enter…" : "Konsol-input (kan tastes før eller under kørsel)…")"
-               disabled="@(IsRunning && !WaitingForInput)"
+               disabled="@(RequireWaitingForInput ? !WaitingForInput : (IsRunning && !WaitingForInput))"
                @bind="InputValue"
                @bind:event="oninput" />
-        <button type="submit" class="btn btn-ghost btn-sm" disabled="@(IsRunning && !WaitingForInput)">Send</button>
+        <button type="submit" class="btn btn-ghost btn-sm" disabled="@(RequireWaitingForInput ? !WaitingForInput : (IsRunning && !WaitingForInput))">Send</button>
     </form>
 </div>
 
@@ -30,6 +30,7 @@
     [Parameter] public string InputValue { get; set; } = "";
     [Parameter] public EventCallback<string> InputValueChanged { get; set; }
     [Parameter] public EventCallback OnSubmitInput { get; set; }
+    [Parameter] public bool RequireWaitingForInput { get; set; }
 
     private async Task HandleSubmit()
     {

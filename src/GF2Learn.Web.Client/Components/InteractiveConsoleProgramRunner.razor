@@ -1,0 +1,182 @@
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: true))
+@implements IAsyncDisposable
+@inject CSharpRunnerService Runner
+
+<div class="console-app console-app--interactive @(_hasRun ? "console-app-has-run" : null)">
+    <div class="console-app-titlebar" aria-hidden="true">
+        <span class="console-app-dot"></span>
+        <span class="console-app-dot"></span>
+        <span class="console-app-dot"></span>
+        <span class="console-app-title">@WindowTitle</span>
+    </div>
+
+    <div class="console-app-body">
+        <PlaygroundTerminal Lines="_terminalLines"
+                            IsRunning="_running"
+                            WaitingForInput="_waitingForInput"
+                            RequireWaitingForInput="true"
+                            @bind-InputValue="_terminalInput"
+                            OnSubmitInput="SubmitInputAsync" />
+
+        <div class="console-app-toolbar">
+            @if (!_running)
+            {
+                <button type="button" class="btn btn-primary btn-sm" @onclick="StartAsync">
+                    @(_hasRun ? "Kør igen" : "Start program")
+                </button>
+            }
+            else
+            {
+                <span class="console-app-running-label">Programmet kører…</span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Code { get; set; } = "";
+    [Parameter] public string WindowTitle { get; set; } = "Konsol-app.exe";
+
+    private readonly List<string> _terminalLines = ["Tryk «Start program» for at køre reference-løsningen."];
+    private string _terminalInput = "";
+    private bool _running;
+    private bool _hasRun;
+    private bool _waitingForInput;
+    private bool _stdoutLineOpen;
+    private TaskCompletionSource<string?>? _stdinTcs;
+    private CancellationTokenSource? _runCts;
+
+    protected override void OnInitialized()
+    {
+        PlaygroundStdinBridge.InputRequested += OnInputRequested;
+        PlaygroundStdoutBridge.Write += OnStdoutWrite;
+        PlaygroundStdoutBridge.WriteLine += OnStdoutWriteLine;
+        _ = Runner.WarmupAsync();
+    }
+
+    private async Task StartAsync()
+    {
+        _runCts?.Cancel();
+        _runCts?.Dispose();
+        _runCts = new CancellationTokenSource();
+
+        _running = true;
+        _hasRun = true;
+        _waitingForInput = false;
+        _stdoutLineOpen = false;
+        _stdinTcs = null;
+        _terminalInput = "";
+        _terminalLines.Clear();
+        _terminalLines.Add("Starter program…");
+        StateHasChanged();
+
+        try
+        {
+            var result = await Runner.RunInteractiveConsoleAsync(Code, _runCts.Token);
+
+            if (!result.Success)
+            {
+                foreach (var line in (result.Error ?? "Ukendt fejl").Split('\n'))
+                    _terminalLines.Add(line);
+            }
+            else if (result.Elapsed is { } elapsed)
+            {
+                _terminalLines.Add($"— Færdig på {elapsed.TotalMilliseconds:F0} ms");
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _terminalLines.Add("Kørsel afbrudt.");
+        }
+        finally
+        {
+            _running = false;
+            _waitingForInput = false;
+            _stdoutLineOpen = false;
+            _stdinTcs = null;
+            StateHasChanged();
+        }
+    }
+
+    private void OnInputRequested(TaskCompletionSource<string?> tcs)
+    {
+        _stdinTcs = tcs;
+        _waitingForInput = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnStdoutWrite(string text)
+    {
+        RemoveStartupPlaceholder();
+
+        if (_stdoutLineOpen && _terminalLines.Count > 0)
+            _terminalLines[^1] += text;
+        else
+        {
+            _terminalLines.Add(text);
+            _stdoutLineOpen = true;
+        }
+
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnStdoutWriteLine(string text)
+    {
+        RemoveStartupPlaceholder();
+
+        if (_stdoutLineOpen && _terminalLines.Count > 0)
+            _terminalLines[^1] += text;
+        else
+            _terminalLines.Add(text);
+
+        _stdoutLineOpen = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void RemoveStartupPlaceholder()
+    {
+        if (_terminalLines.Count == 1 && _terminalLines[0] is "Starter program…" or "Tryk «Start program» for at køre reference-løsningen.")
+            _terminalLines.Clear();
+    }
+
+    private Task SubmitInputAsync()
+    {
+        var line = _terminalInput;
+        _terminalInput = "";
+
+        if (_stdoutLineOpen && _terminalLines.Count > 0)
+            _terminalLines[^1] += line;
+        else
+            _terminalLines.Add($"> {line}");
+
+        _stdoutLineOpen = false;
+
+        if (_waitingForInput && _stdinTcs is not null)
+        {
+            _waitingForInput = false;
+            _stdinTcs.TrySetResult(line);
+            _stdinTcs = null;
+        }
+
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        PlaygroundStdinBridge.InputRequested -= OnInputRequested;
+        PlaygroundStdoutBridge.Write -= OnStdoutWrite;
+        PlaygroundStdoutBridge.WriteLine -= OnStdoutWriteLine;
+        _runCts?.Cancel();
+        _runCts?.Dispose();
+
+        if (_stdinTcs is not null)
+        {
+            _stdinTcs.TrySetResult(string.Empty);
+            _stdinTcs = null;
+        }
+
+        await ValueTask.CompletedTask;
+    }
+}
+
