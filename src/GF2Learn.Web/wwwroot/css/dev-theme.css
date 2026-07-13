@@ -812,6 +812,9 @@ a:hover { color: var(--accent-bright); }
   margin: 0;
 }
 .project-demo-history-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -819,6 +822,13 @@ a:hover { color: var(--accent-bright); }
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
 }
+.project-demo-history-arrow {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.project-demo-history-chip--low .project-demo-history-arrow { color: #38bdf8; }
+.project-demo-history-chip--high .project-demo-history-arrow { color: #fbbf24; }
 .project-demo-history-chip--low { border-color: rgba(56, 189, 248, 0.4); }
 .project-demo-history-chip--high { border-color: rgba(251, 191, 36, 0.45); }
 .project-demo-history-chip--win {

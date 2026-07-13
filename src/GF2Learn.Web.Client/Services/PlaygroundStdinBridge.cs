@@ -25,6 +25,11 @@ public static class PlaygroundStdinBridge
 
         var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
         InputRequested?.Invoke(tcs);
+
+        // Blazor WebAssembly har én UI-tråd — pump event loop mens vi venter på svar.
+        while (!tcs.Task.IsCompleted)
+            Task.Delay(10).GetAwaiter().GetResult();
+
         return tcs.Task.GetAwaiter().GetResult();
     }
 }

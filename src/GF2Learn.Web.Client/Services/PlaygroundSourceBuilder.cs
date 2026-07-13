@@ -18,7 +18,7 @@ public static class PlaygroundSourceBuilder
 
     public sealed record SimulatedStdinField(string Value, string? VariableName, string? Prompt);
 
-    public static PreparedCode Prepare(string userCode)
+    public static PreparedCode Prepare(string userCode, bool useDefaultStdinWhenEmpty = true)
     {
         var (setupLines, body) = ExtractSetup(userCode);
         var executable = setupLines.Count == 0
@@ -28,9 +28,10 @@ public static class PlaygroundSourceBuilder
         var (types, runBody) = SplitTypeDeclarations(executable);
         var (transformedTypes, _, _) = string.IsNullOrWhiteSpace(types)
             ? (string.Empty, Array.Empty<string>(), false)
-            : TransformUserCode(types);
+            : TransformUserCode(types, useDefaultStdinWhenEmpty);
         var (transformedRun, stdinLines, usesReadLine) = TransformUserCode(
-            string.IsNullOrWhiteSpace(runBody) ? executable : runBody);
+            string.IsNullOrWhiteSpace(runBody) ? executable : runBody,
+            useDefaultStdinWhenEmpty);
         var combined = string.IsNullOrWhiteSpace(transformedTypes)
             ? transformedRun
             : transformedTypes + "\n\n" + transformedRun;
@@ -412,12 +413,14 @@ public static class PlaygroundSourceBuilder
         return (setupLines, string.Join("\n", bodyLines).Trim());
     }
 
-    private static (string Code, IReadOnlyList<string> StdinLines, bool UsesReadLine) TransformUserCode(string userCode)
+    private static (string Code, IReadOnlyList<string> StdinLines, bool UsesReadLine) TransformUserCode(
+        string userCode,
+        bool useDefaultStdinWhenEmpty = true)
     {
         var stdinLines = ParseSimulatedInput(userCode);
         var usesReadLine = Regex.IsMatch(userCode, @"Console\.ReadLine\s*\(");
 
-        if (usesReadLine && stdinLines.Count == 0)
+        if (useDefaultStdinWhenEmpty && usesReadLine && stdinLines.Count == 0)
             stdinLines = ["15"];
 
         var code = userCode;

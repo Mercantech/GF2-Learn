@@ -39,9 +39,19 @@
             <div class="project-demo-history">
                 <p class="project-demo-history-label">Dine gæt</p>
                 <ul class="project-demo-history-list">
-                    @foreach (var (value, index) in _history.Select((v, i) => (v, i)))
+                    @foreach (var entry in _history)
                     {
-                        <li class="project-demo-history-chip @ChipClass(value)">@value</li>
+                        <li class="project-demo-history-chip @HistoryChipClass(entry)">
+                            @if (entry.Higher is true)
+                            {
+                                <span class="project-demo-history-arrow" aria-label="For lavt — gæt højere">↑</span>
+                            }
+                            else if (entry.Higher is false)
+                            {
+                                <span class="project-demo-history-arrow" aria-label="For højt — gæt lavere">↓</span>
+                            }
+                            <span>@entry.Value</span>
+                        </li>
                     }
                 </ul>
             </div>
@@ -54,6 +64,8 @@
 </ProjectDemoShell>
 
 @code {
+    private sealed record GuessEntry(int Value, bool? Higher);
+
     private static readonly Random Rng = new();
 
     private int _secret = Rng.Next(1, 101);
@@ -61,7 +73,7 @@
     private int _attempts;
     private bool _won;
     private string? _lastHint;
-    private readonly List<int> _history = [];
+    private readonly List<GuessEntry> _history = [];
 
     private void CheckGuess()
     {
@@ -72,16 +84,18 @@
         }
 
         _attempts++;
-        _history.Add(_guess);
 
         if (_guess == _secret)
         {
+            _history.Add(new GuessEntry(_guess, null));
             _won = true;
             _lastHint = null;
             return;
         }
 
-        _lastHint = _guess < _secret ? "Højere" : "Lavere";
+        var higher = _guess < _secret;
+        _history.Add(new GuessEntry(_guess, higher));
+        _lastHint = higher ? "Højere" : "Lavere";
     }
 
     private void NewGame()
@@ -94,11 +108,11 @@
         _history.Clear();
     }
 
-    private string ChipClass(int value) => value switch
+    private string HistoryChipClass(GuessEntry entry) => entry switch
     {
-        var v when v == _secret && _won => "project-demo-history-chip--win",
-        var v when _lastHint == "Højere" && v == _history[^1] => "project-demo-history-chip--low",
-        var v when _lastHint == "Lavere" && v == _history[^1] => "project-demo-history-chip--high",
+        { Higher: null } => "project-demo-history-chip--win",
+        { Higher: true } => "project-demo-history-chip--low",
+        { Higher: false } => "project-demo-history-chip--high",
         _ => ""
     };
 }

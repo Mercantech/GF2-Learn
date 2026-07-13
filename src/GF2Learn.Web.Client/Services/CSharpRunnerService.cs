@@ -211,7 +211,7 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
                 };
             }
 
-            var prepared = PlaygroundSourceBuilder.Prepare(code);
+            var prepared = PlaygroundSourceBuilder.Prepare(code, useDefaultStdinWhenEmpty: false);
             PlaygroundStdinBridge.Reset();
             PlaygroundStdoutBridge.Reset();
 
@@ -255,7 +255,9 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
 
             using var runCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             runCts.CancelAfter(TimeSpan.FromMinutes(2));
-            var output = await Task.Run(() => InvokeRun(method), runCts.Token);
+            await Task.Yield();
+            runCts.Token.ThrowIfCancellationRequested();
+            var output = InvokeRun(method);
             sw.Stop();
 
             return new RunResult
@@ -414,17 +416,20 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
 
     private static void WireStdinHook(Assembly assembly)
     {
-        var hook = assembly.GetType("__StdinHook");
+        var hook = assembly.GetType("__StdinHook")
+            ?? assembly.GetTypes().FirstOrDefault(t => t.Name == "__StdinHook");
         if (hook is null)
-            return;
+            throw new InvalidOperationException("Kunne ikke koble interaktiv stdin (manglende __StdinHook).");
 
-        var field = hook.GetField("Provider", BindingFlags.Public | BindingFlags.Static);
-        field?.SetValue(null, (Func<string?>)PlaygroundStdinBridge.ReadLineSync);
+        var field = hook.GetField("Provider", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("Kunne ikke koble interaktiv stdin (manglende Provider).");
+        field.SetValue(null, (Func<string?>)PlaygroundStdinBridge.ReadLineSync);
     }
 
     private static void WireStdoutHook(Assembly assembly)
     {
-        var hook = assembly.GetType("__StdoutHook");
+        var hook = assembly.GetType("__StdoutHook")
+            ?? assembly.GetTypes().FirstOrDefault(t => t.Name == "__StdoutHook");
         if (hook is null)
             return;
 

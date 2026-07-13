@@ -50,9 +50,19 @@
                 @if (_guessHistory.Count > 0)
                 {
                     <ul class="project-demo-history-list">
-                        @foreach (var g in _guessHistory)
+                        @foreach (var entry in _guessHistory)
                         {
-                            <li class="project-demo-history-chip">@g</li>
+                            <li class="project-demo-history-chip @GuessHistoryChipClass(entry)">
+                                @if (entry.Higher is true)
+                                {
+                                    <span class="project-demo-history-arrow" aria-label="For lavt — gæt højere">↑</span>
+                                }
+                                else if (entry.Higher is false)
+                                {
+                                    <span class="project-demo-history-arrow" aria-label="For højt — gæt lavere">↓</span>
+                                }
+                                <span>@entry.Value</span>
+                            </li>
                         }
                     </ul>
                 }
@@ -142,6 +152,8 @@
         new("papir", "Papir", "📄")
     ];
 
+    private sealed record GuessEntry(int Value, bool? Higher);
+
     private static readonly Random Rng = new();
 
     private string _active = "guess";
@@ -152,7 +164,7 @@
     private int _guessAttempts;
     private bool _guessWon;
     private string? _guessHint;
-    private readonly List<int> _guessHistory = [];
+    private readonly List<GuessEntry> _guessHistory = [];
 
     // Sten/saks/papir
     private int _wins, _losses, _draws;
@@ -183,7 +195,7 @@
         }
 
         _guessAttempts++;
-        _guessHistory.Add(_guessValue);
+        _guessHistory.Add(new GuessEntry(_guessValue, _guessValue == _guessSecret ? null : _guessValue < _guessSecret));
 
         if (_guessValue == _guessSecret)
         {
@@ -194,6 +206,14 @@
 
         _guessHint = _guessValue < _guessSecret ? "Højere — prøv igen" : "Lavere — prøv igen";
     }
+
+    private string GuessHistoryChipClass(GuessEntry entry) => entry switch
+    {
+        { Higher: null } => "project-demo-history-chip--win",
+        { Higher: true } => "project-demo-history-chip--low",
+        { Higher: false } => "project-demo-history-chip--high",
+        _ => ""
+    };
 
     private void ResetGuess()
     {
