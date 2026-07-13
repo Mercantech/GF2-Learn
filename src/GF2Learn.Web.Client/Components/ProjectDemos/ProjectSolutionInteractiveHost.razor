@@ -7,12 +7,12 @@
         <div class="project-solution-console-intro">
             <p class="project-solution-note">
                 Her kører I <strong>reference-løsningen</strong> som en færdig konsol-app (<code>.exe</code>) i browseren —
-                uden at se C#-koden. Programmet venter ved hvert <code>ReadLine()</code>, præcis som i Visual Studio-terminalen.
+                uden at se C#-koden. Programmet viser menu og output; du svarer <strong>ét trin ad gangen</strong> nederst.
             </p>
             <ul class="project-solution-console-steps">
-                <li>Tryk <strong>Start program</strong> — terminalen viser output fra <code>Console.WriteLine</code>.</li>
-                <li>Når programmet beder om input, skriver du <strong>ét svar ad gangen</strong> i feltet nederst og trykker Enter.</li>
-                <li>Fortsæt til programmet er færdigt — prøv menuvalg, gæt, sten/saks/papir osv.</li>
+                <li>Tryk <strong>Start program</strong> — menuen vises i terminalen.</li>
+                <li>Skriv dit svar i feltet (fx <code>1</code> for gæt-et-tal) og tryk <strong>Send</strong> eller Enter.</li>
+                <li>Programmet kører videre efter hvert svar, indtil du er færdig.</li>
             </ul>
             @if (!string.IsNullOrWhiteSpace(ConsoleScenarioHint))
             {
@@ -22,7 +22,7 @@
                 Første start kan tage et øjeblik (C#-runtime indlæses i browseren). Til aflevering laver I jeres eget konsolprojekt i GitHub.
             </p>
         </div>
-        <InteractiveConsoleProgramRunner Code="@ConsoleCode" WindowTitle="@ConsoleWindowTitle" />
+        <ProjectConsoleRunner Code="@ConsoleCode" WindowTitle="@ConsoleWindowTitle" />
     </section>
 }
 

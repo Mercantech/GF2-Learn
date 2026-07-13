@@ -67,6 +67,11 @@ public static class PlaygroundSourceBuilder
                 showStdinTraceInOutput: false,
                 useInteractiveStdin: true);
 
+    public static string BuildStepwiseConsoleEntryPointSource(PreparedCode prepared) =>
+        string.IsNullOrWhiteSpace(prepared.TypeDeclarations)
+            ? BuildStepwiseEntryPointSource(prepared.ExecutableCode)
+            : BuildStepwiseEntryPointSourceWithTypes(prepared.TypeDeclarations, prepared.RunBody);
+
     public static string BuildExerciseMethodEntryPointSource(string userCode, bool showStdinTraceInOutput = true)
     {
         var prepared = Prepare(userCode);
@@ -303,6 +308,120 @@ public static class PlaygroundSourceBuilder
             {{StdinHookSource(useInteractiveStdin)}}
             """;
     }
+
+    private static string BuildStepwiseEntryPointSourceWithTypes(string transformedTypes, string transformedRunBody)
+    {
+        var typesIndented = string.Join("\n", transformedTypes.Split('\n').Select(l => "    " + l));
+        var runIndented = string.Join("\n", transformedRunBody.Split('\n').Select(l => "            " + l));
+        return $$"""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public static class __PlaygroundEntry
+            {
+                public static bool Paused;
+
+                private static readonly StringBuilder __sb = new StringBuilder();
+
+            {{ConsoleEmitMethods(useInteractiveStdout: false)}}
+
+            {{PlaygroundRuntimeHelpers.Source}}
+
+            {{typesIndented}}
+
+                private static string? __ReadLine()
+                {
+                    if (__StdinFeed.Index >= __StdinFeed.Lines.Length)
+                        throw new __StdinPauseException();
+                    return __StdinFeed.Lines[__StdinFeed.Index++];
+                }
+
+                public static string Run()
+                {
+                    __sb.Clear();
+                    Paused = false;
+                    __StdinFeed.Index = 0;
+                    try
+                    {
+            {{runIndented}}
+                    }
+                    catch (__StdinPauseException)
+                    {
+                        Paused = true;
+                    }
+                    catch (global::System.Exception __ex)
+                    {
+                        __sb.AppendLine("Fejl: " + __ex.Message);
+                    }
+                    return __sb.ToString();
+                }
+            }
+            {{StepwiseStdinSupportSource}}
+            """;
+    }
+
+    private static string BuildStepwiseEntryPointSource(string transformedCode)
+    {
+        var indented = string.Join("\n", transformedCode.Split('\n').Select(l => "            " + l));
+        return $$"""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public static class __PlaygroundEntry
+            {
+                public static bool Paused;
+
+                private static readonly StringBuilder __sb = new StringBuilder();
+
+            {{ConsoleEmitMethods(useInteractiveStdout: false)}}
+
+            {{PlaygroundRuntimeHelpers.Source}}
+
+                private static string? __ReadLine()
+                {
+                    if (__StdinFeed.Index >= __StdinFeed.Lines.Length)
+                        throw new __StdinPauseException();
+                    return __StdinFeed.Lines[__StdinFeed.Index++];
+                }
+
+                public static string Run()
+                {
+                    __sb.Clear();
+                    Paused = false;
+                    __StdinFeed.Index = 0;
+                    try
+                    {
+            {{indented}}
+                    }
+                    catch (__StdinPauseException)
+                    {
+                        Paused = true;
+                    }
+                    catch (global::System.Exception __ex)
+                    {
+                        __sb.AppendLine("Fejl: " + __ex.Message);
+                    }
+                    return __sb.ToString();
+                }
+            }
+            {{StepwiseStdinSupportSource}}
+            """;
+    }
+
+    private const string StepwiseStdinSupportSource = """
+
+            public static class __StdinFeed
+            {
+                public static string[] Lines = Array.Empty<string>();
+                public static int Index;
+            }
+
+            public sealed class __StdinPauseException : Exception { }
+            """;
 
     private static string ReadLineBody(bool useInteractiveStdin) =>
         useInteractiveStdin

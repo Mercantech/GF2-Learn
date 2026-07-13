@@ -1,0 +1,125 @@
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@inject CSharpRunnerService Runner
+
+<div class="console-app console-app--stepwise @(_started ? "console-app-has-run" : null)">
+    <div class="console-app-titlebar" aria-hidden="true">
+        <span class="console-app-dot"></span>
+        <span class="console-app-dot"></span>
+        <span class="console-app-dot"></span>
+        <span class="console-app-title">@WindowTitle</span>
+    </div>
+
+    <div class="console-app-body">
+        <pre class="console-app-screen" aria-live="polite">@_screen</pre>
+
+        @if (_inputs.Count > 0)
+        {
+            <ul class="console-app-sent-inputs" aria-label="Dine svar">
+                @foreach (var line in _inputs)
+                {
+                    <li><span class="console-app-sent-prompt">&gt;</span> @line</li>
+                }
+            </ul>
+        }
+
+        @if (_needsInput)
+        {
+            <form class="console-app-prompt-row" @onsubmit="SendAsync" @onsubmit:preventDefault="true">
+                <span class="console-app-sent-prompt" aria-hidden="true">&gt;</span>
+                <input type="text"
+                       class="console-app-prompt-input"
+                       @bind="_currentLine"
+                       @bind:event="oninput"
+                       disabled="@_busy"
+                       placeholder="Skriv svar og tryk Enter…"
+                       aria-label="Konsol-input" />
+                <button type="submit" class="btn btn-primary btn-sm" disabled="@(_busy || string.IsNullOrWhiteSpace(_currentLine))">
+                    Send
+                </button>
+            </form>
+        }
+
+        <div class="console-app-toolbar">
+            @if (!_started)
+            {
+                <button type="button" class="btn btn-primary btn-sm" disabled="@_busy" @onclick="StartAsync">
+                    Start program
+                </button>
+            }
+            else if (_completed)
+            {
+                <button type="button" class="btn btn-primary btn-sm" disabled="@_busy" @onclick="StartAsync">
+                    Kør igen
+                </button>
+            }
+            else if (_busy)
+            {
+                <span class="console-app-running-label">Kører…</span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Code { get; set; } = "";
+    [Parameter] public string WindowTitle { get; set; } = "Konsol-app.exe";
+
+    private readonly List<string> _inputs = [];
+    private string _currentLine = "";
+    private string _screen = "Tryk «Start program» for at åbne konsol-appen.";
+    private bool _busy;
+    private bool _started;
+    private bool _needsInput;
+    private bool _completed;
+
+    protected override void OnInitialized() => _ = Runner.WarmupAsync();
+
+    private async Task StartAsync()
+    {
+        _inputs.Clear();
+        _currentLine = "";
+        _started = true;
+        _completed = false;
+        _needsInput = false;
+        await RunStepAsync();
+    }
+
+    private async Task SendAsync()
+    {
+        if (_busy || !_needsInput || string.IsNullOrWhiteSpace(_currentLine))
+            return;
+
+        _inputs.Add(_currentLine.Trim());
+        _currentLine = "";
+        await RunStepAsync();
+    }
+
+    private async Task RunStepAsync()
+    {
+        _busy = true;
+        _needsInput = false;
+        StateHasChanged();
+
+        try
+        {
+            var result = await Runner.RunStepwiseConsoleAsync(Code, _inputs);
+
+            if (result.Success)
+            {
+                _screen = string.IsNullOrWhiteSpace(result.Output) ? "(intet output)" : result.Output;
+                _needsInput = result.NeedsInput;
+                _completed = !result.NeedsInput;
+            }
+            else
+            {
+                _screen = result.Error ?? "Ukendt fejl.";
+                _completed = true;
+            }
+        }
+        finally
+        {
+            _busy = false;
+            StateHasChanged();
+        }
+    }
+}

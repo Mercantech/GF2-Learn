@@ -10,6 +10,8 @@ namespace GF2Learn.Web.Client.Services;
 
 public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceResolver)
 {
+    private StepwiseConsoleHost? _stepwiseHost;
+    private string? _stepwiseHostCode;
     /// <summary>First WASM compile loads BCL metadata over the network — needs more than a few seconds.</summary>
     private const int CompileTimeoutMs = 30_000;
     private const int RunTimeoutMs = 5_000;
@@ -289,6 +291,133 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
                 Elapsed = sw.Elapsed
             };
         }
+    }
+
+    public async Task<StepwiseConsoleRunResult> RunStepwiseConsoleAsync(
+        string code,
+        IReadOnlyList<string> stdinLines,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return new StepwiseConsoleRunResult
+            {
+                Success = false,
+                Error = "Ingen kode at køre."
+            };
+        }
+
+        var sw = Stopwatch.StartNew();
+        using var compileCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        compileCts.CancelAfter(CompileTimeoutMs);
+
+        try
+        {
+            var host = await GetOrCompileStepwiseHostAsync(code, compileCts.Token);
+            WireStepwiseStdin(host, stdinLines);
+
+            using var runCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            runCts.CancelAfter(TimeSpan.FromMinutes(2));
+            var output = await Task.Run(() => InvokeRun(host.RunMethod), runCts.Token);
+            var paused = host.PausedField.GetValue(null) as bool? ?? false;
+            sw.Stop();
+
+            return new StepwiseConsoleRunResult
+            {
+                Success = true,
+                Output = NormalizeOutput(output),
+                NeedsInput = paused,
+                Elapsed = sw.Elapsed
+            };
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            sw.Stop();
+            return new StepwiseConsoleRunResult
+            {
+                Success = false,
+                Error = compileCts.IsCancellationRequested
+                    ? "Kompilering tog for lang tid."
+                    : "Koden kørte for længe.",
+                Elapsed = sw.Elapsed
+            };
+        }
+        catch (Exception ex)
+        {
+            sw.Stop();
+            return new StepwiseConsoleRunResult
+            {
+                Success = false,
+                Error = FormatExceptionMessage(ex),
+                Elapsed = sw.Elapsed
+            };
+        }
+    }
+
+    private async Task<StepwiseConsoleHost> GetOrCompileStepwiseHostAsync(
+        string code,
+        CancellationToken cancellationToken)
+    {
+        if (_stepwiseHost is not null && _stepwiseHostCode == code)
+            return _stepwiseHost;
+
+        var coreRefs = await referenceResolver.GetCoreReferencesAsync(cancellationToken);
+        if (coreRefs.IsDefaultOrEmpty)
+            throw new InvalidOperationException("Kunne ikke indlæse C#-runtime. Genindlæs siden og prøv igen.");
+
+        var prepared = PlaygroundSourceBuilder.Prepare(code, useDefaultStdinWhenEmpty: false);
+        var entrySource = PlaygroundSourceBuilder.BuildStepwiseConsoleEntryPointSource(prepared);
+        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
+        var tree = CSharpSyntaxTree.ParseText(entrySource, parseOptions, path: "Program.cs");
+
+        var compilation = CSharpCompilation.Create(
+            $"PlaygroundStepwise_{Guid.NewGuid():N}",
+            [tree],
+            coreRefs,
+            new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                concurrentBuild: false,
+                optimizationLevel: OptimizationLevel.Release));
+
+        await using var peStream = new MemoryStream();
+        var emitResult = compilation.Emit(peStream, cancellationToken: cancellationToken);
+        if (!emitResult.Success)
+            throw new InvalidOperationException(FormatDiagnostics(emitResult.Diagnostics));
+
+        peStream.Position = 0;
+        var assembly = Assembly.Load(peStream.ToArray());
+        var entryType = assembly.GetType("__PlaygroundEntry")
+            ?? throw new InvalidOperationException("Kunne ikke finde entry point.");
+        var runMethod = entryType.GetMethod("Run", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("Kunne ikke finde Run-metoden.");
+        var pausedField = entryType.GetField("Paused", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("Kunne ikke finde Paused-felt.");
+        var feedType = assembly.GetType("__StdinFeed")
+            ?? throw new InvalidOperationException("Kunne ikke finde stdin-feed.");
+
+        _stepwiseHost = new StepwiseConsoleHost(runMethod, pausedField, feedType);
+        _stepwiseHostCode = code;
+        return _stepwiseHost;
+    }
+
+    private static void WireStepwiseStdin(StepwiseConsoleHost host, IReadOnlyList<string> stdinLines)
+    {
+        host.FeedLinesField.SetValue(null, stdinLines.ToArray());
+        host.FeedIndexField.SetValue(null, 0);
+        host.PausedField.SetValue(null, false);
+    }
+
+    private sealed class StepwiseConsoleHost(
+        MethodInfo runMethod,
+        FieldInfo pausedField,
+        Type feedType)
+    {
+        public MethodInfo RunMethod { get; } = runMethod;
+        public FieldInfo PausedField { get; } = pausedField;
+        public FieldInfo FeedLinesField { get; } = feedType.GetField("Lines", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("Manglende Lines på __StdinFeed.");
+        public FieldInfo FeedIndexField { get; } = feedType.GetField("Index", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("Manglende Index på __StdinFeed.");
     }
 
     public async Task<RunResult> RunProjectAsync(
