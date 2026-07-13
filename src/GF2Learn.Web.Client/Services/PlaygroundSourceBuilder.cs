@@ -316,6 +316,7 @@ public static class PlaygroundSourceBuilder
         return $$"""
             using System;
             using System.Collections.Generic;
+            using System.IO;
             using System.Linq;
             using System.Text;
 
@@ -368,6 +369,7 @@ public static class PlaygroundSourceBuilder
         return $$"""
             using System;
             using System.Collections.Generic;
+            using System.IO;
             using System.Linq;
             using System.Text;
 

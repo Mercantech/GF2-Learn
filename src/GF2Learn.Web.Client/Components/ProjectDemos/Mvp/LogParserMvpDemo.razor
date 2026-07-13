@@ -1,6 +1,5 @@
 @using GF2Learn.Web.Client.Models
 @using GF2Learn.Web.Client.Services
-@inject IHttpClientFactory HttpClientFactory
 
 <div class="project-demo-card log-parser-demo">
     <header class="lp-hero">
@@ -27,20 +26,13 @@
     <div class="lp-file-panel">
         <div class="lp-file-header">
             <span class="lp-file-name">@_activeFile</span>
-            <button type="button" class="btn btn-ghost btn-sm" disabled="@_loading" @onclick="ReloadAsync">Genindlæs</button>
+            <button type="button" class="btn btn-ghost btn-sm" @onclick="Reload">Genindlæs</button>
         </div>
-        @if (_loading)
-        {
-            <p class="lp-muted">Indlæser logfil…</p>
-        }
-        else
-        {
-            <pre class="lp-log-preview">@_content</pre>
-        }
+        <pre class="lp-log-preview">@_content</pre>
     </div>
 
     <div class="lp-actions">
-        <button type="button" class="btn btn-primary btn-sm" disabled="@(_loading || string.IsNullOrWhiteSpace(_content))" @onclick="Parse">
+        <button type="button" class="btn btn-primary btn-sm" disabled="@string.IsNullOrWhiteSpace(_content)" @onclick="Parse">
             Analysér log
         </button>
     </div>
@@ -65,32 +57,24 @@
 
     private string _activeFile = DefaultFile;
     private string _content = "";
-    private bool _loading = true;
     private LogParserReport? _report;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync(DefaultFile);
+    protected override void OnInitialized() => Load(DefaultFile);
 
-    private async Task ReloadAsync() => await LoadAsync(_activeFile);
+    private void Reload() => Load(_activeFile);
 
-    private async Task LoadAsync(string fileName)
+    private void Load(string fileName)
     {
-        _loading = true;
         _report = null;
         _activeFile = fileName;
-        StateHasChanged();
 
         try
         {
-            var client = HttpClientFactory.CreateClient("GF2LearnApi");
-            _content = await client.GetStringAsync(LogParserSamples.Url(fileName));
+            _content = LogParserSamples.GetContent(fileName);
         }
         catch
         {
-            _content = "(Kunne ikke indlæse logfil — tjek at app.log.txt findes under wwwroot.)";
-        }
-        finally
-        {
-            _loading = false;
+            _content = "(Kunne ikke indlæse logfil.)";
         }
     }
 

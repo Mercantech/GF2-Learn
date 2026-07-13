@@ -1,6 +1,5 @@
 @using GF2Learn.Web.Client.Models
 @using GF2Learn.Web.Client.Services
-@inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime Js
 
 <div class="project-demo-card log-parser-demo log-parser-demo--extended">
@@ -35,7 +34,7 @@
                     role="tab"
                     aria-selected="@(_activeFile == file.FileName)"
                     class="project-demo-tab @(_activeFile == file.FileName ? "project-demo-tab--active" : null)"
-                    @onclick="() => SelectFileAsync(file)">
+                    @onclick="() => SelectFile(file)">
                 @file.Description
             </button>
         }
@@ -46,20 +45,13 @@
             <span class="lp-file-name">@_activeFile</span>
             <span class="lp-file-meta">@_content.Length tegn</span>
         </div>
-        @if (_loading)
-        {
-            <p class="lp-muted">Indlæser…</p>
-        }
-        else
-        {
-            <pre class="lp-log-preview">@_content</pre>
-        }
+        <pre class="lp-log-preview">@_content</pre>
     </div>
 
     <div class="lp-actions">
-        <button type="button" class="btn btn-primary btn-sm" disabled="@_loading" @onclick="Parse">Analyser fil</button>
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Parse">Analyser fil</button>
         <button type="button" class="btn btn-ghost btn-sm" disabled="@(_report is null)" @onclick="CopyReportAsync">Kopiér rapport</button>
-        <button type="button" class="btn btn-ghost btn-sm" @onclick="CompareAsync">Sammenlign formater</button>
+        <button type="button" class="btn btn-ghost btn-sm" @onclick="Compare">Sammenlign formater</button>
     </div>
 
     @if (_report is not null)
@@ -101,35 +93,26 @@
     private string _activeFile = LogParserSamples.Files[0].FileName;
     private string _activeFormat = LogParserSamples.Files[0].Format;
     private string _content = "";
-    private bool _loading = true;
     private LogParserReport? _report;
     private readonly Dictionary<string, LogParserReport> _reports = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<LogParserReport>? _comparison;
 
-    protected override async Task OnInitializedAsync() =>
-        await SelectFileAsync(LogParserSamples.Files[0]);
+    protected override void OnInitialized() => SelectFile(LogParserSamples.Files[0]);
 
-    private async Task SelectFileAsync(LogParserSampleFile file)
+    private void SelectFile(LogParserSampleFile file)
     {
-        _loading = true;
         _activeFile = file.FileName;
         _activeFormat = file.Format;
         _report = null;
         _comparison = null;
-        StateHasChanged();
 
         try
         {
-            var client = HttpClientFactory.CreateClient("GF2LearnApi");
-            _content = await client.GetStringAsync(LogParserSamples.Url(file.FileName));
+            _content = LogParserSamples.GetContent(file.FileName);
         }
         catch
         {
             _content = "(Kunne ikke indlæse filen.)";
-        }
-        finally
-        {
-            _loading = false;
         }
     }
 
@@ -140,10 +123,8 @@
         _comparison = null;
     }
 
-    private async Task CompareAsync()
+    private void Compare()
     {
-        var client = HttpClientFactory.CreateClient("GF2LearnApi");
-
         foreach (var file in LogParserSamples.Files)
         {
             if (_reports.ContainsKey(file.FileName))
@@ -151,7 +132,7 @@
 
             try
             {
-                var content = await client.GetStringAsync(LogParserSamples.Url(file.FileName));
+                var content = LogParserSamples.GetContent(file.FileName);
                 _reports[file.FileName] = LogParserLogic.Parse(content, file.Format, file.FileName);
             }
             catch

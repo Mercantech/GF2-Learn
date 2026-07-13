@@ -78,7 +78,7 @@ while (true)
 
         VisRapport(rapport, filnavn);
     }
-    catch (FileNotFoundException ex)
+    catch (System.IO.FileNotFoundException ex)
     {
         Console.WriteLine("Fejl: " + ex.Message);
     }
@@ -130,7 +130,7 @@ INFO,2026-03-10 12:00:00,Backup fuldført
 ERROR,2026-03-10 14:22:18,Database forbindelse afbrudt
 """;
 
-  throw new FileNotFoundException("Filen findes ikke: " + filnavn + " (kun app.log.txt, .json og .csv i denne demo).");
+  throw new System.IO.FileNotFoundException("Filen findes ikke: " + filnavn + " (kun app.log.txt, .json og .csv i denne demo).");
 }
 
 static LogRapport ParseTxt(string[] lines, string filnavn)
