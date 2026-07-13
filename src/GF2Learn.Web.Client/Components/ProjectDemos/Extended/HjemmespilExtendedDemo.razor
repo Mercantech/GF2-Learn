@@ -1,54 +1,282 @@
 
 <ProjectDemoShell>
-    <div class="project-demo-tabs">
-        <button type="button" class="btn btn-sm @TabClass("guess")" @onclick='() => _tab = "guess"'>Gæt tal</button>
-        <button type="button" class="btn btn-sm @TabClass("rps")" @onclick='() => _tab = "rps"'>Sten/saks/papir</button>
-    </div>
-
-    @if (_tab == "guess")
-    {
-        <p class="project-demo-hint">Hemmeligt tal 1–100 (demo: 42)</p>
-        <div class="project-demo-row">
-            <input type="number" class="project-demo-input" @bind="_guess" />
-            <button type="button" class="btn btn-primary btn-sm" @onclick="CheckGuess">Gæt</button>
+    <div class="project-demo-game-hub">
+        <div class="project-demo-game-hub-intro">
+            <h3 class="project-demo-title">Tidsfordrivsspil — Blazor reference</h3>
+            <p class="project-demo-hint">
+                Tre spil i én demo. Brug det som inspiration til UI og flow — jeres aflevering er stadig et konsolprojekt i GitHub.
+            </p>
         </div>
-        @if (_guessMsg is not null) { <p class="project-demo-feedback">@_guessMsg</p> }
-    }
-    else
-    {
-        <div class="project-demo-row">
-            @foreach (var c in new[] { "sten", "saks", "papir" })
+
+        <div class="project-demo-tabs project-demo-tabs--games" role="tablist" aria-label="Vælg spil">
+            @foreach (var game in Games)
             {
-                <button type="button" class="btn btn-ghost btn-sm" @onclick="() => PlayRps(c)">@c</button>
+                <button type="button"
+                        role="tab"
+                        aria-selected="@(_active == game.Id)"
+                        class="project-demo-tab @(_active == game.Id ? "project-demo-tab--active" : null)"
+                        @onclick="() => SelectGame(game.Id)">
+                    <span class="project-demo-tab-icon" aria-hidden="true">@game.Icon</span>
+                    @game.Label
+                </button>
             }
         </div>
-        @if (_rpsMsg is not null) { <p class="project-demo-feedback">@_rpsMsg (score: @_wins–@_losses)</p> }
-    }
+
+        @if (_active == "guess")
+        {
+            <div class="project-demo-game-panel" role="tabpanel">
+                @if (_guessWon)
+                {
+                    <div class="project-demo-banner project-demo-banner--success">
+                        Korrekt! Tallet var <strong>@_guessSecret</strong> — @_guessAttempts. forsøg.
+                    </div>
+                }
+                else if (_guessHint is not null)
+                {
+                    <div class="project-demo-banner project-demo-banner--info">@_guessHint</div>
+                }
+
+                <div class="project-demo-stat-row">
+                    <span class="project-demo-stat">Forsøg: <strong>@_guessAttempts</strong></span>
+                    <span class="project-demo-stat">Interval: 1–100</span>
+                </div>
+
+                <div class="project-demo-row project-demo-row--center">
+                    <input type="number" class="project-demo-input project-demo-input-guess" @bind="_guessValue" min="1" max="100" disabled="@_guessWon" />
+                    <button type="button" class="btn btn-primary" disabled="@_guessWon" @onclick="SubmitGuess">Gæt</button>
+                    <button type="button" class="btn btn-ghost btn-sm" @onclick="ResetGuess">Nyt spil</button>
+                </div>
+
+                @if (_guessHistory.Count > 0)
+                {
+                    <ul class="project-demo-history-list">
+                        @foreach (var g in _guessHistory)
+                        {
+                            <li class="project-demo-history-chip">@g</li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+        else if (_active == "rps")
+        {
+            <div class="project-demo-game-panel" role="tabpanel">
+                <div class="project-demo-stat-row">
+                    <span class="project-demo-stat project-demo-stat--win">Sejre: <strong>@_wins</strong></span>
+                    <span class="project-demo-stat project-demo-stat--loss">Nederlag: <strong>@_losses</strong></span>
+                    <span class="project-demo-stat">Uafgjort: <strong>@_draws</strong></span>
+                </div>
+
+                <p class="project-demo-panel-lead">Vælg dit træk — computeren svarer med et tilfældigt valg.</p>
+
+                <div class="project-demo-rps-grid">
+                    @foreach (var choice in RpsChoices)
+                    {
+                        <button type="button" class="project-demo-rps-btn" @onclick="() => PlayRps(choice.Id)">
+                            <span class="project-demo-rps-emoji" aria-hidden="true">@choice.Emoji</span>
+                            <span>@choice.Label</span>
+                        </button>
+                    }
+                </div>
+
+                @if (_rpsResult is not null)
+                {
+                    <div class="project-demo-banner @RpsBannerClass">
+                        @_rpsResult
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="project-demo-game-panel" role="tabpanel">
+                <div class="project-demo-stat-row">
+                    <span class="project-demo-stat">Tur: <strong>@_tttTurn</strong></span>
+                    @if (_tttStatus is not null)
+                    {
+                        <span class="project-demo-stat project-demo-stat--highlight">@_tttStatus</span>
+                    }
+                </div>
+
+                <div class="project-demo-ttt-grid" role="grid" aria-label="Tic-Tac-Toe bræt">
+                    @for (var i = 0; i < 9; i++)
+                    {
+                        var index = i;
+                        <button type="button"
+                                class="project-demo-ttt-cell @TttCellClass(index)"
+                                disabled="@(IsTttFinished || _board[index] != ' ')"
+                                @onclick="() => PlayTtt(index)"
+                                aria-label="@($"Felt {index + 1}, {(_board[index] == ' ' ? "tomt" : _board[index].ToString())}")">
+                            @(_board[index] == ' ' ? "" : _board[index].ToString())
+                        </button>
+                    }
+                </div>
+
+                <div class="project-demo-row">
+                    <button type="button" class="btn btn-ghost btn-sm" @onclick="ResetTtt">Nyt bræt</button>
+                </div>
+
+                <p class="project-demo-tip">
+                    I konsollen: gem brættet som <code>char[]</code> eller <code>List&lt;List&lt;char&gt;&gt;</code> og lav metoder til træk og vinder-tjek.
+                </p>
+            </div>
+        }
+    </div>
 </ProjectDemoShell>
 
 @code {
-    private string _tab = "guess";
-    private int _guess = 50, _wins, _losses;
-    private string? _guessMsg, _rpsMsg;
+    private sealed record GameTab(string Id, string Label, string Icon);
+    private sealed record RpsChoice(string Id, string Label, string Emoji);
+
+    private static readonly GameTab[] Games =
+    [
+        new("guess", "Gæt tal", "🎯"),
+        new("rps", "Sten/saks/papir", "✊"),
+        new("ttt", "Tic-Tac-Toe", "⭕")
+    ];
+
+    private static readonly RpsChoice[] RpsChoices =
+    [
+        new("sten", "Sten", "🪨"),
+        new("saks", "Saks", "✂️"),
+        new("papir", "Papir", "📄")
+    ];
+
     private static readonly Random Rng = new();
 
-    private string TabClass(string t) => _tab == t ? "btn-primary" : "btn-ghost";
+    private string _active = "guess";
 
-    private void CheckGuess()
-    {
-        _guessMsg = _guess == 42 ? "Korrekt!" : _guess < 42 ? "Højere" : "Lavere";
-    }
+    // Gæt et tal
+    private int _guessSecret = Rng.Next(1, 101);
+    private int _guessValue = 50;
+    private int _guessAttempts;
+    private bool _guessWon;
+    private string? _guessHint;
+    private readonly List<int> _guessHistory = [];
 
-    private void PlayRps(string p)
+    // Sten/saks/papir
+    private int _wins, _losses, _draws;
+    private string? _rpsResult;
+
+    // Tic-Tac-Toe
+    private char[] _board = Enumerable.Repeat(' ', 9).ToArray();
+    private char _tttTurn = 'X';
+    private string? _tttStatus;
+    private bool IsTttFinished => _tttStatus is not null;
+
+    private string RpsBannerClass => _rpsResult switch
     {
-        var c = new[] { "sten", "saks", "papir" }[Rng.Next(3)];
-        var r = (p, c) switch
+        null => "",
+        var r when r.StartsWith("Du vandt") => "project-demo-banner--success",
+        var r when r.StartsWith("Du tabte") => "project-demo-banner--warn",
+        _ => "project-demo-banner--info"
+    };
+
+    private void SelectGame(string id) => _active = id;
+
+    private void SubmitGuess()
+    {
+        if (_guessWon || _guessValue is < 1 or > 100)
         {
-            var x when x.p == x.c => "uafgjort",
-            ("sten", "saks") or ("saks", "papir") or ("papir", "sten") => "vundet",
-            _ => "tabt"
-        };
-        if (r == "vundet") _wins++; else if (r == "tabt") _losses++;
-        _rpsMsg = $"Du {p}, PC {c} — {r}";
+            _guessHint = "Skriv et tal mellem 1 og 100.";
+            return;
+        }
+
+        _guessAttempts++;
+        _guessHistory.Add(_guessValue);
+
+        if (_guessValue == _guessSecret)
+        {
+            _guessWon = true;
+            _guessHint = null;
+            return;
+        }
+
+        _guessHint = _guessValue < _guessSecret ? "Højere — prøv igen" : "Lavere — prøv igen";
     }
+
+    private void ResetGuess()
+    {
+        _guessSecret = Rng.Next(1, 101);
+        _guessValue = 50;
+        _guessAttempts = 0;
+        _guessWon = false;
+        _guessHint = null;
+        _guessHistory.Clear();
+    }
+
+    private void PlayRps(string player)
+    {
+        var pc = RpsChoices[Rng.Next(RpsChoices.Length)].Id;
+        var outcome = ResolveRps(player, pc);
+
+        if (outcome == "win") _wins++;
+        else if (outcome == "loss") _losses++;
+        else _draws++;
+
+        var pcLabel = RpsChoices.First(c => c.Id == pc).Label;
+        var playerLabel = RpsChoices.First(c => c.Id == player).Label;
+        _rpsResult = outcome switch
+        {
+            "win" => $"Du vandt! {playerLabel} slår {pcLabel}.",
+            "loss" => $"Du tabte. PC valgte {pcLabel}.",
+            _ => $"Uafgjort — begge valgte {playerLabel}."
+        };
+    }
+
+    private static string ResolveRps(string player, string pc)
+    {
+        if (player == pc) return "draw";
+        if ((player, pc) is ("sten", "saks") or ("saks", "papir") or ("papir", "sten"))
+            return "win";
+        return "loss";
+    }
+
+    private void PlayTtt(int index)
+    {
+        if (IsTttFinished || _board[index] != ' ')
+            return;
+
+        _board[index] = _tttTurn;
+
+        if (HasTttWinner(_tttTurn))
+        {
+            _tttStatus = $"{_tttTurn} vandt!";
+            return;
+        }
+
+        if (_board.All(c => c != ' '))
+        {
+            _tttStatus = "Uafgjort";
+            return;
+        }
+
+        _tttTurn = _tttTurn == 'X' ? 'O' : 'X';
+    }
+
+    private void ResetTtt()
+    {
+        _board = Enumerable.Repeat(' ', 9).ToArray();
+        _tttTurn = 'X';
+        _tttStatus = null;
+    }
+
+    private string TttCellClass(int index)
+    {
+        if (_board[index] == 'X') return "project-demo-ttt-cell--x";
+        if (_board[index] == 'O') return "project-demo-ttt-cell--o";
+        return "";
+    }
+
+    private static bool HasTttWinner(char s, char[] b) =>
+        (b[0] == s && b[1] == s && b[2] == s) ||
+        (b[3] == s && b[4] == s && b[5] == s) ||
+        (b[6] == s && b[7] == s && b[8] == s) ||
+        (b[0] == s && b[3] == s && b[6] == s) ||
+        (b[1] == s && b[4] == s && b[7] == s) ||
+        (b[2] == s && b[5] == s && b[8] == s) ||
+        (b[0] == s && b[4] == s && b[8] == s) ||
+        (b[2] == s && b[4] == s && b[6] == s);
+
+    private bool HasTttWinner(char s) => HasTttWinner(s, _board);
 }

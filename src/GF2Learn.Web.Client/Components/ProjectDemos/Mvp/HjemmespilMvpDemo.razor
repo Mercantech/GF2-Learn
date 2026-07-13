@@ -1,28 +1,104 @@
 
 <ProjectDemoShell>
-    <h3 class="project-demo-title">Gæt et tal</h3>
-    <p class="project-demo-hint">Hemmeligt tal: 1–100 (demo: 42)</p>
-    <div class="project-demo-row">
-        <input type="number" class="project-demo-input" @bind="_guess" min="1" max="100" />
-        <button type="button" class="btn btn-primary btn-sm" @onclick="Check">Gæt</button>
+    <div class="project-demo-game project-demo-game--guess">
+        <div class="project-demo-game-header">
+            <span class="project-demo-game-icon" aria-hidden="true">🎯</span>
+            <div>
+                <h3 class="project-demo-title">Gæt et tal</h3>
+                <p class="project-demo-hint">Grundversion — ét spil med feedback og gætte-historik.</p>
+            </div>
+        </div>
+
+        @if (_won)
+        {
+            <div class="project-demo-banner project-demo-banner--success">
+                Korrekt! Du ramte <strong>@_secret</strong> på @_attempts. forsøg.
+            </div>
+        }
+        else if (_lastHint is not null)
+        {
+            <div class="project-demo-banner project-demo-banner--info">
+                @_lastHint · Forsøg @_attempts
+            </div>
+        }
+
+        <div class="project-demo-row project-demo-row--center">
+            <input type="number"
+                   class="project-demo-input project-demo-input-guess"
+                   @bind="_guess"
+                   min="1"
+                   max="100"
+                   disabled="@_won"
+                   aria-label="Dit gæt mellem 1 og 100" />
+            <button type="button" class="btn btn-primary" disabled="@_won" @onclick="CheckGuess">Gæt</button>
+            <button type="button" class="btn btn-ghost btn-sm" @onclick="NewGame">Nyt spil</button>
+        </div>
+
+        @if (_history.Count > 0)
+        {
+            <div class="project-demo-history">
+                <p class="project-demo-history-label">Dine gæt</p>
+                <ul class="project-demo-history-list">
+                    @foreach (var (value, index) in _history.Select((v, i) => (v, i)))
+                    {
+                        <li class="project-demo-history-chip @ChipClass(value)">@value</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <p class="project-demo-tip">
+            I jeres konsolprojekt: brug <code>Random</code>, en løkke og gem gæt i en <code>List&lt;int&gt;</code>.
+        </p>
     </div>
-    @if (_message is not null)
-    {
-        <p class="project-demo-feedback">@_message (forsøg: @_attempts)</p>
-    }
 </ProjectDemoShell>
 
 @code {
-    private const int Secret = 42;
+    private static readonly Random Rng = new();
+
+    private int _secret = Rng.Next(1, 101);
     private int _guess = 50;
     private int _attempts;
-    private string? _message;
+    private bool _won;
+    private string? _lastHint;
+    private readonly List<int> _history = [];
 
-    private void Check()
+    private void CheckGuess()
     {
+        if (_won || _guess is < 1 or > 100)
+        {
+            _lastHint = "Skriv et tal mellem 1 og 100.";
+            return;
+        }
+
         _attempts++;
-        if (_guess == Secret) _message = "Korrekt!";
-        else if (_guess < Secret) _message = "Højere";
-        else _message = "Lavere";
+        _history.Add(_guess);
+
+        if (_guess == _secret)
+        {
+            _won = true;
+            _lastHint = null;
+            return;
+        }
+
+        _lastHint = _guess < _secret ? "Højere" : "Lavere";
     }
+
+    private void NewGame()
+    {
+        _secret = Rng.Next(1, 101);
+        _guess = 50;
+        _attempts = 0;
+        _won = false;
+        _lastHint = null;
+        _history.Clear();
+    }
+
+    private string ChipClass(int value) => value switch
+    {
+        var v when v == _secret && _won => "project-demo-history-chip--win",
+        var v when _lastHint == "Højere" && v == _history[^1] => "project-demo-history-chip--low",
+        var v when _lastHint == "Lavere" && v == _history[^1] => "project-demo-history-chip--high",
+        _ => ""
+    };
 }
