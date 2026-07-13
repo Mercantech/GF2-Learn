@@ -40,3 +40,10 @@
     if (window.gf2Highlight) window.gf2Highlight.process(document);
   });
 })();
+
+window.gf2ScrollToBottom = function (element) {
+  if (!element) return;
+  requestAnimationFrame(function () {
+    element.scrollTop = element.scrollHeight;
+  });
+};

@@ -1,5 +1,6 @@
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 @inject CSharpRunnerService Runner
+@inject IJSRuntime Js
 
 <div class="console-app console-app--stepwise @(_started ? "console-app-has-run" : null)">
     <div class="console-app-titlebar" aria-hidden="true">
@@ -10,23 +11,26 @@
     </div>
 
     <div class="console-app-body">
-        <pre class="console-app-screen" aria-live="polite">@_screen</pre>
+        <div class="console-app-scroll" @ref="_scrollRegion">
+            <pre class="console-app-screen" aria-live="polite">@_screen</pre>
 
-        @if (_inputs.Count > 0)
-        {
-            <ul class="console-app-sent-inputs" aria-label="Dine svar">
-                @foreach (var line in _inputs)
-                {
-                    <li><span class="console-app-sent-prompt">&gt;</span> @line</li>
-                }
-            </ul>
-        }
+            @if (_inputs.Count > 0)
+            {
+                <ul class="console-app-sent-inputs" aria-label="Dine svar">
+                    @foreach (var line in _inputs)
+                    {
+                        <li><span class="console-app-sent-prompt">&gt;</span> @line</li>
+                    }
+                </ul>
+            }
+        </div>
 
         @if (_needsInput)
         {
             <form class="console-app-prompt-row" @onsubmit="SendAsync" @onsubmit:preventDefault="true">
                 <span class="console-app-sent-prompt" aria-hidden="true">&gt;</span>
                 <input type="text"
+                       @ref="_inputRef"
                        class="console-app-prompt-input"
                        @bind="_currentLine"
                        @bind:event="oninput"
@@ -71,8 +75,30 @@
     private bool _started;
     private bool _needsInput;
     private bool _completed;
+    private bool _pendingFocus;
+    private ElementReference _inputRef;
+    private ElementReference _scrollRegion;
 
     protected override void OnInitialized() => _ = Runner.WarmupAsync();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_started)
+            await Js.InvokeVoidAsync("gf2ScrollToBottom", _scrollRegion);
+
+        if (_pendingFocus && _needsInput && !_busy)
+        {
+            _pendingFocus = false;
+            try
+            {
+                await _inputRef.FocusAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // Input er ikke i DOM endnu.
+            }
+        }
+    }
 
     private async Task StartAsync()
     {
@@ -109,6 +135,7 @@
                 _screen = string.IsNullOrWhiteSpace(result.Output) ? "(intet output)" : result.Output;
                 _needsInput = result.NeedsInput;
                 _completed = !result.NeedsInput;
+                _pendingFocus = result.NeedsInput;
             }
             else
             {
