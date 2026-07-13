@@ -1,4 +1,30 @@
 @using GF2Learn.Web.Client.Components.ProjectDemos
+@using GF2Learn.Web.Client.Models
+
+@if (Slug == "projekt-log-parser")
+{
+    <section class="project-solution-section">
+        <h2 class="project-solution-heading">Eksempel-logfiler</h2>
+        <p class="project-solution-note">
+            Download de tre logfiler til jeres eget projekt (med i GitHub som pensum kræver).
+            De indeholder <strong>de samme 8 hændelser</strong> i txt-, JSON- og CSV-format.
+        </p>
+        <ul class="lp-solution-downloads">
+            @foreach (var file in LogParserSamples.Files)
+            {
+                <li>
+                    <a class="lp-solution-download-link" href="@LogParserSamples.Url(file.FileName)" download="@file.FileName">
+                        <span class="lp-solution-download-name">@file.FileName</span>
+                        <span class="lp-solution-download-desc">@file.Description</span>
+                    </a>
+                </li>
+            }
+        </ul>
+        <p class="project-solution-note-muted">
+            Konsol-demoen og Blazor-demos indlæser samme filer. I jeres program: læg dem i projektmappen og brug <code>File.ReadAllLines</code> / <code>File.ReadAllText</code>.
+        </p>
+    </section>
+}
 
 @if (!string.IsNullOrWhiteSpace(ConsoleCode))
 {
@@ -11,7 +37,7 @@
             </p>
             <ul class="project-solution-console-steps">
                 <li>Tryk <strong>Start program</strong> — menuen vises i terminalen.</li>
-                <li>Skriv dit svar i feltet (fx <code>1</code> for gæt-et-tal) og tryk <strong>Send</strong> eller Enter.</li>
+                <li>Skriv dit svar i feltet (fx menuvalg <code>1</code> eller en opgavetekst) og tryk <strong>Send</strong> eller Enter.</li>
                 <li>Programmet kører videre efter hvert svar, indtil du er færdig.</li>
             </ul>
             @if (!string.IsNullOrWhiteSpace(ConsoleScenarioHint))
@@ -54,6 +80,14 @@
             "2 (vis) → 1 (tilføj) → firma/titel/status → 2 → 3 (afslut).",
         "projekt-1-hjemmespil" =>
             "1 (gæt tal) → 50 → 75 → 62 → 2 (RPS) → sten → j → papir → n → 3 (Tic-Tac-Toe) → 5, 1, 9, 3 → 4 (afslut).",
+        "projekt-huskeliste" =>
+            "2 (vis) → 1 (tilføj) → Øv arrays → 2 → 3 (markér) → 1 → 4 (slet) → 2 → 5 (afslut).",
+        "projekt-2-binaer" =>
+            "1 → 10111011 → 2 → 75 → 3 → 10111011.01001011.10101010.01010101 → 4 → 187.75.170.85 → 5 (afslut).",
+        "projekt-bibliotek" =>
+            "2 (vis) → 1 (tilføj) → Design Patterns → GoF → 3 (udlån) → 1 → Mads → 4 (returnér) → 2 → 5 (afslut).",
+        "projekt-log-parser" =>
+            "1 (txt) → 2 (json) → 3 (csv) → 5 (vis filer) → 4 → app.log.txt → 6 (afslut).",
         _ => null
     };
 }

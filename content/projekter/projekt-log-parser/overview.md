@@ -20,6 +20,8 @@ Virksomheder og servere gemmer **logfiler** med hændelser. Lav et program der l
 
 :::callout type="tip"
 Brug en simpel format I selv definerer, fx `[ERROR] Bruger kunne ikke logge ind` pr. linje — så slipper I for rigtige serverlogs.
+
+På **GF2 Learn** kan I downloade tre færdige eksempelfiler (`app.log.txt`, `app.log.json`, `app.log.csv`) med de samme 8 hændelser — brug dem i jeres konsolprojekt og medlevér mindst én i GitHub.
 :::
 
 :::related-pensum
@@ -42,7 +44,7 @@ Brug en simpel format I selv definerer, fx `[ERROR] Bruger kunne ikke logge ind`
 
 ## Aflevering
 
-Medlevér en **eksempel-logfil** i repo (uden persondata). Push til GitHub.
+Medlevér en **eksempel-logfil** i repo (uden persondata). Brug gerne `app.log.txt` fra GF2 Learn — eller lav jeres egen. Push til GitHub.
 
 :::git-step
 commit: "feat: log-parser med fil og statistik"

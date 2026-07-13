@@ -1,55 +1,164 @@
 
-<ProjectDemoShell>
-    <input class="project-demo-input" @bind="_search" placeholder="Søg titel..." />
-    <div class="project-demo-row">
-        <input class="project-demo-input" @bind="_newTitle" placeholder="Ny bog" />
-        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
+<div class="project-demo-card bibliotek-demo bibliotek-demo--extended">
+    <header class="bib-hero bib-hero-extended">
+        <div class="bib-hero-icon" aria-hidden="true">🏛️</div>
+        <div>
+            <p class="bib-hero-eyebrow">Reference · Udvidet</p>
+            <h3 class="bib-hero-title">Bibliotek — fuld reference</h3>
+            <p class="bib-hero-lead">Tilføj, søg, udlån med låner og returnér — som hele menuen i konsol-løsningen.</p>
+        </div>
+    </header>
+
+    <div class="bib-stats bib-stats-extended">
+        <div class="bib-stat bib-stat-available">
+            <span class="bib-stat-value">@AvailableCount</span>
+            <span class="bib-stat-label">Ledige</span>
+        </div>
+        <div class="bib-stat bib-stat-loaned">
+            <span class="bib-stat-value">@LoanedCount</span>
+            <span class="bib-stat-label">Udlånte</span>
+        </div>
+        <div class="bib-stat bib-stat-total">
+            <span class="bib-stat-value">@_books.Count</span>
+            <span class="bib-stat-label">Bøger</span>
+        </div>
     </div>
-    <ul class="project-demo-list">
-        @foreach (var b in Filtered())
+
+    <div class="bib-toolbar">
+        <div class="bib-search-wrap">
+            <span class="bib-search-icon" aria-hidden="true">⌕</span>
+            <input class="bib-input bib-search"
+                   @bind="_search"
+                   @bind:event="oninput"
+                   placeholder="Søg titel eller forfatter…"
+                   aria-label="Søg bøger" />
+        </div>
+        <select class="bib-input bib-filter" @bind="_filter" aria-label="Filtrér">
+            <option value="all">Alle bøger</option>
+            <option value="available">Kun ledige</option>
+            <option value="loaned">Kun udlånte</option>
+        </select>
+    </div>
+
+    <div class="bib-form-card">
+        <h4 class="bib-form-title">Tilføj ny bog</h4>
+        <div class="bib-form-grid">
+            <input class="bib-input" @bind="_newTitle" placeholder="Titel" aria-label="Titel" />
+            <input class="bib-input" @bind="_newAuthor" placeholder="Forfatter" aria-label="Forfatter" />
+            <input class="bib-input" @bind="_borrower" placeholder="Standard-låner" aria-label="Låners navn" />
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Add" disabled="@(!CanAdd)">+ Tilføj bog</button>
+    </div>
+
+    <div class="bib-list-wrap">
+        @if (!Filtered().Any())
         {
-            <li>
-                <strong>@b.Title</strong>
-                @if (b.Loaned) { <span>— udlånt til @b.Borrower</span> }
-                else
-                {
-                    <button type="button" class="btn btn-ghost btn-sm" @onclick="() => Loan(b)">Udlån</button>
-                }
-            </li>
+            <p class="bib-empty">Ingen bøger matcher søgningen.</p>
         }
-    </ul>
-</ProjectDemoShell>
+        else
+        {
+            <ul class="bib-list bib-list--extended">
+                @foreach (var book in Filtered())
+                {
+                    <li class="bib-item bib-item--extended @(book.Loaned ? "bib-item--loaned" : null)">
+                        <div class="bib-item-main">
+                            <span class="bib-item-icon" aria-hidden="true">@(book.Loaned ? "🔒" : "📖")</span>
+                            <div>
+                                <strong class="bib-item-title">@book.Title</strong>
+                                <span class="bib-item-author">@book.Author</span>
+                                @if (book.Loaned)
+                                {
+                                    <span class="bib-item-borrower">Lånt af <strong>@book.Borrower</strong></span>
+                                }
+                            </div>
+                        </div>
+                        <div class="bib-item-actions">
+                            <span class="bib-badge @(book.Loaned ? "bib-badge--loaned" : "bib-badge--available")">
+                                @(book.Loaned ? "Udlånt" : "Ledig")
+                            </span>
+                            @if (!book.Loaned)
+                            {
+                                <button type="button" class="btn btn-primary btn-sm" @onclick="() => Loan(book)">Udlån</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-ghost btn-sm" @onclick="() => ReturnBook(book)">Returnér</button>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>
 
 @code {
     private sealed class Book
     {
         public string Title { get; set; } = "";
+        public string Author { get; set; } = "";
         public bool Loaned { get; set; }
         public string Borrower { get; set; } = "";
     }
 
-    private string _search = "", _newTitle = "", _borrower = "Elev";
+    private string _search = "";
+    private string _filter = "all";
+    private string _newTitle = "";
+    private string _newAuthor = "";
+    private string _borrower = "Elev";
     private readonly List<Book> _books =
     [
-        new() { Title = "C# for begyndere" },
-        new() { Title = "Clean Code", Loaned = true, Borrower = "Anna" },
-        new() { Title = "Git handbook" }
+        new() { Title = "C# for begyndere", Author = "Mercantec" },
+        new() { Title = "Clean Code", Author = "Robert C. Martin", Loaned = true, Borrower = "Anna" },
+        new() { Title = "Git handbook", Author = "GF2 Learn" }
     ];
+
+    private int AvailableCount => _books.Count(b => !b.Loaned);
+    private int LoanedCount => _books.Count(b => b.Loaned);
+    private bool CanAdd => !string.IsNullOrWhiteSpace(_newTitle);
+
+    private IEnumerable<Book> Filtered()
+    {
+        var query = _books.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(_search))
+        {
+            query = query.Where(b =>
+                b.Title.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                b.Author.Contains(_search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return _filter switch
+        {
+            "available" => query.Where(b => !b.Loaned),
+            "loaned" => query.Where(b => b.Loaned),
+            _ => query
+        };
+    }
 
     private void Add()
     {
-        if (string.IsNullOrWhiteSpace(_newTitle)) return;
-        _books.Add(new Book { Title = _newTitle.Trim() });
+        if (!CanAdd) return;
+        _books.Add(new Book
+        {
+            Title = _newTitle.Trim(),
+            Author = string.IsNullOrWhiteSpace(_newAuthor) ? "(ukendt)" : _newAuthor.Trim()
+        });
         _newTitle = "";
+        _newAuthor = "";
     }
 
-    private void Loan(Book b)
+    private void Loan(Book book)
     {
-        b.Loaned = true;
-        b.Borrower = _borrower;
+        if (book.Loaned) return;
+        book.Loaned = true;
+        book.Borrower = string.IsNullOrWhiteSpace(_borrower) ? "Elev" : _borrower.Trim();
     }
 
-    private IEnumerable<Book> Filtered() => string.IsNullOrWhiteSpace(_search)
-        ? _books
-        : _books.Where(b => b.Title.Contains(_search, StringComparison.OrdinalIgnoreCase));
+    private void ReturnBook(Book book)
+    {
+        if (!book.Loaned) return;
+        book.Loaned = false;
+        book.Borrower = "";
+    }
 }

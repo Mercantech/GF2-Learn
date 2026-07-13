@@ -1,0 +1,8 @@
+[INFO] 2026-03-10 08:00:01 Server startet
+[WARN] 2026-03-10 08:15:22 Disk 80% fuld
+[ERROR] 2026-03-10 09:02:11 Login fejlede for bruger elev1
+[INFO] 2026-03-10 09:05:00 Bruger logget ind
+[ERROR] 2026-03-10 10:30:44 Timeout mod database
+[WARN] 2026-03-10 11:00:00 Cache næsten fuld
+[INFO] 2026-03-10 12:00:00 Backup fuldført
+[ERROR] 2026-03-10 14:22:18 Database forbindelse afbrudt

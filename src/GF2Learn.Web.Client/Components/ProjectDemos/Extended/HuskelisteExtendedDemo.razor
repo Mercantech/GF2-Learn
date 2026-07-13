@@ -1,54 +1,134 @@
 
-<ProjectDemoShell>
-    <div class="project-demo-row">
-        <input class="project-demo-input" @bind="_newTask" placeholder="Ny opgave" />
-        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
+<div class="project-demo-card huskeliste-demo huskeliste-demo--extended">
+    <header class="hl-hero hl-hero-extended">
+        <div class="hl-hero-icon" aria-hidden="true">✅</div>
+        <div>
+            <p class="hl-hero-eyebrow">Reference · Udvidet</p>
+            <h3 class="hl-hero-title">Huskeliste — fuld reference</h3>
+            <p class="hl-hero-lead">Filtrér, sortér og markér opgaver — som menu 2–4 i konsol-løsningen.</p>
+        </div>
+    </header>
+
+    <div class="hl-stats hl-stats-extended">
+        <div class="hl-stat hl-stat-open">
+            <span class="hl-stat-value">@OpenCount</span>
+            <span class="hl-stat-label">Åbne</span>
+        </div>
+        <div class="hl-stat hl-stat-done">
+            <span class="hl-stat-value">@DoneCount</span>
+            <span class="hl-stat-label">Færdige</span>
+        </div>
+        <div class="hl-stat hl-stat-total">
+            <span class="hl-stat-value">@_items.Count</span>
+            <span class="hl-stat-label">I alt</span>
+        </div>
+        <div class="hl-stat hl-stat-progress">
+            <span class="hl-stat-value">@ProgressPercent%</span>
+            <span class="hl-stat-label">Færdig</span>
+        </div>
     </div>
-    <div class="project-demo-row">
-        <select class="project-demo-input" @bind="_filter">
-            <option value="all">Alle</option>
+
+    <div class="hl-progress-bar" role="progressbar" aria-valuenow="@ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+        <span class="hl-progress-fill" style="width: @(ProgressPercent)%"></span>
+    </div>
+
+    <div class="hl-toolbar">
+        <select class="hl-input hl-filter" @bind="_filter" aria-label="Filtrér opgaver">
+            <option value="all">Alle opgaver</option>
             <option value="open">Kun åbne</option>
             <option value="done">Kun færdige</option>
         </select>
+        <select class="hl-input hl-filter" @bind="_sort" aria-label="Sortér opgaver">
+            <option value="order">Rækkefølge</option>
+            <option value="alpha">Alfabetisk</option>
+            <option value="status">Status (åbne først)</option>
+        </select>
     </div>
-    <ul class="project-demo-list">
-        @foreach (var (task, index) in Filtered().Select((t, i) => (t, i)))
+
+    <div class="hl-form-card hl-form-card-inline">
+        <input class="hl-input hl-input-grow" @bind="_newTask" placeholder="Ny opgave…" aria-label="Ny opgave" />
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Add" disabled="@(!CanAdd)">Tilføj</button>
+    </div>
+
+    <div class="hl-list-wrap">
+        @if (!FilteredSorted().Any())
         {
-            <li class="@(task.Done ? "done" : null)">
-                <label>
-                    <input type="checkbox" checked="@task.Done" @onchange="() => Toggle(task)" />
-                    @task.Text
-                </label>
-                <button type="button" class="btn btn-ghost btn-sm" @onclick="() => _items.Remove(task)">Slet</button>
-            </li>
+            <p class="hl-empty">Ingen opgaver matcher filteret.</p>
         }
-    </ul>
-</ProjectDemoShell>
+        else
+        {
+            <ul class="hl-list hl-list--extended">
+                @foreach (var (task, displayIndex) in FilteredSorted().Select((t, i) => (t, i + 1)))
+                {
+                    <li class="hl-item hl-item--extended @(task.Done ? "hl-item--done" : null)">
+                        <label class="hl-check-label">
+                            <input type="checkbox"
+                                   class="hl-checkbox"
+                                   checked="@task.Done"
+                                   @onchange="() => Toggle(task)" />
+                            <span class="hl-item-num">@displayIndex</span>
+                            <span class="hl-item-text">@task.Text</span>
+                        </label>
+                        <button type="button"
+                                class="btn btn-ghost btn-sm"
+                                title="Slet"
+                                @onclick="() => Remove(task)">×</button>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>
 
 @code {
-    private sealed class TaskItem { public string Text { get; set; } = ""; public bool Done { get; set; } }
+    private sealed class TaskItem
+    {
+        public string Text { get; set; } = "";
+        public bool Done { get; set; }
+        public int Order { get; set; }
+    }
 
     private string _newTask = "";
     private string _filter = "all";
+    private string _sort = "order";
+    private int _nextOrder = 3;
     private readonly List<TaskItem> _items =
     [
-        new() { Text = "Læs pensum" },
-        new() { Text = "Øv loops", Done = true }
+        new() { Text = "Læs pensum", Order = 0 },
+        new() { Text = "Øv loops", Done = true, Order = 1 },
+        new() { Text = "Push til GitHub", Order = 2 }
     ];
+
+    private int OpenCount => _items.Count(t => !t.Done);
+    private int DoneCount => _items.Count(t => t.Done);
+    private int ProgressPercent => _items.Count == 0 ? 0 : (int)Math.Round(100.0 * DoneCount / _items.Count);
+    private bool CanAdd => !string.IsNullOrWhiteSpace(_newTask);
+
+    private IEnumerable<TaskItem> FilteredSorted()
+    {
+        var query = _filter switch
+        {
+            "open" => _items.Where(t => !t.Done),
+            "done" => _items.Where(t => t.Done),
+            _ => _items.AsEnumerable()
+        };
+
+        return _sort switch
+        {
+            "alpha" => query.OrderBy(t => t.Text, StringComparer.OrdinalIgnoreCase),
+            "status" => query.OrderBy(t => t.Done).ThenBy(t => t.Order),
+            _ => query.OrderBy(t => t.Order)
+        };
+    }
 
     private void Add()
     {
-        if (string.IsNullOrWhiteSpace(_newTask)) return;
-        _items.Add(new TaskItem { Text = _newTask.Trim() });
+        if (!CanAdd) return;
+        _items.Add(new TaskItem { Text = _newTask.Trim(), Order = _nextOrder++ });
         _newTask = "";
     }
 
-    private void Toggle(TaskItem t) => t.Done = !t.Done;
+    private void Toggle(TaskItem task) => task.Done = !task.Done;
 
-    private IEnumerable<TaskItem> Filtered() => _filter switch
-    {
-        "open" => _items.Where(t => !t.Done),
-        "done" => _items.Where(t => t.Done),
-        _ => _items
-    };
+    private void Remove(TaskItem task) => _items.Remove(task);
 }

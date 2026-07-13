@@ -1,27 +1,102 @@
+@using GF2Learn.Web.Client.Models
+@using GF2Learn.Web.Client.Services
+@inject IHttpClientFactory HttpClientFactory
 
-<ProjectDemoShell>
-    <pre class="project-demo-log">@SampleLog</pre>
-    <button type="button" class="btn btn-primary btn-sm" @onclick="Parse">Tæl niveauer</button>
-    @if (_report is not null) { <p class="project-demo-feedback">@_report</p> }
-</ProjectDemoShell>
+<div class="project-demo-card log-parser-demo">
+    <header class="lp-hero">
+        <div class="lp-hero-icon" aria-hidden="true">📄</div>
+        <div>
+            <p class="lp-hero-eyebrow">Reference · MVP</p>
+            <h3 class="lp-hero-title">Log-parser</h3>
+            <p class="lp-hero-lead">Læs <code>app.log.txt</code> og tæl INFO, WARN og ERROR — som i jeres konsol-aflevering.</p>
+        </div>
+    </header>
+
+    <div class="lp-downloads">
+        <p class="lp-downloads-label">Eksempelfiler</p>
+        <div class="lp-downloads-row">
+            @foreach (var file in LogParserSamples.Files)
+            {
+                <a class="btn btn-ghost btn-sm lp-download-btn"
+                   href="@LogParserSamples.Url(file.FileName)"
+                   download="@file.FileName">@file.FileName</a>
+            }
+        </div>
+    </div>
+
+    <div class="lp-file-panel">
+        <div class="lp-file-header">
+            <span class="lp-file-name">@_activeFile</span>
+            <button type="button" class="btn btn-ghost btn-sm" disabled="@_loading" @onclick="ReloadAsync">Genindlæs</button>
+        </div>
+        @if (_loading)
+        {
+            <p class="lp-muted">Indlæser logfil…</p>
+        }
+        else
+        {
+            <pre class="lp-log-preview">@_content</pre>
+        }
+    </div>
+
+    <div class="lp-actions">
+        <button type="button" class="btn btn-primary btn-sm" disabled="@(_loading || string.IsNullOrWhiteSpace(_content))" @onclick="Parse">
+            Analysér log
+        </button>
+    </div>
+
+    @if (_report is not null)
+    {
+        <div class="lp-stats">
+            <div class="lp-stat lp-stat-info"><span class="lp-stat-value">@_report.Info</span><span class="lp-stat-label">INFO</span></div>
+            <div class="lp-stat lp-stat-warn"><span class="lp-stat-value">@_report.Warn</span><span class="lp-stat-label">WARN</span></div>
+            <div class="lp-stat lp-stat-error"><span class="lp-stat-value">@_report.Error</span><span class="lp-stat-label">ERROR</span></div>
+        </div>
+        <pre class="lp-report">@_report.ToDisplayReport()</pre>
+    }
+
+    <p class="lp-tip">
+        I konsollen: <code>File.ReadAllLines</code>, tæl tags og brug <code>try/catch</code> hvis filen mangler.
+    </p>
+</div>
 
 @code {
-    private const string SampleLog = """
-        [INFO] Server startet
-        [WARN] Disk 80%
-        [ERROR] Login fejlede
-        [INFO] Bruger logget ind
-        [ERROR] Timeout
-        """;
+    private const string DefaultFile = "app.log.txt";
 
-    private string? _report;
+    private string _activeFile = DefaultFile;
+    private string _content = "";
+    private bool _loading = true;
+    private LogParserReport? _report;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync(DefaultFile);
+
+    private async Task ReloadAsync() => await LoadAsync(_activeFile);
+
+    private async Task LoadAsync(string fileName)
+    {
+        _loading = true;
+        _report = null;
+        _activeFile = fileName;
+        StateHasChanged();
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            _content = await client.GetStringAsync(LogParserSamples.Url(fileName));
+        }
+        catch
+        {
+            _content = "(Kunne ikke indlæse logfil — tjek at app.log.txt findes under wwwroot.)";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
 
     private void Parse()
     {
-        var lines = SampleLog.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        var info = lines.Count(l => l.Contains("[INFO]"));
-        var warn = lines.Count(l => l.Contains("[WARN]"));
-        var error = lines.Count(l => l.Contains("[ERROR]"));
-        _report = $"INFO: {info}, WARN: {warn}, ERROR: {error}";
+        var file = LogParserSamples.Files.First(f => f.FileName == _activeFile);
+        _report = LogParserLogic.Parse(_content, file.Format, _activeFile);
     }
 }

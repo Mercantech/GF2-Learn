@@ -1,40 +1,174 @@
+@using GF2Learn.Web.Client.Models
+@using GF2Learn.Web.Client.Services
+@inject IHttpClientFactory HttpClientFactory
+@inject IJSRuntime Js
 
-<ProjectDemoShell>
-    <textarea class="project-demo-textarea" rows="6" @bind="_log"></textarea>
-    <div class="project-demo-row">
-        <button type="button" class="btn btn-primary btn-sm" @onclick="Parse">Analyser</button>
-        <button type="button" class="btn btn-ghost btn-sm" @onclick="Export">Kopiér rapport</button>
+<div class="project-demo-card log-parser-demo log-parser-demo--extended">
+    <header class="lp-hero lp-hero-extended">
+        <div class="lp-hero-icon" aria-hidden="true">📊</div>
+        <div>
+            <p class="lp-hero-eyebrow">Reference · Udvidet</p>
+            <h3 class="lp-hero-title">Log-parser — alle formater</h3>
+            <p class="lp-hero-lead">Indlæs txt, JSON eller CSV fra de samme eksempelfiler — og sammenlign resultaterne.</p>
+        </div>
+    </header>
+
+    <div class="lp-downloads">
+        <p class="lp-downloads-label">Download til jeres projekt</p>
+        <div class="lp-downloads-row">
+            @foreach (var file in LogParserSamples.Files)
+            {
+                <a class="btn btn-ghost btn-sm lp-download-btn"
+                   href="@LogParserSamples.Url(file.FileName)"
+                   download="@file.FileName"
+                   title="@file.Description">
+                    <span class="lp-download-ext">.@file.Format</span> @file.FileName
+                </a>
+            }
+        </div>
     </div>
-    @if (_report is not null) { <pre class="project-demo-feedback">@_report</pre> }
-</ProjectDemoShell>
+
+    <div class="project-demo-tabs lp-format-tabs" role="tablist" aria-label="Vælg logformat">
+        @foreach (var file in LogParserSamples.Files)
+        {
+            <button type="button"
+                    role="tab"
+                    aria-selected="@(_activeFile == file.FileName)"
+                    class="project-demo-tab @(_activeFile == file.FileName ? "project-demo-tab--active" : null)"
+                    @onclick="() => SelectFileAsync(file)">
+                @file.Description
+            </button>
+        }
+    </div>
+
+    <div class="lp-file-panel">
+        <div class="lp-file-header">
+            <span class="lp-file-name">@_activeFile</span>
+            <span class="lp-file-meta">@_content.Length tegn</span>
+        </div>
+        @if (_loading)
+        {
+            <p class="lp-muted">Indlæser…</p>
+        }
+        else
+        {
+            <pre class="lp-log-preview">@_content</pre>
+        }
+    </div>
+
+    <div class="lp-actions">
+        <button type="button" class="btn btn-primary btn-sm" disabled="@_loading" @onclick="Parse">Analyser fil</button>
+        <button type="button" class="btn btn-ghost btn-sm" disabled="@(_report is null)" @onclick="CopyReportAsync">Kopiér rapport</button>
+        <button type="button" class="btn btn-ghost btn-sm" @onclick="CompareAsync">Sammenlign formater</button>
+    </div>
+
+    @if (_report is not null)
+    {
+        <div class="lp-stats">
+            <div class="lp-stat lp-stat-info"><span class="lp-stat-value">@_report.Info</span><span class="lp-stat-label">INFO</span></div>
+            <div class="lp-stat lp-stat-warn"><span class="lp-stat-value">@_report.Warn</span><span class="lp-stat-label">WARN</span></div>
+            <div class="lp-stat lp-stat-error"><span class="lp-stat-value">@_report.Error</span><span class="lp-stat-label">ERROR</span></div>
+        </div>
+        <pre class="lp-report">@_report.ToDisplayReport()</pre>
+    }
+
+    @if (_comparison is not null)
+    {
+        <div class="lp-compare">
+            <h4 class="lp-form-title">Format-sammenligning</h4>
+            <p class="lp-muted">Samme hændelser i tre formater — tallene skal matche.</p>
+            <table class="lp-compare-table">
+                <thead>
+                    <tr><th>Fil</th><th>INFO</th><th>WARN</th><th>ERROR</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in _comparison)
+                    {
+                        <tr>
+                            <td>@row.SourceFile</td>
+                            <td>@row.Info</td>
+                            <td>@row.Warn</td>
+                            <td>@row.Error</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
 
 @code {
-    [Inject] private IJSRuntime Js { get; set; } = default!;
+    private string _activeFile = LogParserSamples.Files[0].FileName;
+    private string _activeFormat = LogParserSamples.Files[0].Format;
+    private string _content = "";
+    private bool _loading = true;
+    private LogParserReport? _report;
+    private readonly Dictionary<string, LogParserReport> _reports = new(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<LogParserReport>? _comparison;
 
-    private string _log = """
-        [INFO] Server startet
-        [WARN] Disk 80%
-        [ERROR] Login fejlede
-        [INFO] Bruger logget ind
-        [ERROR] Timeout
-        [ERROR] Database langsom
-        """;
+    protected override async Task OnInitializedAsync() =>
+        await SelectFileAsync(LogParserSamples.Files[0]);
 
-    private string? _report;
+    private async Task SelectFileAsync(LogParserSampleFile file)
+    {
+        _loading = true;
+        _activeFile = file.FileName;
+        _activeFormat = file.Format;
+        _report = null;
+        _comparison = null;
+        StateHasChanged();
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("GF2LearnApi");
+            _content = await client.GetStringAsync(LogParserSamples.Url(file.FileName));
+        }
+        catch
+        {
+            _content = "(Kunne ikke indlæse filen.)";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
 
     private void Parse()
     {
-        var lines = _log.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        var info = lines.Count(l => l.Contains("[INFO]"));
-        var warn = lines.Count(l => l.Contains("[WARN]"));
-        var error = lines.Count(l => l.Contains("[ERROR]"));
-        var errors = lines.Where(l => l.Contains("[ERROR]")).Take(5);
-        _report = $"INFO: {info}, WARN: {warn}, ERROR: {error}\n\nSeneste fejl:\n{string.Join("\n", errors)}";
+        _report = LogParserLogic.Parse(_content, _activeFormat, _activeFile);
+        _reports[_activeFile] = _report;
+        _comparison = null;
     }
 
-    private async Task Export()
+    private async Task CompareAsync()
     {
-        if (_report is null) Parse();
-        await Js.InvokeVoidAsync("navigator.clipboard.writeText", _report ?? "");
+        var client = HttpClientFactory.CreateClient("GF2LearnApi");
+
+        foreach (var file in LogParserSamples.Files)
+        {
+            if (_reports.ContainsKey(file.FileName))
+                continue;
+
+            try
+            {
+                var content = await client.GetStringAsync(LogParserSamples.Url(file.FileName));
+                _reports[file.FileName] = LogParserLogic.Parse(content, file.Format, file.FileName);
+            }
+            catch
+            {
+                // Ignorer enkeltfil-fejl i sammenligning.
+            }
+        }
+
+        _comparison = LogParserSamples.Files
+            .Where(f => _reports.ContainsKey(f.FileName))
+            .Select(f => _reports[f.FileName])
+            .ToList();
+    }
+
+    private async Task CopyReportAsync()
+    {
+        if (_report is null) return;
+        await Js.InvokeVoidAsync("navigator.clipboard.writeText", _report.ToDisplayReport());
     }
 }

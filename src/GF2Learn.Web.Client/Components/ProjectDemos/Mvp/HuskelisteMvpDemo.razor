@@ -1,31 +1,107 @@
 
-<ProjectDemoShell>
-    <div class="project-demo-row">
-        <input class="project-demo-input" @bind="_newTask" placeholder="Ny opgave" />
-        <button type="button" class="btn btn-primary btn-sm" @onclick="Add">Tilføj</button>
+<div class="project-demo-card huskeliste-demo">
+    <header class="hl-hero">
+        <div class="hl-hero-icon" aria-hidden="true">📋</div>
+        <div>
+            <p class="hl-hero-eyebrow">Reference · MVP</p>
+            <h3 class="hl-hero-title">Huskeliste</h3>
+            <p class="hl-hero-lead">Tilføj og slet opgaver — som menuvalg 1 og 4 i jeres konsol-aflevering.</p>
+        </div>
+    </header>
+
+    <div class="hl-stats">
+        <div class="hl-stat hl-stat-open">
+            <span class="hl-stat-value">@OpenCount</span>
+            <span class="hl-stat-label">Åbne</span>
+        </div>
+        <div class="hl-stat hl-stat-done">
+            <span class="hl-stat-value">@DoneCount</span>
+            <span class="hl-stat-label">Færdige</span>
+        </div>
+        <div class="hl-stat hl-stat-total">
+            <span class="hl-stat-value">@_tasks.Count</span>
+            <span class="hl-stat-label">I alt</span>
+        </div>
     </div>
-    <ul class="project-demo-list">
-        @for (var i = 0; i < _tasks.Count; i++)
+
+    <div class="hl-form-card">
+        <h4 class="hl-form-title">Ny opgave</h4>
+        <div class="hl-form-row">
+            <input class="hl-input hl-input-grow"
+                   @bind="_newTask"
+                   @bind:event="oninput"
+                   placeholder="fx Læs pensum, Øv loops…"
+                   aria-label="Ny opgave" />
+            <button type="button" class="btn btn-primary btn-sm" @onclick="Add" disabled="@(!CanAdd)">+ Tilføj</button>
+        </div>
+        @if (_lastAdded is not null)
         {
-            var idx = i;
-            <li>
-                <span>@_tasks[idx]</span>
-                <button type="button" class="btn btn-ghost btn-sm" @onclick="() => Remove(idx)">Slet</button>
-            </li>
+            <p class="hl-feedback hl-feedback--success">Tilføjet: <strong>@_lastAdded</strong></p>
         }
-    </ul>
-</ProjectDemoShell>
+    </div>
+
+    <div class="hl-list-wrap">
+        <h4 class="hl-form-title">Dine opgaver</h4>
+        @if (_tasks.Count == 0)
+        {
+            <p class="hl-empty">Ingen opgaver endnu — tilføj din første ovenfor.</p>
+        }
+        else
+        {
+            <ul class="hl-list">
+                @for (var i = 0; i < _tasks.Count; i++)
+                {
+                    var idx = i;
+                    var task = _tasks[idx];
+                    <li class="hl-item @(task.Done ? "hl-item--done" : null)">
+                        <span class="hl-item-num">@(idx + 1)</span>
+                        <span class="hl-item-text">@task.Text</span>
+                        <button type="button"
+                                class="btn btn-ghost btn-sm"
+                                title="Slet opgave"
+                                @onclick="() => Remove(idx)">Slet</button>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+
+    <p class="hl-tip">
+        I konsollen: brug <code>List&lt;Opgave&gt;</code>, en <code>while</code>-menu og metoder som <code>VisOpgaver</code>.
+    </p>
+</div>
 
 @code {
+    private sealed class TaskItem
+    {
+        public string Text { get; set; } = "";
+        public bool Done { get; set; }
+    }
+
     private string _newTask = "";
-    private readonly List<string> _tasks = ["Læs pensum", "Øv loops"];
+    private string? _lastAdded;
+    private readonly List<TaskItem> _tasks =
+    [
+        new() { Text = "Læs pensum" },
+        new() { Text = "Øv loops" }
+    ];
+
+    private int OpenCount => _tasks.Count(t => !t.Done);
+    private int DoneCount => _tasks.Count(t => t.Done);
+    private bool CanAdd => !string.IsNullOrWhiteSpace(_newTask);
 
     private void Add()
     {
-        if (string.IsNullOrWhiteSpace(_newTask)) return;
-        _tasks.Add(_newTask.Trim());
+        if (!CanAdd) return;
+        var text = _newTask.Trim();
+        _tasks.Add(new TaskItem { Text = text });
+        _lastAdded = text;
         _newTask = "";
     }
 
-    private void Remove(int i) => _tasks.RemoveAt(i);
+    private void Remove(int index)
+    {
+        _tasks.RemoveAt(index);
+        _lastAdded = null;
+    }
 }
