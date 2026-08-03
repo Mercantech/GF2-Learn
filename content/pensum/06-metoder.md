@@ -26,14 +26,16 @@ En metode i C# består af:
 5. **Metodekrop** — koden der udfører opgaven
 
 ```csharp
-public void SayHello()
+static void SayHello()
 {
     Console.WriteLine("Hello, World!");
 }
+
+SayHello();
 ```
 
 :::callout type="info"
-I moderne C# konsolprogrammer kan metoder være **static** og kaldes direkte uden `new Program()` — det bruger vi ofte i GF2:
+I moderne C# konsolprogrammer kan metoder være **static** og kaldes direkte — det bruger vi ofte i GF2:
 
 ```csharp
 static void SigHej(string navn)
@@ -50,23 +52,17 @@ SigHej("GF2");
 
 ## Simpel metode uden parametre
 
+En metode uden parametre udfører samme handling hver gang den kaldes:
+
 ```csharp
-class Program
+static void SayHello()
 {
-    public void SayHello()
-    {
-        Console.WriteLine("Hello, World!");
-    }
-
-    static void Main()
-    {
-        Program program = new Program();
-        program.SayHello();
-    }
+    Console.WriteLine("Hello, World!");
 }
-```
 
-`static void Main()` er indgangspunktet. Instansmetoder som `SayHello()` kaldes på et **objekt** (`program`).
+SayHello();
+SayHello();
+```
 
 
 ## Metoder med parametre
@@ -74,20 +70,15 @@ class Program
 Parametre giver metoden input at arbejde med:
 
 ```csharp
-class Program
+static int Add(int a, int b)
 {
-    public int Add(int a, int b)
-    {
-        return a + b;
-    }
-
-    static void Main()
-    {
-        Program program = new Program();
-        int result = program.Add(5, 3);
-        Console.WriteLine("Resultat: " + result);   // 8
-    }
+    return a + b;
 }
+
+int result = Add(5, 3);
+Console.WriteLine("Resultat: " + result);
+
+Console.WriteLine("10 + 7 = " + Add(10, 7));
 ```
 
 Flere parametre adskilles med komma. Typen skal matche det, metoden forventer.
@@ -98,14 +89,14 @@ Flere parametre adskilles med komma. Typen skal matche det, metoden forventer.
 Metoder kan returnere en værdi med `return`:
 
 ```csharp
-public string GetGreeting(string name)
+static string GetGreeting(string name)
 {
     return "Hello, " + name + "!";
 }
 
-// Kald
-string greeting = program.GetGreeting("Alice");
-Console.WriteLine(greeting);   // Hello, Alice!
+string greeting = GetGreeting("Alice");
+Console.WriteLine(greeting);
+Console.WriteLine(GetGreeting("Bob"));
 ```
 
 Korte metoder kan bruge **expression body** (`=>`):
@@ -117,6 +108,9 @@ static double BeregnGennemsnit(int a, int b, int c)
 {
     return (a + b + c) / 3.0;
 }
+
+Console.WriteLine("Fordobl(7) = " + Fordobl(7));
+Console.WriteLine("Gennemsnit = " + BeregnGennemsnit(10, 20, 30));
 ```
 
 
@@ -129,6 +123,10 @@ static void PrintSkillelinje()
 {
     Console.WriteLine("----------");
 }
+
+Console.WriteLine("Før");
+PrintSkillelinje();
+Console.WriteLine("Efter");
 ```
 
 **Returværdi** — metoden beregner og sender et resultat tilbage:
@@ -145,6 +143,12 @@ static string KarakterFraScore(int score)
     if (score >= 60) return "Bestået";
     return "Ikke bestået";
 }
+
+Console.WriteLine("Er 5 positiv? " + ErPositiv(5));
+Console.WriteLine("Er -2 positiv? " + ErPositiv(-2));
+Console.WriteLine("Score 95 → " + KarakterFraScore(95));
+Console.WriteLine("Score 70 → " + KarakterFraScore(70));
+Console.WriteLine("Score 40 → " + KarakterFraScore(40));
 ```
 
 Brug `void` til sideeffekter (print, gem data). Brug returværdi, når metoden *producerer* et resultat, du skal bruge videre.
@@ -155,24 +159,30 @@ Brug `void` til sideeffekter (print, gem data). Brug returværdi, når metoden *
 **Overloading** betyder flere metoder med **samme navn**, men **forskellige parametre**. Compileren vælger den rigtige ud fra antal og type:
 
 ```csharp
-public void Print(int number)
+static void Print(int number)
 {
     Console.WriteLine("Nummer: " + number);
 }
 
-public void Print(string message)
+static void Print(string message)
 {
     Console.WriteLine("Besked: " + message);
 }
 
-program.Print(42);              // Kalder int-versionen
-program.Print("Hello, World!"); // Kalder string-versionen
+Print(42);
+Print("Hello, World!");
 ```
+
+Samme idé med forskellige taltyper og antal parametre:
 
 ```csharp
 static int Add(int a, int b) => a + b;
 static double Add(double a, double b) => a + b;
 static int Add(int a, int b, int c) => a + b + c;
+
+Console.WriteLine("Add(2, 3) = " + Add(2, 3));
+Console.WriteLine("Add(2.5, 3.1) = " + Add(2.5, 3.1));
+Console.WriteLine("Add(1, 2, 3) = " + Add(1, 2, 3));
 ```
 
 
@@ -181,14 +191,14 @@ static int Add(int a, int b, int c) => a + b + c;
 Parametre kan have **standardværdier** — de er valgfrie ved kald:
 
 ```csharp
-public void PrintMessage(string message, int times = 1)
+static void PrintMessage(string message, int times = 1)
 {
     for (int i = 0; i < times; i++)
         Console.WriteLine(message);
 }
 
-program.PrintMessage("Hello!");    // Udskriver én gang
-program.PrintMessage("Hello!", 3); // Udskriver tre gange
+PrintMessage("Hello!");
+PrintMessage("Hello!", 3);
 ```
 
 ```csharp
@@ -197,8 +207,8 @@ static void SigHej(string navn, string hilsen = "Hej")
     Console.WriteLine($"{hilsen} {navn}!");
 }
 
-SigHej("Ada");              // Hej Ada!
-SigHej("Ada", "Velkommen"); // Velkommen Ada!
+SigHej("Ada");
+SigHej("Ada", "Velkommen");
 ```
 
 
@@ -207,15 +217,15 @@ SigHej("Ada", "Velkommen"); // Velkommen Ada!
 En metode kan **kalde sig selv** — det kaldes **rekursion**. Det bruges når et problem kan opdeles i mindre delproblemer:
 
 ```csharp
-public int Factorial(int n)
+static int Factorial(int n)
 {
     if (n <= 1)
         return 1;
     return n * Factorial(n - 1);
 }
 
-int result = program.Factorial(5);
-Console.WriteLine("Fakultet af 5 er: " + result);   // 120
+Console.WriteLine("Fakultet af 5 er: " + Factorial(5));
+Console.WriteLine("Fakultet af 3 er: " + Factorial(3));
 ```
 
 Rekursion kræver altid en **base case** (`n <= 1`) — ellers kører metoden for evigt.
@@ -226,6 +236,7 @@ Rekursion kræver altid en **base case** (`n <= 1`) — ellers kører metoden fo
 Metoder er dit vigtigste værktøj til at organisere kode. Opdel i logiske enheder i stedet for én lang `Main`:
 
 ```csharp
+// gf2-input: score: 75
 static int LaesScore()
 {
     Console.Write("Indtast score: ");
@@ -244,6 +255,24 @@ VisResultat(score);
 ```
 
 Hver metode gør **én ting** — princippet kaldes **Single Responsibility**.
+
+
+## Instansmetoder vs. static
+
+**Static** metoder kaldes direkte på klassen. **Instansmetoder** kræver et objekt (`new`):
+
+```csharp
+class Program
+{
+    public void SayHello()
+    {
+        Console.WriteLine("Hello from instance method!");
+    }
+}
+
+Program program = new Program();
+program.SayHello();
+```
 
 
 ## Hvornår er metoder smarte? — især i UI
