@@ -27,6 +27,8 @@ services:
       - traefik.http.routers.${TRAEFIK_PREFIX:-gf2-learn}-web.rule=Host(`${APP_DOMAIN:-learn.gf2.dk}`)
       - traefik.http.routers.${TRAEFIK_PREFIX:-gf2-learn}-web.entrypoints=web
       - traefik.http.routers.${TRAEFIK_PREFIX:-gf2-learn}-web.service=${TRAEFIK_PREFIX:-gf2-learn}-web
+      - traefik.http.routers.${TRAEFIK_PREFIX:-gf2-learn}-web.middlewares=${TRAEFIK_PREFIX:-gf2-learn}-https-headers
+      - traefik.http.middlewares.${TRAEFIK_PREFIX:-gf2-learn}-https-headers.headers.customrequestheaders.X-Forwarded-Proto=https
       - traefik.http.services.${TRAEFIK_PREFIX:-gf2-learn}-web.loadbalancer.server.port=8080
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

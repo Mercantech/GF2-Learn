@@ -1,38 +1,74 @@
 <div class="videnscenter-branding @SizeClass @CssClass">
-    <a href="https://videnscenterportalen.dk/vat/"
-       target="_blank"
-       rel="noopener"
-       class="videnscenter-logo-link"
-       title="Videnscenter for Automation og Teknologi">
-        <img src="/images/partners/logo-vat-color.svg"
-             alt="Videnscenter for Automation og Teknologi"
-             class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--light"
-             width="@VatWidth"
-             height="@VatHeight" />
-        <img src="/images/partners/logo-vat-white.svg"
-             alt="Videnscenter for Automation og Teknologi"
-             class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--dark"
-             width="@VatWidth"
-             height="@VatHeight" />
-    </a>
-    @if (ShowPortal)
+    @if (Linkable)
     {
-        <a href="https://videnscenterportalen.dk/"
+        <a href="https://videnscenterportalen.dk/vat/"
            target="_blank"
            rel="noopener"
            class="videnscenter-logo-link"
-           title="Videnscenterportalen">
-            <img src="/images/partners/logo-videnscenterportalen-dark.svg"
-                 alt="Videnscenterportalen"
-                 class="videnscenter-logo videnscenter-logo--portal videnscenter-logo--light"
-                 width="@PortalWidth"
-                 height="@PortalHeight" />
-            <img src="/images/partners/logo-videnscenterportalen.svg"
-                 alt="Videnscenterportalen"
-                 class="videnscenter-logo videnscenter-logo--portal videnscenter-logo--dark"
-                 width="@PortalWidth"
-                 height="@PortalHeight" />
+           title="Videnscenter for Automation og Teknologi">
+            <img src="/images/partners/logo-vat-color.svg"
+                 alt="Videnscenter for Automation og Teknologi"
+                 class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--light"
+                 width="@VatWidth"
+                 height="@VatHeight" />
+            <img src="/images/partners/logo-vat-white.svg"
+                 alt="Videnscenter for Automation og Teknologi"
+                 class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--dark"
+                 width="@VatWidth"
+                 height="@VatHeight" />
         </a>
+    }
+    else
+    {
+        <span class="videnscenter-logo-mark" title="Videnscenter for Automation og Teknologi">
+            <img src="/images/partners/logo-vat-color.svg"
+                 alt="Videnscenter for Automation og Teknologi"
+                 class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--light"
+                 width="@VatWidth"
+                 height="@VatHeight" />
+            <img src="/images/partners/logo-vat-white.svg"
+                 alt="Videnscenter for Automation og Teknologi"
+                 class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--dark"
+                 width="@VatWidth"
+                 height="@VatHeight" />
+        </span>
+    }
+    @if (ShowPortal)
+    {
+        @if (Linkable)
+        {
+            <a href="https://videnscenterportalen.dk/"
+               target="_blank"
+               rel="noopener"
+               class="videnscenter-logo-link"
+               title="Videnscenterportalen">
+                <img src="/images/partners/logo-videnscenterportalen-dark.svg"
+                     alt="Videnscenterportalen"
+                     class="videnscenter-logo videnscenter-logo--portal videnscenter-logo--light"
+                     width="@PortalWidth"
+                     height="@PortalHeight" />
+                <img src="/images/partners/logo-videnscenterportalen.svg"
+                     alt="Videnscenterportalen"
+                     class="videnscenter-logo videnscenter-logo--portal videnscenter-logo--dark"
+                     width="@PortalWidth"
+                     height="@PortalHeight" />
+            </a>
+        }
+        else
+        {
+            <span class="videnscenter-logo-mark" title="Videnscenterportalen">
+                <img src="/images/partners/logo-videnscenterportalen-dark.svg"
+                     alt="Videnscenterportalen"
+                     class="videnscenter-logo videnscenter-logo--portal videnscenter-logo--light"
+                     width="@PortalWidth"
+                     height="@PortalHeight" />
+                <img src="/images/partners/logo-videnscenterportalen.svg"
+                     alt="Videnscenterportalen"
+                     class="videnscenter-logo videnscenter-logo--portal videnscenter-logo--dark"
+                     width="@PortalWidth"
+                     height="@PortalHeight" />
+            </span>
+        }
     }
 </div>
 
@@ -40,6 +76,8 @@
     [Parameter] public string Size { get; set; } = "footer";
 
     [Parameter] public bool ShowPortal { get; set; } = true;
+
+    [Parameter] public bool Linkable { get; set; } = true;
 
     [Parameter] public string? CssClass { get; set; }
 

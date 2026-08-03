@@ -22,8 +22,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         ForwardedHeaders.XForwardedFor |
         ForwardedHeaders.XForwardedProto |
         ForwardedHeaders.XForwardedHost;
-    // Cloudflare Tunnel (cloudflared) → localhost — trust proxy headers
+    // Cloudflare Tunnel / Traefik → container — trust proxy headers from any hop
+#pragma warning disable ASPDEPR005 // KnownNetworks replaced by KnownIPNetworks; clear both for .NET 10
     options.KnownNetworks.Clear();
+#pragma warning restore ASPDEPR005
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
@@ -129,13 +132,15 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     }
 }
 
+// Must run first so Scheme/Host reflect X-Forwarded-* (OAuth redirect_uri, cookies, links).
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
 
-app.UseForwardedHeaders();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
 var behindReverseProxy = builder.Configuration.GetValue("GF2_BEHIND_REVERSE_PROXY", false);
