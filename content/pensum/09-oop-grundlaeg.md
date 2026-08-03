@@ -26,58 +26,63 @@ En klasse definerer:
 
 ## Eksempel: klassen Car
 
+Klassen `Car` har tre egenskaber (`Brand`, `Model`, `Year`) og to metoder. Her opretter vi et objekt med `new`, sætter værdier og kalder metoderne:
+
 ```csharp
 public class Car
 {
-    // Egenskaber
     public string Brand;
     public string Model;
     public int Year;
 
-    // Metoder
     public void StartEngine()
     {
-        Console.WriteLine("Engine started.");
+        Console.WriteLine($"{Brand} {Model}: Engine started.");
     }
 
     public void Accelerate()
     {
-        Console.WriteLine("Car is accelerating.");
+        Console.WriteLine($"{Brand} is accelerating.");
     }
 }
-```
 
-Klassen `Car` har tre egenskaber (`Brand`, `Model`, `Year`) og to metoder (`StartEngine`, `Accelerate`).
-
-
-## Oprette objekter med new
-
-Når du vil bruge en klasse, opretter du et **objekt** med nøgleordet `new`:
-
-```csharp
 Car myCar = new Car();
-```
-
-Nu kan du sætte egenskaber og kalde metoder:
-
-```csharp
 myCar.Brand = "Ford";
 myCar.Model = "Mustang";
 myCar.Year = 1961;
 
 myCar.StartEngine();
 myCar.Accelerate();
+Console.WriteLine($"Årgang: {myCar.Year}");
 ```
 
-**Object initializer** — sæt egenskaber direkte ved oprettelse:
+
+## Object initializer
+
+Med **object initializer** sætter du egenskaber direkte ved oprettelse — kortere end at tildele hver property på separate linjer:
 
 ```csharp
-Car myCar = new Car()
+public class Car
+{
+    public string Brand;
+    public string Model;
+    public int Year;
+
+    public void StartEngine()
+    {
+        Console.WriteLine($"{Brand} {Model}: Engine started.");
+    }
+}
+
+Car myCar = new Car
 {
     Brand = "Ford",
     Model = "Mustang",
     Year = 1961
 };
+
+myCar.StartEngine();
+Console.WriteLine($"Årgang: {myCar.Year}");
 ```
 
 Hvert objekt kan have **forskellige værdier** for egenskaberne, men de **deler samme metoder** og adfærd fra klassen.
@@ -85,15 +90,29 @@ Hvert objekt kan have **forskellige værdier** for egenskaberne, men de **deler 
 
 ## Flere objekter — samme klasse
 
+Én klasse, to objekter med forskellig data:
+
 ```csharp
+public class Car
+{
+    public string Brand;
+    public string Model;
+    public int Year;
+
+    public void StartEngine()
+    {
+        Console.WriteLine($"{Brand} {Model} ({Year}): Engine started.");
+    }
+}
+
 var bil1 = new Car { Brand = "Ford", Model = "Mustang", Year = 1961 };
 var bil2 = new Car { Brand = "Volvo", Model = "XC60", Year = 2022 };
 
-bil1.StartEngine();   // Ford
-bil2.StartEngine();   // Volvo — samme metode, forskellige objekter
+bil1.StartEngine();
+bil2.StartEngine();
 ```
 
-Det samme princip som i intro-kapitlet med `Person` — én skabelon, mange instanser:
+Det samme princip med `Person` — én skabelon, mange instanser:
 
 ```csharp
 class Person
@@ -110,14 +129,14 @@ class Person
 var elev = new Person { Navn = "Ada", Alder = 17 };
 var laerer = new Person { Navn = "Alan", Alder = 35 };
 
-elev.SigHej();    // Hej, jeg hedder Ada og er 17 år.
-laerer.SigHej();  // Hej, jeg hedder Alan og er 35 år.
+elev.SigHej();
+laerer.SigHej();
 ```
 
 
 ## Eksempel: klassen Dog
 
-Klasser kan modellere alt — biler, personer, dyr. Her en `Dog`-klasse med egenskaber og adfærd:
+Klasser kan modellere alt — biler, personer, dyr. Her opretter vi hunden `bobby` og bruger både egenskaber og metoder:
 
 ```csharp
 public class Dog
@@ -149,11 +168,7 @@ public class Dog
         Console.WriteLine("Dog came to you");
     }
 }
-```
 
-Opret et objekt og brug det:
-
-```csharp
 Dog bobby = new Dog
 {
     Color = "Yellow",
@@ -164,11 +179,13 @@ Dog bobby = new Dog
     NumberOfLegs = 4
 };
 
-Console.WriteLine(bobby.Height);   // 17 in
-bobby.Sit();                     // Dog sits
+Console.WriteLine($"Bobby er {bobby.Color} og {bobby.Height} høj.");
+bobby.Sit();
+bobby.Shake();
+bobby.Come();
 ```
 
-Klassen er **skabelonen** — `bobby` er ét konkret hund-objekt. Du kan oprette `Dog max = new Dog { ... }` med andre værdier.
+Klassen er **skabelonen** — `bobby` er ét konkret hund-objekt. Du kan oprette flere `Dog`-objekter med andre værdier.
 
 
 ## Properties og felter
@@ -190,7 +207,8 @@ class Bil
 
 var bil = new Bil { Maerke = "Volvo", Aargang = 2020 };
 bil.Accelerer(50);
-Console.WriteLine($"{bil.Maerke} kører {bil.Hastighed} km/t");
+bil.Accelerer(30);
+Console.WriteLine($"{bil.Maerke} ({bil.Aargang}) kører {bil.Hastighed} km/t");
 ```
 
 `private set` betyder, at kun klassen selv kan ændre `Hastighed` — det hedder **indkapsling** (encapsulation).
@@ -212,7 +230,7 @@ class Konto
             Saldo += beloeb;
     }
 
-    public bool Hæv(double beloeb)
+    public bool Haev(double beloeb)
     {
         if (beloeb > 0 && beloeb <= Saldo)
         {
@@ -225,31 +243,45 @@ class Konto
 
 var konto = new Konto { Ejer = "Ada" };
 konto.Indsaet(1000);
-Console.WriteLine(konto.Hæv(300));   // True
-Console.WriteLine(konto.Saldo);    // 700
+bool ok = konto.Haev(300);
+
+Console.WriteLine($"Ejer: {konto.Ejer}");
+Console.WriteLine($"Hævning lykkedes: {ok}");
+Console.WriteLine($"Saldo: {konto.Saldo}");
 ```
 
-`Saldo` kan ikke ændres direkte udefra — kun via `Indsaet` og `Hæv`.
+`Saldo` kan ikke ændres direkte udefra — kun via `Indsaet` og `Haev`.
 
 
 ## Instantiere og gemme objekter
 
-```csharp
-// Enkelt objekt
-var p1 = new Person { Navn = "Ada", Alder = 17 };
+Flere objekter i en liste — hvert `new` allokerer et **nyt objekt** i hukommelsen:
 
-// Flere objekter i en liste
+```csharp
+class Person
+{
+    public string Navn { get; set; } = "";
+    public int Alder { get; set; }
+
+    public void SigHej()
+    {
+        Console.WriteLine($"Hej, jeg hedder {Navn} og er {Alder} år.");
+    }
+}
+
 var elever = new List<Person>
 {
     new Person { Navn = "Ada", Alder = 17 },
-    new Person { Navn = "Grace", Alder = 18 }
+    new Person { Navn = "Grace", Alder = 18 },
+    new Person { Navn = "Alan", Alder = 16 }
 };
 
+Console.WriteLine($"Antal elever: {elever.Count}");
 foreach (var elev in elever)
     elev.SigHej();
 ```
 
-Hvert `new` allokerer et **nyt objekt** i hukommelsen. Objekter er **reference-typer** — variablen peger på objektet, ikke en kopi.
+Objekter er **reference-typer** — variablen peger på objektet, ikke en kopi.
 
 
 :::git-step
@@ -313,7 +345,7 @@ q: Hvad er **indkapsling** (encapsulation)?
 - At skjule intern data og kun eksponere det nødvendige via properties/metoder
 - At oprette mange objekter af samme klasse
 correct: 1
-explain: Fx `public double Saldo { get; private set; }` — **Saldo** kan læses udefra, men kun klassens egne metoder (`Indsaet`, `Hæv`) kan ændre den.
+explain: Fx `public double Saldo { get; private set; }` — **Saldo** kan læses udefra, men kun klassens egne metoder (`Indsaet`, `Haev`) kan ændre den.
 ---
 q: Kan to objekter af samme klasse have **forskellige værdier** for egenskaberne?
 - Nej — alle objekter deler samme data
