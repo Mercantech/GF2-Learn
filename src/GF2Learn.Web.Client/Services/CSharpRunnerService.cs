@@ -71,14 +71,12 @@ public sealed class CSharpRunnerService(PlaygroundReferenceResolver referenceRes
 
             var references = coreRefs.AddRange(extraMetadata);
             var prepared = PlaygroundSourceBuilder.Prepare(code);
-            var stdin = stdinOverride ?? prepared.StdinLines;
+            if (stdinOverride is not null)
+                prepared = prepared with { StdinLines = stdinOverride };
+
             var source = wrapExerciseMethod
                 ? PlaygroundSourceBuilder.BuildExerciseMethodEntryPointSource(code, showStdinTraceInOutput)
-                : PlaygroundSourceBuilder.BuildEntryPointSource(
-                    prepared.ExecutableCode,
-                    stdin,
-                    prepared.UsesReadLine,
-                    showStdinTraceInOutput);
+                : PlaygroundSourceBuilder.BuildEntryPointSource(prepared, showStdinTraceInOutput);
             var tree = CSharpSyntaxTree.ParseText(
                 source,
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
