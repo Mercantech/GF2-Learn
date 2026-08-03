@@ -23,7 +23,7 @@
   function langLabel(code) {
     var match = (code.className || "").match(/language-([\w+#]+)/);
     if (!match) return "code";
-    var map = { csharp: "C#", cs: "C#", bash: "Terminal", shell: "Terminal", json: "JSON" };
+    var map = { csharp: "C#", cs: "C#", bash: "Terminal", shell: "Terminal", json: "JSON", text: "Tekst", plaintext: "Tekst", plain: "Tekst", ascii: "Tekst" };
     return map[match[1].toLowerCase()] || match[1].toUpperCase();
   }
 
@@ -127,6 +127,11 @@
 
     var lang = detectLanguage(code);
     if (lang === "cs") lang = "csharp";
+    if (lang === "text" || lang === "plaintext" || lang === "plain" || lang === "ascii") {
+      code.classList.add("hljs");
+      code.dataset.highlighted = "yes";
+      return true;
+    }
     if (!lang && code.closest(".curriculum-content, .markdown-body, .code-playground, .runnable-code-display")) {
       lang = "csharp";
     }

@@ -19,10 +19,12 @@ Computere tænker i **binære tal** — kun 0 og 1. Du har sikkert allerede noge
 
 I decimal tæller hvert ciffer en potens af 10 (enere, tiere, hundreder). I binær tæller hvert ciffer en potens af 2:
 
-```
-Binær  1010  =  1·8 + 0·4 + 1·2 + 0·1  =  10 (decimal)
-         ↑    ↑    ↑    ↑
-        8    4    2    1   (potenser af 2)
+```text
+  Bit:       1    0    1    0
+             ↓    ↓    ↓    ↓
+  Potens:    8    4    2    1
+
+  1·8 + 0·4 + 1·2 + 0·1  =  10 (decimal)
 ```
 
 Hvert ciffer kaldes en **bit**. 8 bits = 1 **byte**. Tallet 255 i decimal er `11111111` i binær — alle 8 bits sat til 1.
