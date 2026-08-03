@@ -29,8 +29,13 @@ public static class PlaygroundSourceBuilder
         var (transformedTypes, _, _) = string.IsNullOrWhiteSpace(types)
             ? (string.Empty, Array.Empty<string>(), false)
             : TransformUserCode(types, useDefaultStdinWhenEmpty);
+        // When types were split out, never fall back to the full snippet as Run() body
+        // (that would nest `class` declarations inside the method).
+        var runSource = string.IsNullOrWhiteSpace(types)
+            ? executable
+            : runBody;
         var (transformedRun, stdinLines, usesReadLine) = TransformUserCode(
-            string.IsNullOrWhiteSpace(runBody) ? executable : runBody,
+            runSource,
             useDefaultStdinWhenEmpty);
         var combined = string.IsNullOrWhiteSpace(transformedTypes)
             ? transformedRun
@@ -703,19 +708,7 @@ public static class PlaygroundSourceBuilder
         {
             var line = lines[index];
             block.Add(line);
-
-            foreach (var ch in line)
-            {
-                if (ch == '{')
-                {
-                    braceDepth++;
-                    started = true;
-                }
-                else if (ch == '}')
-                {
-                    braceDepth--;
-                }
-            }
+            UpdateBraceDepth(line, ref braceDepth, ref started);
 
             if (started && braceDepth <= 0)
             {
@@ -725,5 +718,139 @@ public static class PlaygroundSourceBuilder
         }
 
         return block;
+    }
+
+    /// <summary>
+    /// Counts structural <c>{</c>/<c>}</c> while ignoring string/char/comment contents
+    /// (including interpolation holes like <c>$"{Navn}"</c>).
+    /// </summary>
+    private static void UpdateBraceDepth(string line, ref int braceDepth, ref bool started)
+    {
+        var inString = false;
+        var inChar = false;
+        var inLineComment = false;
+        var inBlockComment = false;
+        var verbatim = false;
+
+        for (var i = 0; i < line.Length; i++)
+        {
+            var ch = line[i];
+            var next = i + 1 < line.Length ? line[i + 1] : '\0';
+
+            if (inLineComment)
+                break;
+
+            if (inBlockComment)
+            {
+                if (ch == '*' && next == '/')
+                {
+                    inBlockComment = false;
+                    i++;
+                }
+                continue;
+            }
+
+            if (inString)
+            {
+                if (verbatim)
+                {
+                    if (ch == '"')
+                    {
+                        if (next == '"')
+                        {
+                            i++;
+                            continue;
+                        }
+                        inString = false;
+                        verbatim = false;
+                    }
+                }
+                else if (ch == '\\')
+                {
+                    i++;
+                }
+                else if (ch == '"')
+                {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (inChar)
+            {
+                if (ch == '\\')
+                {
+                    i++;
+                    continue;
+                }
+                if (ch == '\'')
+                    inChar = false;
+                continue;
+            }
+
+            if (ch == '/' && next == '/')
+                break;
+
+            if (ch == '/' && next == '*')
+            {
+                inBlockComment = true;
+                i++;
+                continue;
+            }
+
+            if (ch == '\'')
+            {
+                inChar = true;
+                continue;
+            }
+
+            // @"...", $"...", $@"...", @$"..."
+            if (ch == '@' && next == '"')
+            {
+                inString = true;
+                verbatim = true;
+                i++;
+                continue;
+            }
+
+            if (ch == '$' && next == '"')
+            {
+                inString = true;
+                i++;
+                continue;
+            }
+
+            if (ch == '$' && next == '@' && i + 2 < line.Length && line[i + 2] == '"')
+            {
+                inString = true;
+                verbatim = true;
+                i += 2;
+                continue;
+            }
+
+            if (ch == '@' && next == '$' && i + 2 < line.Length && line[i + 2] == '"')
+            {
+                inString = true;
+                verbatim = true;
+                i += 2;
+                continue;
+            }
+
+            if (ch == '"')
+            {
+                inString = true;
+                continue;
+            }
+
+            if (ch == '{')
+            {
+                braceDepth++;
+                started = true;
+            }
+            else if (ch == '}')
+            {
+                braceDepth--;
+            }
+        }
     }
 }
