@@ -23,22 +23,22 @@ Variabler bruges til at **gemme** og **manipulere** data. En variabel har altid 
 For at erklære en variabel angiver du **type** og **navn**:
 
 ```csharp
-int nummer;
+int number;
 ```
 
 Du kan også **initialisere** variablen med en startværdi med det samme:
 
 ```csharp
-int alder = 25;
-string navn = "Ada";
-bool aktiv = true;
-double pris = 49.95;
+int age = 25;
+string name = "Fogell";
+bool isActive = true;
+double price = 49.95;
 ```
 
 Når variablen er oprettet, kan du tildele en **ny værdi** (samme type):
 
 ```csharp
-alder = 30;
+age = 30;
 ```
 
 Du kan kombinere variabler og udføre beregninger:
@@ -51,9 +51,13 @@ int sum = x + y;   // 15
 
 **Regler at huske:**
 
-- Variabelnavne starter med bogstav eller `_`, og bruger camelCase: `minScore`, `brugerNavn`
-- C# skelner mellem store og små bogstaver — `Navn` og `navn` er to forskellige variabler
+- Variabelnavne starter med bogstav eller `_`, og bruger camelCase: `minScore`, `userName`
+- C# skelner mellem store og små bogstaver — `Name` og `name` er to forskellige variabler
 - En variabel kan ikke skifte type efter erklæring — `int x = 5; x = "hej";` giver compile-fejl
+
+:::callout type="info"
+Brug **altid engelske variabelnavne** — også når opgaven, brugerfladen eller resten af teksten er på dansk. Det er best practice, fordi kode ofte deles på tværs af lande, og fordi dokumentation, biblioteker og frameworks næsten altid bruger engelsk. Skriv fx `studentCount` og `userName` frem for `antalElever` og `brugerNavn`.
+:::
 
 ### Scope
 
@@ -95,10 +99,10 @@ C# er **statisk typet**: compileren tjekker typer *før* programmet kører. Det 
 **string** er tekst omgivet af anførselstegn. En string er teknisk set et objekt — ikke en primitiv type — men du bruger den som alle andre variabler.
 
 ```csharp
-int antalElever = 24;
-double gennemsnit = 7.4;
-bool bestaaet = gennemsnit >= 2.0;
-string karakter = "Bestået";
+int studentCount = 24;
+double average = 7.4;
+bool hasPassed = average >= 2.0;
+string grade = "Bestået";
 ```
 
 
@@ -140,34 +144,34 @@ char lastChar = greeting[greeting.Length - 1]; // '!'
 **Concatenation** (+) sammenkæder strings:
 
 ```csharp
-string fornavn = "Ada";
-string efternavn = "Lovelace";
-string fuldeNavn = fornavn + " " + efternavn;   // "Ada Lovelace"
+string firstName = "Fogell";
+string lastName = "McLovin";
+string fullName = firstName + " " + lastName;   // "Fogell McLovin"
 
 // Alternativt
-string fuldeNavn = String.Concat(fornavn, " ", efternavn);
+string fullName = String.Concat(firstName, " ", lastName);
 ```
 
-**Interpolation** (`$"..."`) er den moderne og læsbare måde — variabler indsættes med `{navn}`:
+**Interpolation** (`$"..."`) er den moderne og læsbare måde — variabler indsættes med `{name}`:
 
 ```csharp
-string fornavn = "Ada";
-string efternavn = "Lovelace";
-int alder = 17;
-Console.WriteLine($"Hej {fornavn}!");
-Console.WriteLine($"Du er {alder} år og hedder {fornavn} {efternavn}");
+string firstName = "Fogell";
+string lastName = "McLovin";
+int age = 17;
+Console.WriteLine($"Hej {firstName}!");
+Console.WriteLine($"Du er {age} år og hedder {firstName} {lastName}");
 ```
 
 **String.Format** (ældre stil, stadig nyttig at kende):
 
 ```csharp
-string message = String.Format("Du er {0} år gammel.", alder);
+string message = String.Format("Du er {0} år gammel.", age);
 ```
 
 **Verbatim-strenge** (`@"..."`) bevarer linjeskift og kræver ikke escape af `\`:
 
 ```csharp
-string langTekst = @"Jeg er en lang streng,
+string longText = @"Jeg er en lang streng,
 som kan skrives på flere linjer!";
 ```
 
@@ -203,9 +207,9 @@ string sentence = "The quick brown fox";
 
 int index = sentence.IndexOf("quick");       // 4
 int lastIndex = sentence.LastIndexOf("o");   // 16
-bool harQuick = sentence.Contains("quick");  // true
-bool starterMedThe = sentence.StartsWith("The");  // true
-bool slutterMedFox = sentence.EndsWith("fox");    // true
+bool containsQuick = sentence.Contains("quick");  // true
+bool startsWithThe = sentence.StartsWith("The");  // true
+bool endsWithFox = sentence.EndsWith("fox");      // true
 ```
 
 
@@ -216,9 +220,9 @@ Selvom strings er immutable, returnerer metoderne en **ny** string med ændringe
 ```csharp
 string sentence = "The quick brown fox";
 
-string langsom = sentence.Replace("quick", "slow");  // "The slow brown fox"
-string store = sentence.ToUpper();                   // "THE QUICK BROWN FOX"
-string smaa = sentence.ToLower();                    // "the quick brown fox"
+string slowSentence = sentence.Replace("quick", "slow"); // "The slow brown fox"
+string uppercase = sentence.ToUpper();                    // "THE QUICK BROWN FOX"
+string lowercase = sentence.ToLower();                    // "the quick brown fox"
 
 string padded = "   hello   ";
 string trimmed = padded.Trim();                      // "hello"
@@ -238,14 +242,14 @@ namespace FirstProgram
     {
         static void Main(string[] args)
         {
-            string navn = "GF2";
-            int aar = 2025;
+            string name = "GF2";
+            int year = 2025;
             double score = 8.5;
-            bool aktiv = true;
+            bool isActive = true;
 
-            Console.WriteLine($"Velkommen til {navn}!");
-            Console.WriteLine($"År: {aar}, Score: {score}, Aktiv: {aktiv}");
-            Console.WriteLine($"Navn i store bogstaver: {navn.ToUpper()}");
+            Console.WriteLine($"Velkommen til {name}!");
+            Console.WriteLine($"År: {year}, Score: {score}, Aktiv: {isActive}");
+            Console.WriteLine($"Navn i store bogstaver: {name.ToUpper()}");
         }
     }
 }
@@ -297,7 +301,7 @@ q: Hvilket variabelnavn følger C#-konventionen **camelCase**?
 - `min score`
 - `minScore`
 correct: 2
-explain: Lokale variabler og parametre bruger **camelCase**: lille begyndelsesbogstav, derefter store bogstaver ved nye ord — fx `minScore`, `brugerNavn`. `MinScore` (PascalCase) bruges typisk til klasser og metoder.
+explain: Lokale variabler og parametre bruger **camelCase** og engelske navne: lille begyndelsesbogstav, derefter store bogstaver ved nye ord — fx `minScore`, `userName`. `MinScore` (PascalCase) bruges typisk til klasser og metoder.
 ---
 q: Hvilken værdi kan en variabel af typen `bool` indeholde?
 - Ethvert heltal
@@ -306,12 +310,12 @@ q: Hvilken værdi kan en variabel af typen `bool` indeholde?
 correct: 1
 explain: `bool` er C#s sandhedsværdi-type og kan **kun** være `true` eller `false`. `"true"` som tekst er en `string` — ikke en `bool`.
 ---
-q: Hvad gør `$"Velkommen, {navn}!"`?
-- Skriver kun den bogstavelige tekst `{navn}` uden erstatning
-- Indsætter værdien af variablen `navn` i strengen (string interpolation)
-- Konverterer automatisk `navn` til store bogstaver
+q: Hvad gør `$"Velkommen, {name}!"`?
+- Skriver kun den bogstavelige tekst `{name}` uden erstatning
+- Indsætter værdien af variablen `name` i strengen (string interpolation)
+- Konverterer automatisk `name` til store bogstaver
 correct: 1
-explain: `$"..."` er **string interpolation**. Alt mellem `{` og `}` evalueres og indsættes i teksten. Det er ofte mere læsbart end `"Velkommen, " + navn + "!"`.
+explain: `$"..."` er **string interpolation**. Alt mellem `{` og `}` evalueres og indsættes i teksten. Det er ofte mere læsbart end `"Velkommen, " + name + "!"`.
 ---
 q: Hvad er forskellen på `.Length` og `.ToUpper()` på en string?
 - Begge er metoder og kræver `()`
