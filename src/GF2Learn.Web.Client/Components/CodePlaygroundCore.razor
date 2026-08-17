@@ -355,8 +355,8 @@
     {
         try
         {
-            var value = await Js.InvokeAsync<string>("gf2Playground.getValue", _editorId);
-            if (!string.IsNullOrEmpty(value))
+            var value = await Js.InvokeAsync<string?>("gf2Playground.getValue", _editorId);
+            if (value is not null)
             {
                 _code = value;
                 return value;
@@ -372,8 +372,8 @@
 
         try
         {
-            var value = await Js.InvokeAsync<string>("gf2Playground.getValue", _editorId);
-            if (!string.IsNullOrEmpty(value))
+            var value = await Js.InvokeAsync<string?>("gf2Playground.getValue", _editorId);
+            if (value is not null)
             {
                 _code = value;
                 return value;
@@ -427,20 +427,22 @@
 
     private async Task RunAsync()
     {
+        if (_running)
+            return;
+
+        var code = await GetCodeAsync();
         _running = true;
         _error = "";
         _output = "";
         _expectedMatch = null;
         _elapsed = null;
-        if (_editorReady)
-            await Js.InvokeVoidAsync("gf2Playground.setReadOnly", _editorId, true);
         StateHasChanged();
+        await Task.Yield();
 
         try
         {
-            _code = await GetCodeAsync();
             var result = await Runner.RunAsync(
-                _code,
+                code,
                 ExpectedOutput,
                 Refs,
                 stdinOverride: null,
@@ -461,8 +463,6 @@
         finally
         {
             _running = false;
-            if (_editorReady)
-                await Js.InvokeVoidAsync("gf2Playground.setReadOnly", _editorId, false);
         }
     }
 

@@ -4,8 +4,11 @@ window.gf2Playground = {
   ctrlRunHelpers: {},
   ctrlSaveHelpers: {},
   keyboardBound: {},
+  keyboardHandlers: {},
+  formatHandlers: {},
   lazyObservers: {},
   heightSyncScheduled: {},
+  initPromises: {},
   monacoLoadPromise: null,
   monacoBase: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs",
 
@@ -184,10 +187,14 @@ window.gf2Playground = {
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, runFormat);
     editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, runFormat);
 
-    if (!host || host.dataset.formatBound === "1") return;
-    host.dataset.formatBound = "1";
+    if (!host) return;
 
-    host.addEventListener("keydown", function (e) {
+    var existing = this.formatHandlers[elementId];
+    if (existing) {
+      existing.host.removeEventListener("keydown", existing.handler, true);
+    }
+
+    var handler = function (e) {
       var ctrlFmt = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "F" || e.key === "f");
       var altShiftFmt = e.shiftKey && e.altKey && (e.key === "F" || e.key === "f");
       if (!ctrlFmt && !altShiftFmt) return;
@@ -195,7 +202,10 @@ window.gf2Playground = {
       e.preventDefault();
       e.stopPropagation();
       runFormat();
-    }, true);
+    };
+
+    host.addEventListener("keydown", handler, true);
+    this.formatHandlers[elementId] = { host: host, handler: handler };
   },
 
   formatDocument: async function (elementId) {
@@ -327,29 +337,28 @@ window.gf2Playground = {
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveCode);
     }
 
-    host.addEventListener(
-      "keydown",
-      function (e) {
-        if (!self.isEditorHostActive(elementId)) return;
+    var handler = function (e) {
+      if (!self.isEditorHostActive(elementId)) return;
 
-        var ctrl = e.ctrlKey || e.metaKey;
-        if (!ctrl) return;
+      var ctrl = e.ctrlKey || e.metaKey;
+      if (!ctrl) return;
 
-        if (e.key === "Enter") {
-          e.preventDefault();
-          e.stopPropagation();
-          runCode();
-          return;
-        }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        runCode();
+        return;
+      }
 
-        if (e.key === "s" || e.key === "S") {
-          e.preventDefault();
-          e.stopPropagation();
-          saveCode();
-        }
-      },
-      true
-    );
+      if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        e.stopPropagation();
+        saveCode();
+      }
+    };
+
+    host.addEventListener("keydown", handler, true);
+    this.keyboardHandlers[elementId] = { host: host, handler: handler };
 
     this.keyboardBound[elementId] = true;
   },
@@ -517,7 +526,22 @@ window.gf2Playground = {
     this.refreshAll();
   },
 
-  init: async function (elementId, initialCode, options) {
+  init: function (elementId, initialCode, options) {
+    var pending = this.initPromises[elementId];
+    if (pending) return pending;
+
+    var self = this;
+    var initPromise = this.initEditor(elementId, initialCode, options);
+    this.initPromises[elementId] = initPromise;
+
+    return initPromise.finally(function () {
+      if (self.initPromises[elementId] === initPromise) {
+        delete self.initPromises[elementId];
+      }
+    });
+  },
+
+  initEditor: async function (elementId, initialCode, options) {
     options = options || {};
     await this.loadMonaco();
 
@@ -530,6 +554,8 @@ window.gf2Playground = {
     host.classList.add("playground-editor-host-loading");
 
     await this.waitForHostReady(host);
+
+    if (!host.isConnected || document.getElementById(elementId) !== host) return;
 
     var heightOpts = this.resolveHeightOptions(host, options);
     this.editorOptions[elementId] = heightOpts;
@@ -713,7 +739,7 @@ window.gf2Playground = {
 
   getValue: function (elementId) {
     var editor = this.editors[elementId];
-    return editor ? editor.getValue() : "";
+    return editor ? editor.getValue() : null;
   },
 
   setValue: function (elementId, code) {
@@ -734,6 +760,18 @@ window.gf2Playground = {
     delete this.ctrlRunHelpers[elementId];
     delete this.ctrlSaveHelpers[elementId];
     delete this.keyboardBound[elementId];
+
+    var keyboardHandler = this.keyboardHandlers[elementId];
+    if (keyboardHandler) {
+      keyboardHandler.host.removeEventListener("keydown", keyboardHandler.handler, true);
+      delete this.keyboardHandlers[elementId];
+    }
+
+    var formatHandler = this.formatHandlers[elementId];
+    if (formatHandler) {
+      formatHandler.host.removeEventListener("keydown", formatHandler.handler, true);
+      delete this.formatHandlers[elementId];
+    }
 
     var editor = this.editors[elementId];
     if (editor) {
