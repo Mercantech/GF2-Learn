@@ -1,0 +1,49 @@
+@inject NavigationManager Navigation
+
+<a href="@BuildIssueUrl()"
+   class="issue-report-link btn btn-ghost btn-sm"
+   target="_blank"
+   rel="noopener noreferrer"
+   data-enhance-nav="false"
+   title="Meld en fejl eller et problem på GitHub"
+   aria-label="Meld en fejl eller et problem på GitHub">
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75" />
+        <path d="M12 7.5v5.25" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+        <circle cx="12" cy="16.5" r="1" fill="currentColor" />
+    </svg>
+    <span class="issue-report-label">Meld fejl</span>
+</a>
+
+@code {
+    private const string NewIssueUrl = "https://github.com/Mercantech/GF2-Learn/issues/new";
+
+    private string BuildIssueUrl()
+    {
+        var currentUri = new Uri(Navigation.Uri);
+        var pageUrl = currentUri.GetLeftPart(UriPartial.Path);
+        var title = $"[Fejl] {currentUri.AbsolutePath}";
+        var body = $"""
+            Tak fordi du hjælper med at teste GF2 Learn! Udfyld de tre korte afsnit nedenfor.
+
+            ## Side
+            {pageUrl}
+
+            ## Hvad lavede du?
+            <!-- Beskriv kort de trin, der førte til problemet. -->
+
+            ## Hvad forventede du?
+            <!-- Hvad skulle der være sket? -->
+
+            ## Hvad skete der i stedet?
+            <!-- Beskriv fejlen. Tilføj gerne et skærmbillede ved at trække det ind her. -->
+
+            ## Kan problemet gentages?
+            - [ ] Ja, det sker hver gang
+            - [ ] Nogle gange
+            - [ ] Det ved jeg ikke
+            """;
+
+        return $"{NewIssueUrl}?labels=bug&title={Uri.EscapeDataString(title)}&body={Uri.EscapeDataString(body)}";
+    }
+}

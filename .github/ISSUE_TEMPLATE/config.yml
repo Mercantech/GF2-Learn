@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Se kendte problemer først
+    url: https://github.com/Mercantech/GF2-Learn/issues
+    about: Tjek om en anden elev allerede har meldt det samme problem.
