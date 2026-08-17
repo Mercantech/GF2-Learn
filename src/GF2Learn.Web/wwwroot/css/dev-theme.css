@@ -4314,6 +4314,10 @@ a:hover { color: var(--accent-bright); }
   gap: 0.75rem;
 }
 
+.slide-deck-toolbar-end .theme-toggle {
+  flex-shrink: 0;
+}
+
 .slide-deck-exit {
   display: inline-flex;
   align-items: center;
@@ -4878,4 +4882,13 @@ a:hover { color: var(--accent-bright); }
   .slide-deck-frame-branding-inner {
     padding-right: 0.5rem;
   }
+}
+
+@media (max-width: 600px) {
+  .slide-deck-chapter { display: none; }
+  .slide-deck-toolbar {
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+  .slide-deck-toolbar-end { gap: 0.5rem; }
 }
