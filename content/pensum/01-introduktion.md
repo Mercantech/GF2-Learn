@@ -121,7 +121,9 @@ Du kender sikkert `{` og `}` fra andre sprog (Python bruger dem normalt ikke). K
 
 `Main()` er **indgangspunktet** til programmet. Når du starter appen, leder runtime efter en `Main`-metode og begynder der. I større projekter ligger det ofte i en fil kaldet `Program.cs` — præcis det samme princip.
 
-`string[] args` er **kommandolinjeargumenter** (input fra terminalen). Dem bruger vi sjældent i starten, men de er en del af signaturen.
+`string[] args` er **kommandolinjeargumenter** (input fra terminalen). `args` er den gængse engelske forkortelse for *arguments*. Dem bruger vi sjældent i starten, men de er en del af signaturen.
+
+Vi bruger engelske navne til variabler og parametre gennem hele pensum — også når forklaringen og programmets output er på dansk. Det gør koden lettere at dele og holder den på linje med C#-dokumentation og almindelig best practice.
 
 ### Console
 

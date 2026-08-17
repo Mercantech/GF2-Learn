@@ -54,7 +54,7 @@ En commit-besked forklarer *hvad* og *hvorfor* — ikke bare *at* der er ændret
 
 | Dårlig | Bedre |
 |--------|-------|
-| `fix` | `fix: ret division by zero i BeregnGennemsnit` |
+| `fix` | `fix: ret division by zero i CalculateAverage` |
 | `asdf` | `feat: tilfoej validering af brugerinput` |
 | `update` | `docs: opdater readme med installationsvejledning` |
 

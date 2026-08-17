@@ -196,8 +196,8 @@ Dictionary<string, int> ages = new Dictionary<string, int>
     { "Charlie", 35 }
 };
 
-foreach (var (navn, alder) in ages)
-    Console.WriteLine($"{navn} er {alder} år");
+foreach (var (name, age) in ages)
+    Console.WriteLine($"{name} er {age} år");
 ```
 
 
@@ -225,18 +225,18 @@ var scores = new Dictionary<string, int>
 };
 
 // Filtrer — kun beståede
-foreach (var (navn, score) in scores)
+foreach (var (name, score) in scores)
 {
     if (score >= 60)
-        Console.WriteLine($"{navn} bestod med {score}");
+        Console.WriteLine($"{name} bestod med {score}");
 }
 
 // Akkumuler — gennemsnit
 int sum = 0;
 foreach (var score in scores.Values)
     sum += score;
-double gennemsnit = (double)sum / scores.Count;
-Console.WriteLine($"Gennemsnit: {gennemsnit:F1}");
+double average = (double)sum / scores.Count;
+Console.WriteLine($"Gennemsnit: {average:F1}");
 ```
 
 
@@ -245,19 +245,19 @@ Console.WriteLine($"Gennemsnit: {gennemsnit:F1}");
 Dictionary af lister — nested `foreach` på to niveauer:
 
 ```csharp
-var karakterer = new Dictionary<string, List<int>>
+var grades = new Dictionary<string, List<int>>
 {
     ["Ada"] = new List<int> { 12, 10, 7 },
     ["Alan"] = new List<int> { 4, 7, 10 }
 };
 
-foreach (var (elev, fag) in karakterer)
+foreach (var (student, subjectGrades) in grades)
 {
     int sum = 0;
-    foreach (var karakter in fag)
-        sum += karakter;
-    double snit = (double)sum / fag.Count;
-    Console.WriteLine($"{elev}: gennemsnit {snit:F1}");
+    foreach (var grade in subjectGrades)
+        sum += grade;
+    double average = (double)sum / subjectGrades.Count;
+    Console.WriteLine($"{student}: gennemsnit {average:F1}");
 }
 ```
 
@@ -306,7 +306,7 @@ q: Hvordan får du **kun nøglerne** fra en Dictionary?
 - `foreach (string key in ages.Keys)`
 - `ages.GetKeys()`
 correct: 1
-explain: **`.Keys`** giver alle nøgler, **`.Values`** alle værdier, og **`foreach (var (navn, alder) in ages)`** giver begge (deconstruction).
+explain: **`.Keys`** giver alle nøgler, **`.Values`** alle værdier, og **`foreach (var (name, age) in ages)`** giver begge (deconstruction).
 ---
 q: Hvorfor bør du undgå `.Add()`/`.Remove()` på en liste **under `foreach`**?
 - Det gør outputtet uleseligt
@@ -320,7 +320,7 @@ q: Hvad er mønsteret **akkumulering** i en løkke?
 - Initialiser sum → loop → læg værdier til sum → beregn fx gennemsnit
 - At bruge `break` efter første element
 correct: 1
-explain: Fx `int sum = 0; foreach (var score in scores.Values) sum += score;` — derefter `gennemsnit = (double)sum / scores.Count`. Det genbruges konstant i GF2.
+explain: Fx `int sum = 0; foreach (var score in scores.Values) sum += score;` — derefter `average = (double)sum / scores.Count`. Det genbruges konstant i GF2.
 ---
 q: Hvornår vælger du **`for` med indeks** frem for `foreach`?
 - Aldrig — `foreach` er altid bedst

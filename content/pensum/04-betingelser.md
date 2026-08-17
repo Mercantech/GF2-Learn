@@ -20,7 +20,7 @@ Programmer er sjældent lineære — de skal kunne tage beslutninger. **Conditio
 `if` er den mest grundlæggende form for betingelse. Kodeblokken kører kun, hvis betingelsen er **sand** — ellers springes den over.
 
 ```csharp
-if (betingelse)
+if (condition)
 {
     // Kode, der kører hvis betingelsen er sand
 }
@@ -29,15 +29,15 @@ if (betingelse)
 Eksempel — er tallet større end 10?
 
 ```csharp
-int num = 15;
+int number = 15;
 
-if (num > 10)
+if (number > 10)
 {
     Console.WriteLine("Tallet er større end 10.");
 }
 ```
 
-Her udskrives `"Tallet er større end 10"`, fordi `num > 10` er `true`.
+Her udskrives `"Tallet er større end 10"`, fordi `number > 10` er `true`.
 
 Betingelsen i parentes skal altid evaluere til `bool`. Brug `{ }` omkring blokke med mere end én linje.
 
@@ -52,7 +52,7 @@ Betingelsen i parentes skal altid evaluere til `bool`. Brug `{ }` omkring blokke
 `else` definerer en **alternativ** kodeblok, der kører når `if`-betingelsen er falsk:
 
 ```csharp
-if (betingelse)
+if (condition)
 {
     // Kode hvis sand
 }
@@ -64,9 +64,9 @@ else
 
 ```csharp
 Console.Write("Indtast et tal: ");
-int num = int.Parse(Console.ReadLine()!);
+int number = int.Parse(Console.ReadLine()!);
 
-if (num > 10)
+if (number > 10)
 {
     Console.WriteLine("Tallet er større end 10.");
 }
@@ -82,17 +82,17 @@ else
 `else if` tester flere betingelser i træk uden at lave mange indlejrede `if`-sætninger:
 
 ```csharp
-if (betingelse1)
+if (condition1)
 {
-    // Kode hvis betingelse1 er sand
+    // Kode hvis condition1 er sand
 }
-else if (betingelse2)
+else if (condition2)
 {
-    // Kode hvis betingelse2 er sand
+    // Kode hvis condition2 er sand
 }
-else if (betingelse3)
+else if (condition3)
 {
-    // Kode hvis betingelse3 er sand
+    // Kode hvis condition3 er sand
 }
 else
 {
@@ -103,13 +103,13 @@ else
 Er tallet positivt, negativt eller nul?
 
 ```csharp
-int num = -5;
+int number = -5;
 
-if (num > 0)
+if (number > 0)
 {
     Console.WriteLine("Tallet er positivt.");
 }
-else if (num < 0)
+else if (number < 0)
 {
     Console.WriteLine("Tallet er negativt.");
 }
@@ -138,13 +138,13 @@ else
 `switch` vælger mellem forskellige handlinger baseret på **værdien** af en variabel eller et udtryk — nyttigt når du har mange faste tilfælde:
 
 ```csharp
-switch (variabel)
+switch (variable)
 {
-    case vaerdi1:
-        // Kode når variabel == vaerdi1
+    case value1:
+        // Kode når variable == value1
         break;
-    case vaerdi2:
-        // Kode når variabel == vaerdi2
+    case value2:
+        // Kode når variable == value2
         break;
     default:
         // Kode når intet matcher
@@ -153,9 +153,9 @@ switch (variabel)
 ```
 
 ```csharp
-string dag = "fredag";
+string day = "fredag";
 
-switch (dag)
+switch (day)
 {
     case "mandag":
         Console.WriteLine("Uge start");
@@ -173,7 +173,7 @@ switch (dag)
 Moderne C# understøtter også **switch expressions** — en kortere syntaks:
 
 ```csharp
-string besked = dag switch
+string message = day switch
 {
     "mandag" => "Uge start",
     "fredag" => "Næsten weekend",
@@ -190,17 +190,17 @@ string besked = dag switch
 Ternary operator (`? :`) er en kompakt **if-else** i én linje:
 
 ```csharp
-resultat = (betingelse) ? vaerdiHvisSand : vaerdiHvisFalsk;
+result = (condition) ? valueIfTrue : valueIfFalse;
 ```
 
 ```csharp
-int num = -5;
-string result = (num >= 0) ? "Positivt" : "Negativt";
+int number = -5;
+string result = (number >= 0) ? "Positivt" : "Negativt";
 Console.WriteLine(result);   // Negativt
 ```
 
 ```csharp
-string status = alder >= 18 ? "Voksen" : "Barn";
+string status = age >= 18 ? "Voksen" : "Barn";
 ```
 
 Ternary er god til **simple** valg. Brug `if/else` til kompleks logik — læsbarhed slår korthed.
@@ -406,7 +406,7 @@ q: Hvilken type skal betingelsen i en `if`-sætning evaluere til?
 - `bool` (true eller false)
 - `string`
 correct: 1
-explain: Betingelsen i parentes efter `if` skal altid være **boolsk** — enten `true` eller `false`. Fx `num > 10` eller `score >= 60`.
+explain: Betingelsen i parentes efter `if` skal altid være **boolsk** — enten `true` eller `false`. Fx `number > 10` eller `score >= 60`.
 ---
 q: Hvad returnerer `Console.ReadLine()`?
 - Et heltal
@@ -434,7 +434,7 @@ q: Hvad gør ternary-operatoren `? :`?
 - Den er en kompakt if-else i én linje
 - Den konverterer tekst til tal
 correct: 1
-explain: `(betingelse) ? vaerdiHvisSand : vaerdiHvisFalsk` er en **if-else i én linje**. Fx `alder >= 18 ? "Voksen" : "Barn"`. Brug den kun til simple valg — kompleks logik hører i `if/else`.
+explain: `(condition) ? valueIfTrue : valueIfFalse` er en **if-else i én linje**. Fx `age >= 18 ? "Voksen" : "Barn"`. Brug den kun til simple valg — kompleks logik hører i `if/else`.
 ---
 q: Hvad er **lokalt scope**?
 - Variabler der kan bruges overalt i programmet

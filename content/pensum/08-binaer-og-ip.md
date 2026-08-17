@@ -112,21 +112,21 @@ En mulig løsning kan bygges som en **Blazor-baseret** app med titlen *Binær Ko
 Gå bit for bit fra venstre mod højre og akkumuler potenser af 2:
 
 ```csharp
-static int OctetFraBinaer(string binaer)
+static int OctetFromBinary(string binary)
 {
-    int[] potenser = { 128, 64, 32, 16, 8, 4, 2, 1 };
-    int resultat = 0;
+    int[] powers = { 128, 64, 32, 16, 8, 4, 2, 1 };
+    int result = 0;
 
     for (int i = 0; i < 8; i++)
     {
-        if (binaer[i] == '1')
-            resultat += potenser[i];
+        if (binary[i] == '1')
+            result += powers[i];
     }
-    return resultat;
+    return result;
 }
 
-Console.WriteLine(OctetFraBinaer("10111011")); // 187
-Console.WriteLine(OctetFraBinaer("01001011")); // 75
+Console.WriteLine(OctetFromBinary("10111011")); // 187
+Console.WriteLine(OctetFromBinary("01001011")); // 75
 ```
 
 For en **hel IP-adresse**: split strengen ved `.`, valider at der er 4 dele, og kør metoden på hver oktet.
@@ -137,28 +137,28 @@ For en **hel IP-adresse**: split strengen ved `.`, valider at der er 4 dele, og 
 Træk successivt de binære potenser fra tallet — samme princip som i pensum om løkker:
 
 ```csharp
-static string OctetTilBinaer(int tal)
+static string OctetToBinary(int number)
 {
-    int[] potenser = { 128, 64, 32, 16, 8, 4, 2, 1 };
-    string binaer = "";
+    int[] powers = { 128, 64, 32, 16, 8, 4, 2, 1 };
+    string binary = "";
 
     for (int i = 0; i < 8; i++)
     {
-        if (tal >= potenser[i])
+        if (number >= powers[i])
         {
-            binaer += "1";
-            tal -= potenser[i];
+            binary += "1";
+            number -= powers[i];
         }
         else
         {
-            binaer += "0";
+            binary += "0";
         }
     }
-    return binaer;
+    return binary;
 }
 
-Console.WriteLine(OctetTilBinaer(187)); // 10111011
-Console.WriteLine(OctetTilBinaer(75));  // 01001011
+Console.WriteLine(OctetToBinary(187)); // 10111011
+Console.WriteLine(OctetToBinary(75));  // 01001011
 ```
 
 
@@ -168,9 +168,9 @@ En robust omformer skal **validere input** før konvertering:
 
 ```csharp
 // Split IP ved punktum
-string[] dele = input.Split('.');
+string[] parts = input.Split('.');
 
-if (dele.Length != 4)
+if (parts.Length != 4)
 {
     Console.WriteLine("IP skal have præcis 4 dele!");
     return;
@@ -179,7 +179,7 @@ if (dele.Length != 4)
 for (int i = 0; i < 4; i++)
 {
     // Binær: præcis 8 tegn, kun 0 og 1
-    if (dele[i].Length != 8)
+    if (parts[i].Length != 8)
     {
         Console.WriteLine("Hver oktet skal være 8 bits!");
         break;
@@ -187,7 +187,7 @@ for (int i = 0; i < 4; i++)
 
     for (int j = 0; j < 8; j++)
     {
-        if (dele[i][j] != '0' && dele[i][j] != '1')
+        if (parts[i][j] != '0' && parts[i][j] != '1')
         {
             Console.WriteLine("Kun 0 og 1 er tilladt i binær oktet!");
             break;
@@ -196,7 +196,7 @@ for (int i = 0; i < 4; i++)
 }
 ```
 
-For decimal input: brug `int.TryParse` og tjek `tal >= 0 && tal <= 255` for hver oktet.
+For decimal input: brug `int.TryParse` og tjek `number >= 0 && number <= 255` for hver oktet.
 
 
 ## Programstruktur — skitse
@@ -282,12 +282,12 @@ q: Hvad skal hver **binære gruppe** i input have for IP-omformeren?
 correct: 1
 explain: Hver oktet er **8 bits**. Input som `10111011.01001011...` skal have **4 grupper à 8 tegn**, kun `0` og `1`, adskilt af punktum.
 ---
-q: Hvordan konverterer `OctetFraBinaer` fra binær til decimal?
+q: Hvordan konverterer `OctetFromBinary` fra binær til decimal?
 - Den dividerer tallet med 2 gentagne gange
 - Den lægger potenser sammen, hvor bit på position `i` er `'1'`
 - Den bruger `Convert.ToInt32`
 correct: 1
-explain: Metoden går bit for bit og lægger **128, 64, 32 … 1** til resultatet, når `binaer[i] == '1'`. Det er grundprincippet for binær → decimal.
+explain: Metoden går bit for bit og lægger **128, 64, 32 … 1** til resultatet, når `binary[i] == '1'`. Det er grundprincippet for binær → decimal.
 ---
 q: Hvad er potens-rækkefølgen for en **8-bit oktet** (fra venstre)?
 - 1, 2, 4, 8, 16, 32, 64, 128
@@ -301,5 +301,5 @@ q: Hvad skal validering tjekke for **decimal input** per oktet?
 - At tallet er mellem 0 og 255 (typisk med `TryParse`)
 - At tallet har præcis 8 cifre
 correct: 1
-explain: En oktet kan maksimalt være **255** (`11111111`). Brug **`int.TryParse`** og tjek `tal >= 0 && tal <= 255` for hver del efter `Split('.')`.
+explain: En oktet kan maksimalt være **255** (`11111111`). Brug **`int.TryParse`** og tjek `number >= 0 && number <= 255` for hver del efter `Split('.')`.
 :::

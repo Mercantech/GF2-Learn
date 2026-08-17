@@ -22,8 +22,8 @@ En `int` er 32 bit (4 bytes) og gemmer **én** værdi. `double`, `float` og `dec
 Disse kaldes **simple datatyper** eller **primitive typer** — de kan vises som enkelt værdier:
 
 ```
-int alder = 17;      // én værdi
-char bogstav = 'A';  // ét tegn
+int age = 17;       // én værdi
+char letter = 'A';  // ét tegn
 ```
 
 Hvad gør vi, når vi vil gemme **mange** værdier — fx en række tal eller tegn? Her kommer **arrays** og **lister** ind. I har faktisk allerede brugt dem: en **string** er en sekvens af tegn — i C# et objekt, men idéen er den samme som en række `char`-værdier bundet sammen.
@@ -51,16 +51,16 @@ int[] numbers = new int[10];   // 10 heltal, initialiseret til 0
 **Initialiser med værdier:**
 
 ```csharp
-int[] tal = { 10, 20, 30 };
+int[] numbers = { 10, 20, 30 };
 ```
 
 **Tilgå og ændre elementer** — indeks starter altid ved **0**:
 
 ```csharp
-int[] tal = { 10, 20, 30 };
-int firstNumber = tal[0];   // første element
-tal[0] = 42;                // ændr værdi
-Console.WriteLine(tal.Length);  // antal elementer (3)
+int[] numbers = { 10, 20, 30 };
+int firstNumber = numbers[0];   // første element
+numbers[0] = 42;                // ændr værdi
+Console.WriteLine(numbers.Length);  // antal elementer (3)
 ```
 
 :::callout type="warning"
@@ -101,12 +101,12 @@ Console.WriteLine(numbers.Count);   // antal elementer
 **Flere metoder:**
 
 ```csharp
-var navne = new List<string> { "Ada", "Alan" };
+var names = new List<string> { "Ada", "Alan" };
 
-navne.Add("Grace");          // tilføj til slutningen
-navne.Insert(0, "Grace H."); // indsæt på indeks
-navne.Remove("Alan");        // fjern efter værdi
-navne.Clear();               // fjern alle
+names.Add("Grace");          // tilføj til slutningen
+names.Insert(0, "Grace H."); // indsæt på indeks
+names.Remove("Alan");        // fjern efter værdi
+names.Clear();               // fjern alle
 ```
 
 Lister er **reference-typer** — variablen peger på listen i hukommelsen, ikke en kopi. Vær opmærksom, når du deler lister mellem metoder.
@@ -176,8 +176,8 @@ Dictionary<string, int> ageMap = new Dictionary<string, int>
     { "Line", 30 }
 };
 
-if (ageMap.TryGetValue("Ada", out int alder))
-    Console.WriteLine($"Ada er {alder} år");
+if (ageMap.TryGetValue("Ada", out int age))
+    Console.WriteLine($"Ada er {age} år");
 else
     Console.WriteLine("Ada findes ikke i mappet");
 ```
@@ -207,9 +207,9 @@ Hash-funktionen fordeler nøgler i **buckets** — derfor er opslag hurtigt uden
 Alle tre kan gennemløbes med loops — se også kapitlet [Loops](/curriculum/05-loekker):
 
 ```csharp
-int[] tal = { 10, 20, 30 };
-foreach (int t in tal)
-    Console.WriteLine(t);
+int[] numbers = { 10, 20, 30 };
+foreach (int number in numbers)
+    Console.WriteLine(number);
 
 Dictionary<string, int> ageMap = new Dictionary<string, int>
 {
@@ -225,20 +225,20 @@ foreach (var kvp in ageMap)
 ## Praktisk eksempel — elever og karakterer
 
 ```csharp
-var elever = new List<string> { "Ada", "Alan", "Grace" };
-var karakterer = new Dictionary<string, int>
+var students = new List<string> { "Ada", "Alan", "Grace" };
+var grades = new Dictionary<string, int>
 {
     ["Ada"] = 12,
     ["Alan"] = 10,
     ["Grace"] = 7
 };
 
-foreach (var elev in elever)
+foreach (var student in students)
 {
-    if (karakterer.TryGetValue(elev, out int karakter))
-        Console.WriteLine($"{elev}: karakter {karakter}");
+    if (grades.TryGetValue(student, out int grade))
+        Console.WriteLine($"{student}: karakter {grade}");
     else
-        Console.WriteLine($"{elev}: ingen karakter");
+        Console.WriteLine($"{student}: ingen karakter");
 }
 ```
 
@@ -281,10 +281,10 @@ q: Hvornår er en **Dictionary** det rigtige valg?
 correct: 1
 explain: En **Dictionary** gemmer **nøgle/værdi-par** — som en telefonbog. Opslag via nøgle er typisk **O(1)** takket være hash-fordeling.
 ---
-q: Hvad returnerer `ageMap.TryGetValue("Ada", out int alder)` hvis nøglen **ikke findes**?
+q: Hvad returnerer `ageMap.TryGetValue("Ada", out int age)` hvis nøglen **ikke findes**?
 - Den kaster en exception
-- `false` — og `alder` får standardværdien 0
-- `true` med alder sat til -1
+- `false` — og `age` får standardværdien 0
+- `true` med `age` sat til -1
 correct: 1
 explain: **`TryGetValue`** er sikkert opslag — den returnerer **`false`** uden at crashe, hvis nøglen mangler. Direkte `map["Ada"]` kaster fejl, når nøglen ikke findes.
 ---

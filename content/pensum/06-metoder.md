@@ -38,12 +38,12 @@ SayHello();
 I moderne C# konsolprogrammer kan metoder være **static** og kaldes direkte — det bruger vi ofte i GF2:
 
 ```csharp
-static void SigHej(string navn)
+static void SayHello(string name)
 {
-    Console.WriteLine($"Hej {navn}!");
+    Console.WriteLine($"Hej {name}!");
 }
 
-SigHej("GF2");
+SayHello("GF2");
 ```
 
 **Top-level statements** tillader metoder i samme fil som `Program.cs`.
@@ -102,15 +102,15 @@ Console.WriteLine(GetGreeting("Bob"));
 Korte metoder kan bruge **expression body** (`=>`):
 
 ```csharp
-static int Fordobl(int x) => x * 2;
+static int Double(int x) => x * 2;
 
-static double BeregnGennemsnit(int a, int b, int c)
+static double CalculateAverage(int a, int b, int c)
 {
     return (a + b + c) / 3.0;
 }
 
-Console.WriteLine("Fordobl(7) = " + Fordobl(7));
-Console.WriteLine("Gennemsnit = " + BeregnGennemsnit(10, 20, 30));
+Console.WriteLine("Det dobbelte af 7 = " + Double(7));
+Console.WriteLine("Gennemsnit = " + CalculateAverage(10, 20, 30));
 ```
 
 
@@ -119,36 +119,36 @@ Console.WriteLine("Gennemsnit = " + BeregnGennemsnit(10, 20, 30));
 **void** — metoden returnerer ingenting, den udfører en handling:
 
 ```csharp
-static void PrintSkillelinje()
+static void PrintDivider()
 {
     Console.WriteLine("----------");
 }
 
 Console.WriteLine("Før");
-PrintSkillelinje();
+PrintDivider();
 Console.WriteLine("Efter");
 ```
 
 **Returværdi** — metoden beregner og sender et resultat tilbage:
 
 ```csharp
-static bool ErPositiv(int tal)
+static bool IsPositive(int number)
 {
-    return tal > 0;
+    return number > 0;
 }
 
-static string KarakterFraScore(int score)
+static string GradeFromScore(int score)
 {
     if (score >= 90) return "12";
     if (score >= 60) return "Bestået";
     return "Ikke bestået";
 }
 
-Console.WriteLine("Er 5 positiv? " + ErPositiv(5));
-Console.WriteLine("Er -2 positiv? " + ErPositiv(-2));
-Console.WriteLine("Score 95 → " + KarakterFraScore(95));
-Console.WriteLine("Score 70 → " + KarakterFraScore(70));
-Console.WriteLine("Score 40 → " + KarakterFraScore(40));
+Console.WriteLine("Er 5 positiv? " + IsPositive(5));
+Console.WriteLine("Er -2 positiv? " + IsPositive(-2));
+Console.WriteLine("Score 95 → " + GradeFromScore(95));
+Console.WriteLine("Score 70 → " + GradeFromScore(70));
+Console.WriteLine("Score 40 → " + GradeFromScore(40));
 ```
 
 Brug `void` til sideeffekter (print, gem data). Brug returværdi, når metoden *producerer* et resultat, du skal bruge videre.
@@ -202,13 +202,13 @@ PrintMessage("Hello!", 3);
 ```
 
 ```csharp
-static void SigHej(string navn, string hilsen = "Hej")
+static void SayHello(string name, string greeting = "Hej")
 {
-    Console.WriteLine($"{hilsen} {navn}!");
+    Console.WriteLine($"{greeting} {name}!");
 }
 
-SigHej("Ada");
-SigHej("Ada", "Velkommen");
+SayHello("Ada");
+SayHello("Ada", "Velkommen");
 ```
 
 
@@ -237,21 +237,21 @@ Metoder er dit vigtigste værktøj til at organisere kode. Opdel i logiske enhed
 
 ```csharp
 // gf2-input: score: 75
-static int LaesScore()
+static int ReadScore()
 {
     Console.Write("Indtast score: ");
     int.TryParse(Console.ReadLine(), out int score);
     return score;
 }
 
-static void VisResultat(int score)
+static void ShowResult(int score)
 {
-    string karakter = score >= 60 ? "Bestået" : "Ikke bestået";
-    Console.WriteLine($"Score {score}: {karakter}");
+    string grade = score >= 60 ? "Bestået" : "Ikke bestået";
+    Console.WriteLine($"Score {score}: {grade}");
 }
 
-int score = LaesScore();
-VisResultat(score);
+int score = ReadScore();
+ShowResult(score);
 ```
 
 Hver metode gør **én ting** — princippet kaldes **Single Responsibility**.
@@ -284,7 +284,7 @@ Metoder er afgørende i UI-udvikling (fx **Blazor**), fordi de strukturerer og g
 - Ret fejl ét sted — ikke i ti kopier af samme kode
 
 **Læselighed**
-- Gode metodenavne (`VisBrugerProfil`, `BeregnTotal`) forklarer *hvad* koden gør uden at læse implementeringen
+- Gode metodenavne (`ShowUserProfile`, `CalculateTotal`) forklarer *hvad* koden gør uden at læse implementeringen
 
 Det gælder konsolprogrammer og web-apps — metoder er grundlaget for vedligeholdelig kode.
 
@@ -339,19 +339,19 @@ q: Hvornår bør du bruge en metode med **returværdi** frem for `void`?
 - Når metoden beregner et resultat, du skal bruge videre i koden
 - Når metoden har mere end tre parametre
 correct: 1
-explain: Brug **returværdi**, når metoden *producerer* data — fx `ErPositiv(int tal)` returnerer `bool`. Brug **`void`**, når den kun har en sideeffekt som print.
+explain: Brug **returværdi**, når metoden *producerer* data — fx `IsPositive(int number)` returnerer `bool`. Brug **`void`**, når den kun har en sideeffekt som print.
 ---
 q: Hvad er forskellen på en **static** metode og en **instansmetode**?
 - Static metoder er langsommere
 - Static kaldes på klassen; instans kaldes på et objekt (`new Program()`)
 - Instansmetoder kan ikke have parametre
 correct: 1
-explain: **`static void SigHej(...)`** kaldes direkte: `SigHej("Ada")`. Instansmetoder som `program.SayHello()` kræver et **objekt** oprettet med `new`.
+explain: **`static void SayHello(...)`** kaldes direkte: `SayHello("Ada")`. Instansmetoder som `program.SayHello()` kræver et **objekt** oprettet med `new`.
 ---
 q: Hvad er **Single Responsibility** i forbindelse med metoder?
 - Hver klasse må kun have én metode
 - Hver metode gør én ting — det gør koden læsbar og vedligeholdelig
 - Metoder må kun have ét parameter
 correct: 1
-explain: Opdel kode i metoder, der hver løser **ét klart problem** — fx `LaesScore()` og `VisResultat()`. Det gør det nemmere at finde fejl og genbruge logik.
+explain: Opdel kode i metoder, der hver løser **ét klart problem** — fx `ReadScore()` og `ShowResult()`. Det gør det nemmere at finde fejl og genbruge logik.
 :::

@@ -41,10 +41,10 @@ Brug step-knapperne eller genveje:
 
 Fra venstre i værktøjslinjen: **Step Into (F11)**, **Step Over (F10)**, **Step Out (Shift+F11)**.
 
-**Eksempel:** Du er på `VisResultat(score);`
+**Eksempel:** Du er på `ShowResult(score);`
 
-- **F10** — kører hele `VisResultat` og stopper på næste linje
-- **F11** — går ind i `VisResultat` og stopper på første linje der
+- **F10** — kører hele `ShowResult` og stopper på næste linje
+- **F11** — går ind i `ShowResult` og stopper på første linje der
 
 ### 4. Se variabler
 
@@ -86,10 +86,10 @@ I praksis bruger du næsten altid det **normale breakpoint**. Højreklik på bre
 
 ```csharp
 // Logisk fejl — gennemsnit bliver forkert ved heltalsdivision
-double gennemsnit = (a + b + c) / 3;
+double average = (a + b + c) / 3;
 
 // Rettelse
-double gennemsnit = (a + b + c) / 3.0;
+double average = (a + b + c) / 3.0;
 ```
 
 Ved logiske fejl er der ingen rød fejlbesked — sæt breakpoint, kør med F5, og tjek variabler trin for trin.
@@ -103,9 +103,9 @@ En **exception** er en runtime-fejl — programmet crasher, medmindre du fanger 
 try
 {
     Console.Write("Indtast tal: ");
-    int n = int.Parse(Console.ReadLine()!);
-    int resultat = 10 / n;
-    Console.WriteLine(resultat);
+    int number = int.Parse(Console.ReadLine()!);
+    int result = 10 / number;
+    Console.WriteLine(result);
 }
 catch (DivideByZeroException)
 {
@@ -165,7 +165,7 @@ q: Hvad er forskellen på **F10 (Step Over)** og **F11 (Step Into)**?
 - F10 kører næste linje uden at gå ind i metodekald; F11 går ind i metoden
 - F11 stopper programmet; F10 fortsætter til slut
 correct: 1
-explain: På `VisResultat(score);` — **F10** kører hele metoden og stopper på næste linje. **F11** hopper ind i `VisResultat` og stopper på første linje der.
+explain: På `ShowResult(score);` — **F10** kører hele metoden og stopper på næste linje. **F11** hopper ind i `ShowResult` og stopper på første linje der.
 ---
 q: Hvor ser du **aktuelle variabelværdier** under debugging?
 - Kun i Output-vinduet

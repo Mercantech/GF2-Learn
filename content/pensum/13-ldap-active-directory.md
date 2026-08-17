@@ -115,14 +115,14 @@ public static List<ADGroup> GetAllGroups()
         {
             var response = (SearchResponse)connection.SendRequest(searchRequest);
 
-            foreach (SearchResultEntry gruppe in response.Entries)
+            foreach (SearchResultEntry groupEntry in response.Entries)
             {
-                var nyGruppe = new ADGroup
+                var group = new ADGroup
                 {
-                    Name = gruppe.Attributes["cn"]?[0]?.ToString() ?? "N/A",
-                    Description = gruppe.Attributes["description"]?[0]?.ToString() ?? "N/A"
+                    Name = groupEntry.Attributes["cn"]?[0]?.ToString() ?? "N/A",
+                    Description = groupEntry.Attributes["description"]?[0]?.ToString() ?? "N/A"
                 };
-                groups.Add(nyGruppe);
+                groups.Add(group);
             }
         }
         catch (Exception ex)
@@ -259,9 +259,9 @@ Kommunikation med AD kræver **defensiv programmering**:
 ```csharp
 try
 {
-    var grupper = GetAllGroups();
-    foreach (var g in grupper)
-        Console.WriteLine($"{g.Name}: {g.Description}");
+    var groups = GetAllGroups();
+    foreach (var group in groups)
+        Console.WriteLine($"{group.Name}: {group.Description}");
 }
 catch (Exception ex)
 {

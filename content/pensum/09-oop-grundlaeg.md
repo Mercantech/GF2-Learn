@@ -105,11 +105,11 @@ public class Car
     }
 }
 
-var bil1 = new Car { Brand = "Ford", Model = "Mustang", Year = 1961 };
-var bil2 = new Car { Brand = "Volvo", Model = "XC60", Year = 2022 };
+var car1 = new Car { Brand = "Ford", Model = "Mustang", Year = 1961 };
+var car2 = new Car { Brand = "Volvo", Model = "XC60", Year = 2022 };
 
-bil1.StartEngine();
-bil2.StartEngine();
+car1.StartEngine();
+car2.StartEngine();
 ```
 
 Det samme princip med `Person` — én skabelon, mange instanser:
@@ -117,20 +117,20 @@ Det samme princip med `Person` — én skabelon, mange instanser:
 ```csharp
 class Person
 {
-    public string Navn { get; set; } = "";
-    public int Alder { get; set; }
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
 
-    public void SigHej()
+    public void SayHello()
     {
-        Console.WriteLine($"Hej, jeg hedder {Navn} og er {Alder} år.");
+        Console.WriteLine($"Hej, jeg hedder {Name} og er {Age} år.");
     }
 }
 
-var elev = new Person { Navn = "Ada", Alder = 17 };
-var laerer = new Person { Navn = "Alan", Alder = 35 };
+var student = new Person { Name = "Ada", Age = 17 };
+var teacher = new Person { Name = "Alan", Age = 35 };
 
-elev.SigHej();
-laerer.SigHej();
+student.SayHello();
+teacher.SayHello();
 ```
 
 
@@ -193,25 +193,25 @@ Klassen er **skabelonen** — `bobby` er ét konkret hund-objekt. Du kan oprette
 I eksemplerne ovenfor bruger vi **felter** (`public string Brand`) — det er fint til læring. I moderne C# foretrækkes **properties** med `{ get; set; }`:
 
 ```csharp
-class Bil
+class Car
 {
-    public string Maerke { get; set; } = "";
-    public int Aargang { get; set; }
-    public double Hastighed { get; private set; }
+    public string Brand { get; set; } = "";
+    public int Year { get; set; }
+    public double Speed { get; private set; }
 
-    public void Accelerer(double kmh)
+    public void Accelerate(double speedIncrease)
     {
-        Hastighed += kmh;
+        Speed += speedIncrease;
     }
 }
 
-var bil = new Bil { Maerke = "Volvo", Aargang = 2020 };
-bil.Accelerer(50);
-bil.Accelerer(30);
-Console.WriteLine($"{bil.Maerke} ({bil.Aargang}) kører {bil.Hastighed} km/t");
+var car = new Car { Brand = "Volvo", Year = 2020 };
+car.Accelerate(50);
+car.Accelerate(30);
+Console.WriteLine($"{car.Brand} ({car.Year}) kører {car.Speed} km/t");
 ```
 
-`private set` betyder, at kun klassen selv kan ændre `Hastighed` — det hedder **indkapsling** (encapsulation).
+`private set` betyder, at kun klassen selv kan ændre `Speed` — det hedder **indkapsling** (encapsulation).
 
 
 ## Metoder og data hører sammen
@@ -219,38 +219,38 @@ Console.WriteLine($"{bil.Maerke} ({bil.Aargang}) kører {bil.Hastighed} km/t");
 Metoder i en klasse definerer, hvad objekter *kan gøre*. Data og logik bør høre sammen:
 
 ```csharp
-class Konto
+class Account
 {
-    public string Ejer { get; set; } = "";
-    public double Saldo { get; private set; }
+    public string Owner { get; set; } = "";
+    public double Balance { get; private set; }
 
-    public void Indsaet(double beloeb)
+    public void Deposit(double amount)
     {
-        if (beloeb > 0)
-            Saldo += beloeb;
+        if (amount > 0)
+            Balance += amount;
     }
 
-    public bool Haev(double beloeb)
+    public bool Withdraw(double amount)
     {
-        if (beloeb > 0 && beloeb <= Saldo)
+        if (amount > 0 && amount <= Balance)
         {
-            Saldo -= beloeb;
+            Balance -= amount;
             return true;
         }
         return false;
     }
 }
 
-var konto = new Konto { Ejer = "Ada" };
-konto.Indsaet(1000);
-bool ok = konto.Haev(300);
+var account = new Account { Owner = "Ada" };
+account.Deposit(1000);
+bool withdrawalSucceeded = account.Withdraw(300);
 
-Console.WriteLine($"Ejer: {konto.Ejer}");
-Console.WriteLine($"Hævning lykkedes: {ok}");
-Console.WriteLine($"Saldo: {konto.Saldo}");
+Console.WriteLine($"Ejer: {account.Owner}");
+Console.WriteLine($"Hævning lykkedes: {withdrawalSucceeded}");
+Console.WriteLine($"Saldo: {account.Balance}");
 ```
 
-`Saldo` kan ikke ændres direkte udefra — kun via `Indsaet` og `Haev`.
+`Balance` kan ikke ændres direkte udefra — kun via `Deposit` og `Withdraw`.
 
 
 ## Instantiere og gemme objekter
@@ -260,25 +260,25 @@ Flere objekter i en liste — hvert `new` allokerer et **nyt objekt** i hukommel
 ```csharp
 class Person
 {
-    public string Navn { get; set; } = "";
-    public int Alder { get; set; }
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
 
-    public void SigHej()
+    public void SayHello()
     {
-        Console.WriteLine($"Hej, jeg hedder {Navn} og er {Alder} år.");
+        Console.WriteLine($"Hej, jeg hedder {Name} og er {Age} år.");
     }
 }
 
-var elever = new List<Person>
+var students = new List<Person>
 {
-    new Person { Navn = "Ada", Alder = 17 },
-    new Person { Navn = "Grace", Alder = 18 },
-    new Person { Navn = "Alan", Alder = 16 }
+    new Person { Name = "Ada", Age = 17 },
+    new Person { Name = "Grace", Age = 18 },
+    new Person { Name = "Alan", Age = 16 }
 };
 
-Console.WriteLine($"Antal elever: {elever.Count}");
-foreach (var elev in elever)
-    elev.SigHej();
+Console.WriteLine($"Antal elever: {students.Count}");
+foreach (var student in students)
+    student.SayHello();
 ```
 
 Objekter er **reference-typer** — variablen peger på objektet, ikke en kopi.
@@ -345,14 +345,14 @@ q: Hvad er **indkapsling** (encapsulation)?
 - At skjule intern data og kun eksponere det nødvendige via properties/metoder
 - At oprette mange objekter af samme klasse
 correct: 1
-explain: Fx `public double Saldo { get; private set; }` — **Saldo** kan læses udefra, men kun klassens egne metoder (`Indsaet`, `Haev`) kan ændre den.
+explain: Fx `public double Balance { get; private set; }` — **Balance** kan læses udefra, men kun klassens egne metoder (`Deposit`, `Withdraw`) kan ændre den.
 ---
 q: Kan to objekter af samme klasse have **forskellige værdier** for egenskaberne?
 - Nej — alle objekter deler samme data
 - Ja — hvert objekt har egne værdier, men deler samme metoder
 - Kun hvis de oprettes med `static`
 correct: 1
-explain: `bil1` og `bil2` kan have forskellig `Brand` og `Year`, men begge kan kalde `StartEngine()` — **samme adfærd**, **forskellig tilstand**.
+explain: `car1` og `car2` kan have forskellig `Brand` og `Year`, men begge kan kalde `StartEngine()` — **samme adfærd**, **forskellig tilstand**.
 ---
 q: Hvad er forskellen på et **felt** og en **property**?
 - Properties kan ikke have get/set

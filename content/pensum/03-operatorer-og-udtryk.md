@@ -38,7 +38,7 @@ Variabler, der gemmer værdier og kan bruges i beregninger:
 ```csharp
 int x = 10;
 string name = "Alice";
-bool aktiv = true;
+bool isActive = true;
 ```
 
 ### Aritmetiske udtryk
@@ -47,16 +47,16 @@ Kombinerer tal med matematiske operatorer:
 
 ```csharp
 int sum = 5 + 3;        // Resultatet er 8
-int produkt = 4 * 2;    // Resultatet er 8
-bool erVoksen = alder >= 18;   // true eller false
+int product = 4 * 2;    // Resultatet er 8
+bool isAdult = age >= 18;   // true eller false
 ```
 
 Du kan gemme resultatet af et udtryk i en variabel:
 
 ```csharp
-int resultat = 10 + 5;
-bool harBestaaet = score >= 60;
-string besked = $"Score: {score}";
+int result = 10 + 5;
+bool hasPassed = score >= 60;
+string message = $"Score: {score}";
 ```
 
 
@@ -79,14 +79,14 @@ int difference = 5 - 3;   // 2
 **`*` (gangetegn) — multiplikation**
 
 ```csharp
-int produkt = 5 * 3;   // 15
+int product = 5 * 3;   // 15
 ```
 
 **`/` (divisionstegn) — division**
 
 ```csharp
-int kvotient = 10 / 2;      // 5
-double dec = 10 / 4.0;      // 2.5
+int quotient = 10 / 2;              // 5
+double decimalResult = 10 / 4.0;    // 2.5
 ```
 
 **Vigtigt om division:** `10 / 4` giver `2` (heltalsdivision), fordi begge operandi er `int`. Brug `10 / 4.0` eller `(double)10 / 4` for at få `2.5`.
@@ -94,7 +94,7 @@ double dec = 10 / 4.0;      // 2.5
 **`%` (modulus) — rest ved heltalsdivision**
 
 ```csharp
-int rest = 10 % 3;   // 1
+int remainder = 10 % 3;   // 1
 ```
 
 `10 % 3` er 1, fordi 10 = 3×3 + 1. Nyttigt til at tjekke om et tal er lige: `n % 2 == 0`.
@@ -113,45 +113,45 @@ Sammenligningsoperatorer returnerer altid `bool` (true/false).
 **`==` (lig med)**
 
 ```csharp
-bool erLige = (5 == 5);   // true
+bool isEqual = (5 == 5);   // true
 ```
 
 **`!=` (ikke lig med)**
 
 ```csharp
-bool erForskellige = (5 != 3);   // true
+bool areDifferent = (5 != 3);   // true
 ```
 
 **`>` (større end)**
 
 ```csharp
-bool erStoerre = (5 > 3);   // true
+bool isGreater = (5 > 3);   // true
 ```
 
 **`<` (mindre end)**
 
 ```csharp
-bool erMindre = (5 < 3);   // false
+bool isLess = (5 < 3);   // false
 ```
 
 **`>=` (større end eller lig med)**
 
 ```csharp
-bool erStoerreEllerLig = (5 >= 5);   // true
+bool isGreaterOrEqual = (5 >= 5);   // true
 ```
 
 **`<=` (mindre end eller lig med)**
 
 ```csharp
-bool erMindreEllerLig = (5 <= 5);   // true
+bool isLessOrEqual = (5 <= 5);   // true
 ```
 
 Typisk brug:
 
 ```csharp
-bool erVoksen = alder >= 18;
-bool harBestaaet = score >= 60;
-bool korrektPassword = input == "hemmelig";
+bool isAdult = age >= 18;
+bool hasPassed = score >= 60;
+bool isPasswordCorrect = input == "hemmelig";
 ```
 
 :::callout type="warning"
@@ -166,25 +166,25 @@ Logiske operatorer kombinerer flere betingelser.
 **`&&` (logisk OG) — sand, hvis begge betingelser er sande**
 
 ```csharp
-bool resultat = (5 > 3) && (2 < 4);   // true
-bool begge = aktiv && score >= 60;
+bool result = (5 > 3) && (2 < 4);   // true
+bool both = isActive && score >= 60;
 ```
 
 **`||` (logisk ELLER) — sand, hvis mindst én betingelse er sand**
 
 ```csharp
-bool resultat = (5 > 3) || (2 > 4);   // true
-bool enAf = brugernavn == "admin" || erAdmin;
+bool result = (5 > 3) || (2 > 4);   // true
+bool either = username == "admin" || isAdmin;
 ```
 
 **`!` (logisk IKKE) — vender en betingelse**
 
 ```csharp
-bool resultat = !(5 > 3);   // false
-bool ikkeTom = !string.IsNullOrEmpty(navn);
+bool result = !(5 > 3);   // false
+bool isNotEmpty = !string.IsNullOrEmpty(name);
 ```
 
-**Short-circuit:** Med `&&` evalueres højre side kun, hvis venstre er `true`. Med `||` evalueres højre side kun, hvis venstre er `false`. Det beskytter mod fejl — fx `tal != 0 && 10/tal > 2` crasher ikke ved `tal = 0`.
+**Short-circuit:** Med `&&` evalueres højre side kun, hvis venstre er `true`. Med `||` evalueres højre side kun, hvis venstre er `false`. Det beskytter mod fejl — fx `number != 0 && 10/number > 2` crasher ikke ved `number = 0`.
 
 :::callout type="info"
 Evaluer et boolsk udtryk trin for trin: Hvad er hver del? Bruger `&&` og `||` **short-circuit** — højre side evalueres kun, når det er nødvendigt.
@@ -197,14 +197,14 @@ Ved at kombinere udtryk og operatorer kan du bygge komplekse logikker og udføre
 
 ```csharp
 int score1 = 80, score2 = 90, score3 = 70;
-int timer = 120;
-int alder = 20;
-bool harKoerekort = true;
-bool erVIP = false;
+int hours = 120;
+int age = 20;
+bool hasDriversLicense = true;
+bool isVip = false;
 
-double gennemsnit = (score1 + score2 + score3) / 3.0;
-bool bonus = gennemsnit >= 80 && timer >= 100;
-bool resultat = (alder >= 18 && harKoerekort) || erVIP;
+double average = (score1 + score2 + score3) / 3.0;
+bool bonus = average >= 80 && hours >= 100;
+bool result = (age >= 18 && hasDriversLicense) || isVip;
 Console.WriteLine($"Bonus: {bonus}");
 ```
 
@@ -256,7 +256,7 @@ q: Hvornår evalueres højre side **ikke** i udtrykket `A && B`?
 - Når A er false (short-circuit)
 - Når B er true
 correct: 1
-explain: Med **`&&`** evalueres B kun, hvis A er **true** — det kaldes **short-circuit**. Det beskytter mod fejl, fx `tal != 0 && 10/tal > 2` crasher ikke, når `tal` er 0.
+explain: Med **`&&`** evalueres B kun, hvis A er **true** — det kaldes **short-circuit**. Det beskytter mod fejl, fx `number != 0 && 10/number > 2` crasher ikke, når `number` er 0.
 ---
 q: Hvad er resultatet af `!(5 > 3)`?
 - `true`

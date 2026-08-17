@@ -48,6 +48,8 @@ Undgå **forkortelser** som `cnt`, `msg`, `nr` — medmindre hele teamet bruger 
 
 ## Navngivning i C#
 
+Brug engelske navne til alle identifiers — variabler, parametre, metoder, properties og klasser — også når opgaven og brugerfladen er dansk. Det gør koden ensartet med C#-økosystemet og lettere at dele med andre udviklere.
+
 | Element | Konvention | Eksempel |
 |---------|------------|----------|
 | **Lokale variabler** | camelCase | `firstName`, `itemCount` |

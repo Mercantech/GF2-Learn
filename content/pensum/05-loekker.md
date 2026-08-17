@@ -264,13 +264,13 @@ Løkker er essentielle til beregninger over mange værdier:
 
 ```csharp
 int sum = 0;
-int[] tal = { 10, 20, 30, 40, 50 };
+int[] numbers = { 10, 20, 30, 40, 50 };
 
-for (int i = 0; i < tal.Length; i++)
-    sum += tal[i];
+for (int i = 0; i < numbers.Length; i++)
+    sum += numbers[i];
 
-double gennemsnit = (double)sum / tal.Length;
-Console.WriteLine($"Sum: {sum}, Gennemsnit: {gennemsnit}");
+double average = (double)sum / numbers.Length;
+Console.WriteLine($"Sum: {sum}, Gennemsnit: {average}");
 ```
 
 Mønsteret **initialiser → loop → akkumuler** bruger du konstant i GF2.
