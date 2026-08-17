@@ -11,6 +11,7 @@ public static class CurriculumCategoryCatalog
         new("csharp", "C#", "💻", 1),
         new("kodeprincipper", "Kode-principper", "✨", 2),
         new("git", "Git", "🌿", 3),
+        new("naeste-skridt", "Næste skridt", "🖥️", 4),
     ];
 
     public static string ResolveCategory(ContentItem item)
