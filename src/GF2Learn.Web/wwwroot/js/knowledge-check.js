@@ -47,13 +47,15 @@
     });
   }
 
-  function applyAnswer(question, selectedOriginalIndex, isCorrect) {
+  function applyAnswer(question, selectedOriginalIndex, isCorrect, isPersisted) {
     var correctOriginal = parseInt(question.dataset.correct, 10);
     var feedback = question.querySelector(".kc-feedback");
     var verdict = question.querySelector(".kc-verdict");
+    var resetButton = question.querySelector(".kc-reset");
     var buttons = question.querySelectorAll(".kc-option");
 
     question.classList.add("kc-answered");
+    if (isPersisted) question.dataset.kcPersisted = "1";
 
     buttons.forEach(function (option) {
       var originalIndex = parseInt(option.dataset.originalIndex, 10);
@@ -67,6 +69,71 @@
       : "Ikke helt. Det rigtige svar er markeret — her er forklaringen:";
     verdict.className = "kc-verdict " + (isCorrect ? "kc-verdict-ok" : "kc-verdict-no");
     feedback.hidden = false;
+    if (resetButton && question.closest(".knowledge-check--slide")) {
+      resetButton.hidden = false;
+    }
+  }
+
+  function clearAnswer(question, section) {
+    var feedback = question.querySelector(".kc-feedback");
+    var verdict = question.querySelector(".kc-verdict");
+    var resetButton = question.querySelector(".kc-reset");
+
+    question.classList.remove("kc-answered");
+    delete question.dataset.kcPersisted;
+
+    question.querySelectorAll(".kc-option").forEach(function (option) {
+      option.disabled = false;
+      option.classList.remove("kc-correct", "kc-wrong");
+    });
+
+    if (feedback) feedback.hidden = true;
+    if (verdict) {
+      verdict.textContent = "";
+      verdict.className = "kc-verdict";
+    }
+    if (resetButton) {
+      resetButton.hidden = true;
+      resetButton.disabled = false;
+      resetButton.textContent = "Fjern svar";
+    }
+
+    section.querySelectorAll(".kc-reset-error").forEach(function (error) {
+      error.remove();
+    });
+    updateProgressLabel(section);
+  }
+
+  function removeBootstrapAnswer(contentSlug, questionIndex) {
+    var el = document.getElementById("kc-bootstrap-" + contentSlug);
+    if (!el || !el.textContent) return;
+
+    try {
+      var answers = JSON.parse(el.textContent);
+      if (!Array.isArray(answers)) return;
+      el.textContent = JSON.stringify(answers.filter(function (raw) {
+        return normalizeAnswer(raw).questionIndex !== questionIndex;
+      }));
+    } catch { /* bootstrap-data er kun en optimering */ }
+  }
+
+  function deleteAnswer(contentSlug, questionIndex) {
+    return fetch(apiUrl(
+      "/api/progress/knowledge-check/" + encodeURIComponent(contentSlug) + "/" + questionIndex
+    ), {
+      method: "DELETE",
+      credentials: "include",
+      headers: { Accept: "application/json" }
+    });
+  }
+
+  function showResetError(section) {
+    if (section.querySelector(".kc-reset-error")) return;
+
+    var error = document.createElement("p");
+    error.className = "kc-login-hint kc-save-error kc-reset-error";
+    error.textContent = "Kunne ikke fjerne svaret lige nu. Prøv igen om lidt.";
+    section.querySelector(".kc-heading").after(error);
   }
 
   function markChapterCompleteInNav(contentSlug) {
@@ -177,6 +244,7 @@
     var questionIndex = parseInt(question.dataset.questionIndex, 10);
     var correctOriginal = parseInt(question.dataset.correct, 10);
     var buttons = question.querySelectorAll(".kc-option");
+    var resetButton = question.querySelector(".kc-reset");
 
     buttons.forEach(function (button) {
       button.addEventListener("click", function () {
@@ -184,13 +252,26 @@
 
         var selectedOriginal = parseInt(button.dataset.originalIndex, 10);
         var isCorrect = selectedOriginal === correctOriginal;
-        applyAnswer(question, selectedOriginal, isCorrect);
+        applyAnswer(question, selectedOriginal, isCorrect, false);
         updateProgressLabel(section);
 
         if (!contentSlug) return;
 
+        question.dataset.kcSaving = "1";
+        if (resetButton) {
+          resetButton.disabled = true;
+          resetButton.textContent = "Gemmer…";
+        }
+
         saveAnswer(contentSlug, questionIndex, selectedOriginal, isCorrect).then(function (response) {
+          delete question.dataset.kcSaving;
+          if (resetButton) {
+            resetButton.disabled = false;
+            resetButton.textContent = "Fjern svar";
+          }
+
           if (response.ok) {
+            question.dataset.kcPersisted = "1";
             maybeMarkChapterComplete(section);
             return;
           }
@@ -211,9 +292,53 @@
             errorHint.textContent = "Kunne ikke gemme dit svar lige nu. Prøv igen om lidt.";
             section.querySelector(".kc-heading").after(errorHint);
           }
+        }).catch(function () {
+          delete question.dataset.kcSaving;
+          if (resetButton) {
+            resetButton.disabled = false;
+            resetButton.textContent = "Fjern svar";
+          }
+
+          if (section.dataset.kcSaveErrorShown !== "1") {
+            section.dataset.kcSaveErrorShown = "1";
+            var errorHint = document.createElement("p");
+            errorHint.className = "kc-login-hint kc-save-error";
+            errorHint.textContent = "Kunne ikke gemme dit svar lige nu. Prøv igen om lidt.";
+            section.querySelector(".kc-heading").after(errorHint);
+          }
         });
       });
     });
+
+    if (resetButton && section.classList.contains("knowledge-check--slide")) {
+      resetButton.addEventListener("click", function () {
+        if (!question.classList.contains("kc-answered")) return;
+
+        if (question.dataset.kcPersisted !== "1" || !contentSlug) {
+          clearAnswer(question, section);
+          return;
+        }
+
+        resetButton.disabled = true;
+        resetButton.textContent = "Fjerner…";
+
+        deleteAnswer(contentSlug, questionIndex).then(function (response) {
+          if (!response.ok) {
+            resetButton.disabled = false;
+            resetButton.textContent = "Fjern svar";
+            showResetError(section);
+            return;
+          }
+
+          removeBootstrapAnswer(contentSlug, questionIndex);
+          clearAnswer(question, section);
+        }).catch(function () {
+          resetButton.disabled = false;
+          resetButton.textContent = "Fjern svar";
+          showResetError(section);
+        });
+      });
+    }
   }
 
   function restoreAnswers(section, answers) {
@@ -225,13 +350,16 @@
 
       var question = section.querySelector('.kc-question[data-question-index="' + answer.questionIndex + '"]');
       if (!question || question.classList.contains("kc-answered")) return;
-      applyAnswer(question, answer.selectedIndex, !!answer.isCorrect);
+      applyAnswer(question, answer.selectedIndex, !!answer.isCorrect, true);
     });
 
     updateProgressLabel(section);
   }
 
   function initSection(section) {
+    if (section.dataset.kcInitialized === "1") return;
+    section.dataset.kcInitialized = "1";
+
     var contentSlug = section.dataset.contentSlug;
     if (!contentSlug) return;
 

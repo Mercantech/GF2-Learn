@@ -2886,6 +2886,27 @@ a:hover { color: var(--accent-bright); }
   color: var(--text-muted);
 }
 .kc-explanation p { margin: 0; }
+.kc-reset {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.kc-reset:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  color: var(--text);
+}
+.kc-reset:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
 
 .curriculum-index .index-list { gap: 0.65rem; }
 .curriculum-index .index-item {

@@ -349,7 +349,9 @@ public sealed partial class ContentPreprocessor
         sb.Append("<div class=\"kc-feedback\" hidden>");
         sb.Append("<p class=\"kc-verdict\"></p>");
         sb.Append($"<div class=\"kc-explanation\">{RenderInlineMarkdown(parsed.Explanation)}</div>");
-        sb.Append("</div></div>");
+        sb.Append("</div>");
+        sb.Append("<button type=\"button\" class=\"kc-reset\" hidden>Fjern svar</button>");
+        sb.Append("</div>");
         return sb.ToString();
     }
 }

@@ -206,6 +206,29 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         return Results.NoContent();
     }).DisableAntiforgery();
 
+    progress.MapDelete("/knowledge-check/{contentSlug}/{questionIndex:int}", async (
+        string contentSlug,
+        int questionIndex,
+        ClaimsPrincipal user,
+        IKnowledgeCheckProgressService progressService,
+        CancellationToken cancellationToken) =>
+    {
+        var userSub = GetUserSub(user);
+        if (userSub is null)
+            return Results.Unauthorized();
+
+        if (questionIndex < 0)
+            return Results.BadRequest();
+
+        await progressService.DeleteAnswerAsync(
+            userSub,
+            contentSlug,
+            questionIndex,
+            cancellationToken);
+
+        return Results.NoContent();
+    }).DisableAntiforgery();
+
     progress.MapGet("/exercise/{contentSlug}", async (
         string contentSlug,
         ClaimsPrincipal user,

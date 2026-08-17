@@ -19,6 +19,12 @@ public interface IKnowledgeCheckProgressService
         string contentSlug,
         CancellationToken cancellationToken = default);
 
+    Task DeleteAnswerAsync(
+        string userSub,
+        string contentSlug,
+        int questionIndex,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<CurriculumChapterProgress>> GetCurriculumProgressAsync(
         string userSub,
         IReadOnlyList<(string Slug, int TotalQuestions)> chapters,
@@ -75,6 +81,26 @@ public sealed class KnowledgeCheckProgressService(Gf2LearnDbContext db) : IKnowl
             .OrderBy(a => a.QuestionIndex)
             .Select(a => new KnowledgeCheckAnswerDto(a.QuestionIndex, a.SelectedIndex, a.IsCorrect))
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task DeleteAnswerAsync(
+        string userSub,
+        string contentSlug,
+        int questionIndex,
+        CancellationToken cancellationToken = default)
+    {
+        var answer = await db.KnowledgeCheckAnswers
+            .FirstOrDefaultAsync(
+                a => a.UserSub == userSub
+                     && a.ContentSlug == contentSlug
+                     && a.QuestionIndex == questionIndex,
+                cancellationToken);
+
+        if (answer is null)
+            return;
+
+        db.KnowledgeCheckAnswers.Remove(answer);
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<CurriculumChapterProgress>> GetCurriculumProgressAsync(
