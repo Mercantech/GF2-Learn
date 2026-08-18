@@ -1,4 +1,15 @@
 ﻿@inject IConfiguration Configuration
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var rootHttpContext = HttpContextAccessor.HttpContext;
+    var isAuthenticated = rootHttpContext?.User.Identity?.IsAuthenticated == true;
+    var activityTrackingEnabled = isAuthenticated
+        && !string.IsNullOrWhiteSpace(Configuration.GetConnectionString("DefaultConnection"));
+    var requestVerificationToken = rootHttpContext is null || !activityTrackingEnabled
+        ? null
+        : Antiforgery.GetAndStoreTokens(rootHttpContext).RequestToken;
+}
 <!DOCTYPE html>
 <html lang="da">
 
@@ -6,6 +17,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="gf2-path-base" content="@(Configuration["PathBase"] ?? "")" />
+    <meta name="gf2-authenticated" content="@(isAuthenticated ? "true" : "false")" />
+    <meta name="gf2-activity-enabled" content="@(activityTrackingEnabled ? "true" : "false")" />
+    <meta name="request-verification-token" content="@requestVerificationToken" />
     <script src="@Assets["js/theme-head.js"]"></script>
     <base href="/" />
     <title>GF2 Learn</title>
@@ -15,6 +29,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["css/dev-theme.css"]" />
+    <link rel="stylesheet" href="@Assets["css/admin.css"]" />
     <link rel="stylesheet" href="@Assets["GF2Learn.Web.styles.css"]" />
     <ImportMap />
     <HeadOutlet />
@@ -40,6 +55,7 @@
     <script src="@Assets["js/gf2-api.js"]"></script>
     <script src="@Assets["js/exercise-progress.js"]"></script>
     <script src="@Assets["js/exercise-ai.js"]"></script>
+    <script src="@Assets["js/page-activity.js"]"></script>
 </body>
 
 </html>

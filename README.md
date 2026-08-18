@@ -69,6 +69,42 @@ JWT valideres mod `iss=https://auth.mercantec.tech` og `aud=mercantec-apps`.
 
 Logout rydder app-cookie og sender brugeren til `https://auth.mercantec.tech/signout?returnUrl=...` for at nulstille auth-session (SSO).
 
+## Underviser-dashboard
+
+Adminområdet giver undervisere et samlet elevgitter, individuel progression og
+aktiv tid på pensum- og opgavesider. Superadmins kan desuden oprette hold,
+tildele registrerede elever manuelt og generere invitationslinks eller holdkoder.
+
+| Sti | Adgang | Formål |
+|-----|--------|--------|
+| `/admin` | Underviser/admin | Elevoversigt, filtre og aktivitetsnøgletal |
+| `/admin/students/{id}` | Underviser/admin | Progression og indholdsbrug for én elev |
+| `/admin/groups` | Superadmin | Hold, medlemmer, invitationer og koder |
+| `/join` | Logget ind elev | Tilmelding med holdkode |
+| `/join/{token}` | Logget ind elev | Bekræft invitation |
+
+Adgangen styres af `role`-claims og kan suppleres med en eksplicit subject-
+allowlist. Rolle- og subjectværdier matches case-insensitivt:
+
+```env
+AdminAccess__EducatorRoles=teacher,underviser,admin,superadmin,super_admin
+AdminAccess__SuperAdminRoles=superadmin,super_admin
+AdminAccess__EducatorSubjects=
+AdminAccess__SuperAdminSubjects=
+```
+
+Hvis Mercantec Auth endnu ikke sender rollerne, kan bruger-id'et fra `/profile`
+indsættes i de relevante `Subjects`-felter. Kaldenavne gemmes separat og sendes
+aldrig til elevsider eller elev-API'er. Navn og e-mail fra login-tokenet gemmes
+ikke i admin-databasen; undervisere ser elevens pseudonyme ID, indtil de selv
+tilføjer et kaldenavn.
+
+Aktiv tid registreres kun for loggede elever og kun mens en pensum- eller
+opgaveside er synlig, browseren har fokus, og eleven ikke har været inaktiv i
+mere end ét minut. Browseren sender kumulativ tid, som aggregeres pr. dag; tallet
+skal derfor læses som estimeret aktiv tid og ikke som præcis arbejdstid. Tekniske
+sessions-id'er bruges kortvarigt til deduplikering og slettes senest efter ét døgn.
+
 ## Indholdsstruktur
 
 ```

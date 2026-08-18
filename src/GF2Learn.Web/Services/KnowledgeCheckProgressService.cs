@@ -108,23 +108,30 @@ public sealed class KnowledgeCheckProgressService(Gf2LearnDbContext db) : IKnowl
         IReadOnlyList<(string Slug, int TotalQuestions)> chapters,
         CancellationToken cancellationToken = default)
     {
-        var slugsWithQuestions = chapters
+        var chaptersWithQuestions = chapters
             .Where(c => c.TotalQuestions > 0)
-            .Select(c => c.Slug)
             .ToList();
+        var slugsWithQuestions = chaptersWithQuestions.Select(c => c.Slug).ToList();
 
         if (slugsWithQuestions.Count == 0)
             return [];
 
-        var answeredCounts = await db.KnowledgeCheckAnswers
+        var totalQuestionsBySlug = chaptersWithQuestions.ToDictionary(
+            chapter => chapter.Slug,
+            chapter => chapter.TotalQuestions,
+            StringComparer.Ordinal);
+        var answers = await db.KnowledgeCheckAnswers
             .AsNoTracking()
             .Where(a => a.UserSub == userSub && slugsWithQuestions.Contains(a.ContentSlug))
-            .GroupBy(a => a.ContentSlug)
-            .Select(g => new { Slug = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.Slug, x => x.Count, cancellationToken);
+            .Select(answer => new { answer.ContentSlug, answer.QuestionIndex })
+            .ToListAsync(cancellationToken);
+        var answeredCounts = answers
+            .Where(answer => answer.QuestionIndex >= 0
+                             && answer.QuestionIndex < totalQuestionsBySlug[answer.ContentSlug])
+            .GroupBy(answer => answer.ContentSlug)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
 
-        return chapters
-            .Where(c => c.TotalQuestions > 0)
+        return chaptersWithQuestions
             .Select(c =>
             {
                 var answered = answeredCounts.GetValueOrDefault(c.Slug, 0);

@@ -139,6 +139,10 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
             return [];
 
         var slugs = withParts.Select(e => e.Slug).ToList();
+        var totalPartsBySlug = withParts.ToDictionary(
+            exercise => exercise.Slug,
+            exercise => exercise.TotalParts,
+            StringComparer.Ordinal);
         var verifiedParts = await db.ExercisePartVerifications
             .AsNoTracking()
             .Where(v => v.UserSub == userSub
@@ -148,6 +152,8 @@ public sealed class ExerciseProgressService(Gf2LearnDbContext db) : IExercisePro
             .ToListAsync(cancellationToken);
 
         var completedCounts = verifiedParts
+            .Where(part => part.PartIndex >= 0
+                           && part.PartIndex < totalPartsBySlug[part.ContentSlug])
             .GroupBy(x => x.ContentSlug)
             .ToDictionary(g => g.Key, g => g.Count());
 

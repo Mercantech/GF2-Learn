@@ -16,7 +16,9 @@
 else
 {
     <SectionShell Section="ContentSectionType.Curriculum" Title="Curriculum" Current="Item">
-        <div class="curriculum-page">
+        <div class="curriculum-page"
+             data-activity-content-type="curriculum"
+             data-activity-content-slug="@Slug">
             <header class="curriculum-header page-header">
                 <p class="breadcrumb"><a href="/curriculum" data-enhance-nav="false">Curriculum</a> / @Item.Title</p>
                 <h1>@Item.Title</h1>

@@ -1,0 +1,152 @@
+@page "/join"
+@page "/join/{Token}"
+@layout AdminShell
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using System.Security.Claims
+@implements IDisposable
+@inject ILearningGroupService GroupService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Tilmeld hold — GF2 Learn</PageTitle>
+
+<div class="join-page">
+    <section class="join-card" aria-labelledby="join-heading">
+        <div class="join-icon" aria-hidden="true">👥</div>
+
+        @if (_result is { Success: true })
+        {
+            <p class="admin-eyebrow">Tilmelding gennemført</p>
+            <h1 id="join-heading">Du er med på holdet</h1>
+            <div class="admin-alert admin-alert-success" role="status">
+                <span>@_result.Message</span>
+            </div>
+            <p>Din underviser kan nu følge din progression og aktivitet på holdet.</p>
+            <a href="/curriculum" class="btn btn-primary">Gå til pensum</a>
+        }
+        else if (HasInvite)
+        {
+            <p class="admin-eyebrow">Holdinvitation</p>
+            <h1 id="join-heading">Bekræft din invitation</h1>
+            <p>Du er blevet inviteret til et hold i GF2 Learn. Bekræft for at blive tilknyttet holdet.</p>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="admin-alert admin-alert-error" role="alert">@_error</div>
+            }
+
+            <button type="button" class="btn btn-primary btn-lg" @onclick="RedeemInviteAsync" disabled="@_submitting">
+                @(_submitting ? "Tilmeldingen behandles…" : "Acceptér invitation")
+            </button>
+            <a href="/" class="btn btn-ghost">Ikke nu</a>
+        }
+        else
+        {
+            <p class="admin-eyebrow">Elevtilmelding</p>
+            <h1 id="join-heading">Tilmeld dig et hold</h1>
+            <p>Skriv holdkoden, du har fået af din underviser. Bindestregen er valgfri.</p>
+
+            <form class="join-code-form" @onsubmit="RedeemCodeAsync" @onsubmit:preventDefault>
+                <label for="join-code">Holdkode</label>
+                <input id="join-code"
+                       class="join-code-input"
+                       @bind="_code"
+                       maxlength="20"
+                       inputmode="text"
+                       autocomplete="one-time-code"
+                       autocapitalize="characters"
+                       spellcheck="false"
+                       placeholder="ABCD-EFGH"
+                       aria-describedby="join-code-help"
+                       disabled="@_submitting" />
+                <small id="join-code-help">Koden består af otte bogstaver og tal.</small>
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <div class="admin-alert admin-alert-error" role="alert">@_error</div>
+                }
+
+                <button type="submit" class="btn btn-primary btn-lg" disabled="@(_submitting || string.IsNullOrWhiteSpace(_code))">
+                    @(_submitting ? "Tilmeldingen behandles…" : "Tilmeld hold")
+                </button>
+            </form>
+        }
+    </section>
+
+    <aside class="join-privacy-note">
+        <strong>Hvad deles med underviseren?</strong>
+        <p>Underviseren kan se din aktivitet og gennemførte opgaver. Dine rå svar vises ikke.</p>
+    </aside>
+</div>
+
+@code {
+    [Parameter] public string? Token { get; set; }
+
+    private readonly CancellationTokenSource _disposeCts = new();
+    private ClaimsPrincipal _user = new(new ClaimsIdentity());
+    private JoinGroupResult? _result;
+    private string _code = string.Empty;
+    private string? _error;
+    private string? _lastRouteToken;
+    private bool _submitting;
+
+    private bool HasInvite => !string.IsNullOrWhiteSpace(Token);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (string.Equals(_lastRouteToken, Token, StringComparison.Ordinal))
+            return;
+
+        _lastRouteToken = Token;
+        _result = null;
+        _error = null;
+    }
+
+    private Task RedeemInviteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Token))
+            return Task.CompletedTask;
+
+        return RedeemAsync(() => GroupService.RedeemInviteAsync(_user, Token, _disposeCts.Token));
+    }
+
+    private Task RedeemCodeAsync() =>
+        RedeemAsync(() => GroupService.RedeemCodeAsync(_user, _code, _disposeCts.Token));
+
+    private async Task RedeemAsync(Func<Task<JoinGroupResult>> redeem)
+    {
+        if (_submitting)
+            return;
+
+        _submitting = true;
+        _error = null;
+        try
+        {
+            _result = await redeem();
+            if (!_result.Success)
+                _error = _result.Message;
+        }
+        catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
+        {
+        }
+        catch
+        {
+            _error = "Tilmeldingen kunne ikke gennemføres. Prøv igen.";
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        _disposeCts.Cancel();
+        _disposeCts.Dispose();
+    }
+}

@@ -1,0 +1,557 @@
+@page "/admin/groups"
+@layout AdminShell
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = AdminAuthorizationPolicies.SuperAdmin)]
+@using System.Security.Claims
+@using GF2Learn.Web.Auth
+@implements IDisposable
+@inject ILearningGroupService GroupService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Hold — Admin</PageTitle>
+
+<div class="admin-workspace">
+    <header class="admin-page-header">
+        <div>
+            <p class="admin-eyebrow">Superadmin</p>
+            <h1>Holdadministration</h1>
+            <p>Opret hold, tilknyt registrerede elever og lav invitationslinks eller holdkoder.</p>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <div class="admin-alert admin-alert-error" role="alert">
+            <strong>Handlingen kunne ikke gennemføres.</strong>
+            <span>@_error</span>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_success))
+    {
+        <div class="admin-alert admin-alert-success" role="status">
+            <span>@_success</span>
+        </div>
+    }
+
+    @if (_loading)
+    {
+        <div class="admin-loading" role="status" aria-live="polite">
+            <span class="admin-spinner" aria-hidden="true"></span>
+            Henter hold…
+        </div>
+    }
+    else
+    {
+        <div class="admin-groups-layout">
+            <aside class="admin-panel admin-groups-sidebar" aria-labelledby="groups-heading">
+                <div class="admin-panel-heading">
+                    <div>
+                        <p class="admin-eyebrow">Oversigt</p>
+                        <h2 id="groups-heading">Hold</h2>
+                    </div>
+                    <span class="admin-count-badge">@_groups.Count</span>
+                </div>
+
+                <form class="admin-create-group" @onsubmit="CreateGroupAsync" @onsubmit:preventDefault>
+                    <label class="admin-field">
+                        <span>Nyt holdnavn</span>
+                        <input @bind="_newGroupName"
+                               maxlength="160"
+                               placeholder="Fx GF2A · efterår 2026"
+                               autocomplete="off"
+                               disabled="@_busy" />
+                    </label>
+                    <button type="submit" class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newGroupName) || !HasActor)">
+                        Opret hold
+                    </button>
+                </form>
+
+                @if (_groups.Count == 0)
+                {
+                    <p class="admin-empty-compact">Der er endnu ikke oprettet hold.</p>
+                }
+                else
+                {
+                    <div class="admin-group-list" role="list" aria-label="Oprettede hold">
+                        @foreach (var group in _groups)
+                        {
+                            <button type="button"
+                                    role="listitem"
+                                    class="admin-group-option @(group.Id == _selectedGroupId ? "active" : null)"
+                                    @onclick="() => SelectGroupAsync(group.Id)"
+                                    disabled="@_busy"
+                                    aria-current="@(group.Id == _selectedGroupId ? "true" : null)">
+                                <span>
+                                    <strong>@group.Name</strong>
+                                    <small>Oprettet @group.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</small>
+                                </span>
+                                <span class="admin-group-option-meta">
+                                    <span>@group.StudentCount</span>
+                                    @if (group.IsArchived)
+                                    {
+                                        <small>Arkiveret</small>
+                                    }
+                                </span>
+                            </button>
+                        }
+                    </div>
+                }
+            </aside>
+
+            <section class="admin-groups-content">
+                @if (_selectedGroupId is null)
+                {
+                    <div class="admin-empty-state admin-panel">
+                        <span aria-hidden="true">👥</span>
+                        <h2>Vælg et hold</h2>
+                        <p>Vælg et eksisterende hold i listen, eller opret et nyt.</p>
+                    </div>
+                }
+                else if (_group is null)
+                {
+                    <div class="admin-empty-state admin-panel">
+                        <h2>Holdet blev ikke fundet</h2>
+                        <button type="button" class="btn btn-secondary" @onclick="LoadGroupsAsync">Genindlæs</button>
+                    </div>
+                }
+                else
+                {
+                    <article class="admin-panel admin-group-overview">
+                        <div class="admin-panel-heading admin-group-title-row">
+                            <div>
+                                <p class="admin-eyebrow">Valgt hold</p>
+                                <h2>@_group.Name</h2>
+                                <p>@_group.Members.Count elev@(_group.Members.Count == 1 ? "" : "er")</p>
+                            </div>
+                            <button type="button"
+                                    class="btn @(_group.IsArchived ? "btn-secondary" : "btn-ghost admin-danger-button")"
+                                    @onclick="ToggleArchiveAsync"
+                                    disabled="@_busy">
+                                @(_group.IsArchived ? "Genåbn hold" : "Arkivér hold")
+                            </button>
+                        </div>
+
+                        @if (_group.IsArchived)
+                        {
+                            <div class="admin-alert admin-alert-warning" role="status">
+                                Holdet er arkiveret. Genåbn det for at tilføje elever og oprette nye adgange.
+                            </div>
+                        }
+                    </article>
+
+                    <section class="admin-access-grid" aria-labelledby="group-access-heading">
+                        <h2 id="group-access-heading" class="visually-hidden">Adgang til holdet</h2>
+                        <article class="admin-panel admin-access-card">
+                            <div>
+                                <p class="admin-eyebrow">Genbrugelig</p>
+                                <h3>Holdkode</h3>
+                                <p>Elever skriver koden på siden “Tilmeld hold”. En ny kode erstatter den gamle.</p>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    @onclick="GenerateCodeAsync"
+                                    disabled="@(_busy || _group.IsArchived || !HasActor)">
+                                Generér holdkode
+                            </button>
+                            @if (_joinCode is not null)
+                            {
+                                <div class="admin-generated-access" role="status">
+                                    <span>Nuværende kode</span>
+                                    <code>@_joinCode.Value</code>
+                                    <small>@ExpiryText(_joinCode.ExpiresAt)</small>
+                                </div>
+                            }
+                        </article>
+
+                        <article class="admin-panel admin-access-card">
+                            <div>
+                                <p class="admin-eyebrow">Én elev</p>
+                                <h3>Invitationslink</h3>
+                                <p>Linket kan bruges én gang og udløber automatisk efter 14 dage.</p>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    @onclick="GenerateInviteAsync"
+                                    disabled="@(_busy || _group.IsArchived || !HasActor)">
+                                Generér invitationslink
+                            </button>
+                            @if (_invite is not null)
+                            {
+                                <div class="admin-generated-access admin-generated-link" role="status">
+                                    <span>Nuværende invitationslink</span>
+                                    <a href="@AbsoluteInviteUrl" target="_blank" rel="noopener noreferrer">@AbsoluteInviteUrl</a>
+                                    <code class="admin-raw-token">Token: @_invite.Value</code>
+                                    <small>@ExpiryText(_invite.ExpiresAt)</small>
+                                </div>
+                            }
+                        </article>
+                    </section>
+
+                    <section class="admin-table-section" aria-labelledby="members-heading">
+                        <div class="admin-table-heading">
+                            <div>
+                                <p class="admin-eyebrow">Tilknyttet</p>
+                                <h2 id="members-heading">Elever på holdet</h2>
+                            </div>
+                            <span>@_group.Members.Count elever</span>
+                        </div>
+                        @if (_group.Members.Count == 0)
+                        {
+                            <div class="admin-empty-state admin-empty-state-small">
+                                <h3>Holdet har ingen elever endnu</h3>
+                                <p>Tilføj en registreret elev nedenfor, eller del en kode eller invitation.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="admin-table-scroll" tabindex="0" aria-label="Elever på holdet. Tabellen kan rulles vandret.">
+                                <table class="admin-data-table admin-member-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Elev</th>
+                                            <th scope="col">Internt kaldenavn</th>
+                                            <th scope="col">Tilmeldt</th>
+                                            <th scope="col">Kilde</th>
+                                            <th scope="col"><span class="visually-hidden">Handlinger</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var member in _group.Members)
+                                        {
+                                            <tr>
+                                                <td><a href="/admin/students/@member.UserId">@member.StudentLabel</a></td>
+                                                <td>@(string.IsNullOrWhiteSpace(member.Nickname) ? "—" : member.Nickname)</td>
+                                                <td>@member.JoinedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                                                <td><span class="admin-chip">@SourceText(member.Source)</span></td>
+                                                <td class="admin-actions-cell">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-ghost admin-danger-button"
+                                                            @onclick="() => RemoveMemberAsync(member.UserId)"
+                                                            disabled="@_busy"
+                                                            aria-label="Fjern @member.StudentLabel fra holdet">
+                                                        Fjern
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </section>
+
+                    <section class="admin-table-section" aria-labelledby="available-heading">
+                        <div class="admin-table-heading admin-available-heading">
+                            <div>
+                                <p class="admin-eyebrow">Manuel tildeling</p>
+                                <h2 id="available-heading">Tilføj registreret elev</h2>
+                            </div>
+                            <form class="admin-inline-search" @onsubmit="SearchStudentsAsync" @onsubmit:preventDefault>
+                                <label class="visually-hidden" for="student-search">Søg blandt registrerede elever</label>
+                                <input id="student-search"
+                                       type="search"
+                                       @bind="_studentSearch"
+                                       placeholder="Søg efter kaldenavn eller elev-ID"
+                                       autocomplete="off"
+                                       disabled="@_busy" />
+                                <button type="submit" class="btn btn-secondary" disabled="@_busy">Søg</button>
+                            </form>
+                        </div>
+
+                        @if (_group.IsArchived)
+                        {
+                            <p class="admin-empty-compact">Genåbn holdet for at tilføje elever.</p>
+                        }
+                        else if (AvailableStudents.Count == 0)
+                        {
+                            <div class="admin-empty-state admin-empty-state-small">
+                                <h3>Ingen elever at tilføje</h3>
+                                <p>Alle viste elever er allerede på holdet, eller søgningen gav ingen resultater.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="admin-table-scroll" tabindex="0" aria-label="Registrerede elever. Tabellen kan rulles vandret.">
+                                <table class="admin-data-table admin-available-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Elev</th>
+                                            <th scope="col">Internt kaldenavn</th>
+                                            <th scope="col"><span class="visually-hidden">Handlinger</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var student in AvailableStudents)
+                                        {
+                                            <tr>
+                                                <td>@student.StudentLabel</td>
+                                                <td>@(string.IsNullOrWhiteSpace(student.Nickname) ? "—" : student.Nickname)</td>
+                                                <td class="admin-actions-cell">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-secondary"
+                                                            @onclick="() => AddMemberAsync(student.UserId)"
+                                                            disabled="@(_busy || !HasActor)">
+                                                        Tilføj
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </section>
+                }
+            </section>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly CancellationTokenSource _disposeCts = new();
+    private IReadOnlyList<LearningGroupSummaryDto> _groups = [];
+    private LearningGroupDetailDto? _group;
+    private GeneratedGroupAccessDto? _joinCode;
+    private GeneratedGroupAccessDto? _invite;
+    private Guid? _selectedGroupId;
+    private string _newGroupName = string.Empty;
+    private string _studentSearch = string.Empty;
+    private string? _actorSub;
+    private string? _error;
+    private string? _success;
+    private bool _loading = true;
+    private bool _busy;
+
+    private bool HasActor => !string.IsNullOrWhiteSpace(_actorSub);
+    private IReadOnlyList<AvailableStudentDto> AvailableStudents =>
+        _group?.AvailableStudents.Where(student => !student.IsMember).ToList() ?? [];
+    private string? AbsoluteInviteUrl => _invite is null
+        ? null
+        : NavigationManager.ToAbsoluteUri(_invite.RelativeJoinUrl).ToString();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            _actorSub = authenticationState.User.FindFirst("sub")?.Value
+                        ?? authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!HasActor)
+                _error = "Din bruger mangler et ID og kan derfor ikke ændre hold.";
+
+            await LoadGroupsCoreAsync();
+        }
+        catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _error = FriendlyError(exception);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task LoadGroupsAsync()
+    {
+        if (_busy)
+            return;
+
+        _loading = true;
+        _error = null;
+        try
+        {
+            await LoadGroupsCoreAsync();
+        }
+        catch (Exception exception)
+        {
+            _error = FriendlyError(exception);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task LoadGroupsCoreAsync()
+    {
+        _groups = await GroupService.GetGroupsAsync(includeArchived: true, _disposeCts.Token);
+        if (_selectedGroupId is null && _groups.Count > 0)
+            _selectedGroupId = _groups[0].Id;
+
+        if (_selectedGroupId is not null)
+            _group = await GroupService.GetGroupAsync(_selectedGroupId.Value, _studentSearch, _disposeCts.Token);
+    }
+
+    private async Task SelectGroupAsync(Guid groupId)
+    {
+        if (_busy || groupId == _selectedGroupId)
+            return;
+
+        _busy = true;
+        _selectedGroupId = groupId;
+        _studentSearch = string.Empty;
+        _joinCode = null;
+        _invite = null;
+        ClearMessages();
+        try
+        {
+            _group = await GroupService.GetGroupAsync(groupId, cancellationToken: _disposeCts.Token);
+        }
+        catch (Exception exception)
+        {
+            _error = FriendlyError(exception);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task CreateGroupAsync()
+    {
+        if (!HasActor || string.IsNullOrWhiteSpace(_newGroupName))
+            return;
+
+        var name = _newGroupName.Trim();
+        await PerformAsync(async () =>
+        {
+            _selectedGroupId = await GroupService.CreateGroupAsync(name, _actorSub!, _disposeCts.Token);
+            _newGroupName = string.Empty;
+            _studentSearch = string.Empty;
+            await LoadGroupsCoreAsync();
+        }, $"Holdet {name} er oprettet.");
+    }
+
+    private async Task ToggleArchiveAsync()
+    {
+        if (_group is null)
+            return;
+
+        var archive = !_group.IsArchived;
+        await PerformAsync(async () =>
+        {
+            await GroupService.SetArchivedAsync(_group.Id, archive, _disposeCts.Token);
+            if (archive)
+            {
+                _joinCode = null;
+                _invite = null;
+            }
+            await LoadGroupsCoreAsync();
+        }, archive ? "Holdet er arkiveret." : "Holdet er genåbnet.");
+    }
+
+    private async Task AddMemberAsync(Guid userId)
+    {
+        if (_group is null || !HasActor)
+            return;
+
+        await PerformAsync(async () =>
+        {
+            await GroupService.AddMemberAsync(_group.Id, userId, _actorSub!, _disposeCts.Token);
+            await LoadGroupsCoreAsync();
+        }, "Eleven er tilføjet til holdet.");
+    }
+
+    private async Task RemoveMemberAsync(Guid userId)
+    {
+        if (_group is null)
+            return;
+
+        await PerformAsync(async () =>
+        {
+            await GroupService.RemoveMemberAsync(_group.Id, userId, _disposeCts.Token);
+            await LoadGroupsCoreAsync();
+        }, "Eleven er fjernet fra holdet.");
+    }
+
+    private async Task SearchStudentsAsync()
+    {
+        if (_group is null)
+            return;
+
+        await PerformAsync(async () =>
+        {
+            _group = await GroupService.GetGroupAsync(_group.Id, _studentSearch, _disposeCts.Token);
+        });
+    }
+
+    private async Task GenerateCodeAsync()
+    {
+        if (_group is null || !HasActor)
+            return;
+
+        await PerformAsync(async () =>
+        {
+            _joinCode = await GroupService.GenerateJoinCodeAsync(_group.Id, _actorSub!, _disposeCts.Token);
+        }, "En ny holdkode er genereret. Den tidligere kode virker ikke længere.");
+    }
+
+    private async Task GenerateInviteAsync()
+    {
+        if (_group is null || !HasActor)
+            return;
+
+        await PerformAsync(async () =>
+        {
+            _invite = await GroupService.GenerateInviteLinkAsync(_group.Id, _actorSub!, _disposeCts.Token);
+        }, "Invitationslinket er klar til deling.");
+    }
+
+    private async Task PerformAsync(Func<Task> action, string? success = null)
+    {
+        if (_busy)
+            return;
+
+        _busy = true;
+        ClearMessages();
+        try
+        {
+            await action();
+            _success = success;
+        }
+        catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _error = FriendlyError(exception);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void ClearMessages()
+    {
+        _error = null;
+        _success = null;
+    }
+
+    private static string SourceText(string source) => source switch
+    {
+        "Manual" => "Manuelt",
+        "Code" => "Holdkode",
+        "Invite" => "Invitation",
+        _ => source
+    };
+
+    private static string ExpiryText(DateTimeOffset? value) => value is null
+        ? "Udløber ikke"
+        : $"Udløber {value.Value.ToLocalTime():dd.MM.yyyy 'kl.' HH:mm}";
+
+    private static string FriendlyError(Exception exception) =>
+        exception is InvalidOperationException && !string.IsNullOrWhiteSpace(exception.Message)
+            ? exception.Message
+            : "Der opstod en uventet fejl. Prøv igen.";
+
+    public void Dispose()
+    {
+        _disposeCts.Cancel();
+        _disposeCts.Dispose();
+    }
+}

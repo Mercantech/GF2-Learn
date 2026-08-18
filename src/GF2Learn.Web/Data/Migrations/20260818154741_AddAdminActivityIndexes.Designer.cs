@@ -3,6 +3,7 @@ using System;
 using GF2Learn.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GF2Learn.Web.Data.Migrations
 {
     [DbContext(typeof(Gf2LearnDbContext))]
-    partial class Gf2LearnDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260818154741_AddAdminActivityIndexes")]
+    partial class AddAdminActivityIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder) =>
+            BuildTargetModelCore(modelBuilder);
+
+        internal static void BuildTargetModelCore(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,10 +262,7 @@ namespace GF2Learn.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GroupId")
-                        .IsUnique()
-                        .HasDatabaseName("UX_learning_group_access_tokens_active_join_code")
-                        .HasFilter("\"Kind\" = 1 AND \"RevokedAt\" IS NULL");
+                    b.HasIndex("GroupId");
 
                     b.HasIndex("TokenHash")
                         .IsUnique();
@@ -292,26 +295,6 @@ namespace GF2Learn.Web.Data.Migrations
                     b.ToTable("learning_group_members", (string)null);
                 });
 
-            modelBuilder.Entity("GF2Learn.Web.Models.PageActivityCreditGate", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("AvailableSeconds")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("LastRefillAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .HasColumnType("integer");
-
-                    b.HasKey("UserId");
-
-                    b.ToTable("page_activity_credit_gates", (string)null);
-                });
-
             modelBuilder.Entity("GF2Learn.Web.Models.PageActivityDaily", b =>
                 {
                     b.Property<long>("Id")
@@ -341,10 +324,6 @@ namespace GF2Learn.Web.Data.Migrations
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .HasColumnType("integer");
 
                     b.Property<int>("VisitCount")
                         .HasColumnType("integer");
@@ -387,13 +366,6 @@ namespace GF2Learn.Web.Data.Migrations
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("VisitCredited")
-                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -508,17 +480,6 @@ namespace GF2Learn.Web.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("GF2Learn.Web.Models.PageActivityCreditGate", b =>
-                {
-                    b.HasOne("GF2Learn.Web.Models.AppUser", "User")
-                        .WithOne("ActivityCreditGate")
-                        .HasForeignKey("GF2Learn.Web.Models.PageActivityCreditGate", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("GF2Learn.Web.Models.PageActivityDaily", b =>
                 {
                     b.HasOne("GF2Learn.Web.Models.AppUser", "User")
@@ -554,8 +515,6 @@ namespace GF2Learn.Web.Data.Migrations
 
             modelBuilder.Entity("GF2Learn.Web.Models.AppUser", b =>
                 {
-                    b.Navigation("ActivityCreditGate");
-
                     b.Navigation("ActivitySessions");
 
                     b.Navigation("AdminMetadata");

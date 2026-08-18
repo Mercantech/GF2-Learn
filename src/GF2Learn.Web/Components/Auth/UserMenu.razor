@@ -15,6 +15,11 @@
                 <div class="user-menu-logged-in">
                     <span class="user-avatar">@GetInitials(context.User)</span>
                     <span class="user-name" title="@GetEmail(context.User)">@GetDisplayName(context.User)</span>
+                    <AuthorizeView Policy="@AdminAuthorizationPolicies.Educator" Context="educatorState">
+                        <NotAuthorized>
+                            <a href="/join" class="btn btn-ghost btn-sm">Tilmeld hold</a>
+                        </NotAuthorized>
+                    </AuthorizeView>
                     <a href="/profile" class="btn btn-ghost btn-sm">Profile</a>
                     <a href="/auth/logout" class="btn btn-ghost btn-sm">Log out</a>
                 </div>

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using GF2Learn.Web.Options;
+using GF2Learn.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -9,6 +10,8 @@ namespace GF2Learn.Web.Auth;
 
 public static class MercantecAuthExtensions
 {
+    private static readonly TimeSpan MaximumCookieLifetime = TimeSpan.FromHours(8);
+
     public static IServiceCollection AddMercantecAuth(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<MercantecAuthOptions>(configuration.GetSection(MercantecAuthOptions.SectionName));
@@ -18,6 +21,7 @@ public static class MercantecAuthExtensions
 
         services.AddCascadingAuthenticationState();
         services.AddHttpContextAccessor();
+        services.AddSingleton<MercantecAccessTokenValidator>();
 
         var authBuilder = services.AddAuthentication(options =>
             {
@@ -32,8 +36,8 @@ public static class MercantecAuthExtensions
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.LoginPath = "/auth/login";
-                options.SlidingExpiration = true;
-                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = false;
+                options.ExpireTimeSpan = MaximumCookieLifetime;
                 options.Events.OnRedirectToLogin = context =>
                 {
                     if (IsApiRequest(context.Request))
@@ -70,18 +74,55 @@ public static class MercantecAuthExtensions
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.UsePkce = true;
                 options.SaveTokens = true;
+                options.Scope.Add("openid");
+                options.Scope.Add("profile");
+                options.Scope.Add("email");
 
                 options.Events = new OAuthEvents
                 {
-                    OnCreatingTicket = context =>
+                    OnCreatingTicket = async context =>
                     {
                         if (string.IsNullOrEmpty(context.AccessToken))
-                            return Task.CompletedTask;
+                            return;
 
-                        context.Principal = MercantecClaimMapper.CreatePrincipal(
+                        var validator = context.HttpContext.RequestServices
+                            .GetRequiredService<MercantecAccessTokenValidator>();
+                        var validation = await validator.ValidateForSignInAsync(
                             context.AccessToken,
-                            context.Scheme.Name);
-                        return Task.CompletedTask;
+                            context.Scheme.Name,
+                            context.HttpContext.RequestAborted);
+                        context.Principal = validation.Principal;
+
+                        ConfigureAbsoluteCookieLifetime(
+                            context.Properties,
+                            validation.ExpiresAt,
+                            DateTimeOffset.UtcNow);
+
+                        try
+                        {
+                            var users = context.HttpContext.RequestServices.GetService<IAppUserService>();
+                            if (users is not null)
+                            {
+                                await users.EnsureCurrentUserAsync(
+                                    context.Principal,
+                                    markLogin: true,
+                                    cancellationToken: context.HttpContext.RequestAborted);
+                            }
+                        }
+                        catch (OperationCanceledException)
+                            when (context.HttpContext.RequestAborted.IsCancellationRequested)
+                        {
+                            throw;
+                        }
+                        catch (Exception exception)
+                        {
+                            var logger = context.HttpContext.RequestServices
+                                .GetRequiredService<ILoggerFactory>()
+                                .CreateLogger("GF2Learn.Web.Auth.MercantecAuth");
+                            logger.LogWarning(
+                                exception,
+                                "Could not synchronize the authenticated user. Sign-in will continue.");
+                        }
                     },
                     OnRedirectToAuthorizationEndpoint = context =>
                     {
@@ -142,6 +183,21 @@ public static class MercantecAuthExtensions
     private static bool IsAuthConfigured(MercantecAuthOptions options) =>
         !string.IsNullOrWhiteSpace(options.ClientId)
         && !string.IsNullOrWhiteSpace(options.ClientSecret);
+
+    private static void ConfigureAbsoluteCookieLifetime(
+        AuthenticationProperties properties,
+        DateTimeOffset accessTokenExpiresAt,
+        DateTimeOffset issuedAt)
+    {
+        var maximumExpiry = issuedAt.Add(MaximumCookieLifetime);
+
+        properties.IsPersistent = false;
+        properties.AllowRefresh = false;
+        properties.IssuedUtc = issuedAt;
+        properties.ExpiresUtc = accessTokenExpiresAt < maximumExpiry
+            ? accessTokenExpiresAt
+            : maximumExpiry;
+    }
 
     /// <summary>Builds <c>/auth/login?returnUrl=…</c> for the current or given page.</summary>
     public static string LoginUrl(string? returnUrl)

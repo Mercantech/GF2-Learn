@@ -1,0 +1,50 @@
+@inherits LayoutComponentBase
+@using GF2Learn.Web.Auth
+
+<div class="app-shell admin-shell">
+    <header class="site-header site-header-app">
+        <div class="site-header-inner">
+            <SiteHeaderBrand />
+            <TopNav />
+            <div class="site-header-actions">
+                <ThemeToggle />
+                <UserMenu />
+            </div>
+        </div>
+    </header>
+
+    <AuthorizeView Policy="@AdminAuthorizationPolicies.Educator">
+        <Authorized>
+            <nav class="admin-subnav" aria-label="Administration">
+                <a href="/admin" class="@Active("/admin", exact: true)">Elevoversigt</a>
+                <AuthorizeView Policy="@AdminAuthorizationPolicies.SuperAdmin" Context="superAdminContext">
+                    <Authorized>
+                        <a href="/admin/groups" class="@Active("/admin/groups")">Hold</a>
+                    </Authorized>
+                </AuthorizeView>
+            </nav>
+        </Authorized>
+    </AuthorizeView>
+
+    <div class="app-body admin-app-body">
+        <main class="main-content admin-main">
+            @Body
+        </main>
+    </div>
+    <SiteFooter />
+</div>
+
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    private string? Active(string path, bool exact = false)
+    {
+        var current = new Uri(NavigationManager.Uri).AbsolutePath.TrimEnd('/');
+        var target = path.TrimEnd('/');
+        var active = exact
+            ? current.Equals(target, StringComparison.OrdinalIgnoreCase)
+            : current.Equals(target, StringComparison.OrdinalIgnoreCase)
+              || current.StartsWith($"{target}/", StringComparison.OrdinalIgnoreCase);
+        return active ? "active" : null;
+    }
+}

@@ -1,0 +1,611 @@
+@page "/admin"
+@layout AdminShell
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = AdminAuthorizationPolicies.Educator)]
+@using GF2Learn.Web.Auth
+@implements IDisposable
+@inject IAdminDashboardService DashboardService
+
+<PageTitle>Elevoversigt — GF2 Learn</PageTitle>
+
+<div class="admin-workspace">
+    <header class="admin-page-header">
+        <div>
+            <p class="admin-eyebrow">Underviser-dashboard</p>
+            <h1>Elevoversigt</h1>
+            <p>Følg aktivitet og gennemførte opgaver på tværs af elever og hold.</p>
+        </div>
+        @if (_dashboard is not null)
+        {
+            <span class="admin-updated" title="@FormatDate(_dashboard.GeneratedAt)">
+                Opdateret @FormatRelative(_dashboard.GeneratedAt)
+            </span>
+        }
+    </header>
+
+    <form class="admin-toolbar" @onsubmit="ApplySearchAsync" @onsubmit:preventDefault>
+        <label class="admin-field admin-search-field">
+            <span>Søg efter elev</span>
+            <input type="search"
+                   placeholder="Kaldenavn eller elev-ID"
+                   autocomplete="off"
+                   @bind="_search"
+                   disabled="@_loading" />
+        </label>
+        <button type="submit" class="btn btn-secondary" disabled="@_loading">Søg</button>
+
+        <label class="admin-field">
+            <span>Hold</span>
+            <select value="@(_groupId?.ToString() ?? string.Empty)"
+                    @onchange="ChangeGroupAsync"
+                    disabled="@_loading"
+                    aria-label="Filtrer efter hold">
+                <option value="">Alle hold</option>
+                @if (_dashboard is not null)
+                {
+                    @foreach (var group in _dashboard.Groups)
+                    {
+                        <option value="@group.Id">@group.Name (@group.StudentCount)</option>
+                    }
+                }
+            </select>
+        </label>
+
+        <label class="admin-field">
+            <span>Status</span>
+            <select value="@_status" @onchange="ChangeStatusAsync" disabled="@_loading" aria-label="Filtrer efter status">
+                <option value="all">Alle elever</option>
+                <option value="inactive">Kræver opmærksomhed</option>
+                <option value="active">Aktive</option>
+            </select>
+        </label>
+
+        <label class="admin-field">
+            <span>Periode</span>
+            <select value="@_periodDays" @onchange="ChangePeriodAsync" disabled="@_loading" aria-label="Vælg periode">
+                <option value="7">Seneste 7 dage</option>
+                <option value="30">Seneste 30 dage</option>
+                <option value="0">Hele perioden</option>
+            </select>
+        </label>
+
+        <button type="button" class="btn btn-ghost" @onclick="ResetFiltersAsync" disabled="@(_loading || !HasFilters)">
+            Nulstil
+        </button>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <div class="admin-alert admin-alert-error" role="alert">
+            <strong>Data kunne ikke hentes.</strong>
+            <span>@_error</span>
+            <button type="button" class="btn btn-sm btn-secondary" @onclick="LoadAsync">Prøv igen</button>
+        </div>
+    }
+
+    @if (_loading && _dashboard is null)
+    {
+        <div class="admin-loading" role="status" aria-live="polite">
+            <span class="admin-spinner" aria-hidden="true"></span>
+            Henter elevdata…
+        </div>
+    }
+    else if (_dashboard is not null)
+    {
+        <section class="admin-kpi-grid" aria-label="Nøgletal">
+            <article class="admin-kpi-card">
+                <span class="admin-kpi-label">Elever i visningen</span>
+                <strong>@_dashboard.TotalStudents</strong>
+                <small>@FilterDescription</small>
+            </article>
+            <article class="admin-kpi-card admin-kpi-success">
+                <span class="admin-kpi-label">Aktive elever</span>
+                <strong>@_dashboard.ActiveStudents</strong>
+                <small>Aktiv inden for 7 dage</small>
+            </article>
+            <article class="admin-kpi-card admin-kpi-warning">
+                <span class="admin-kpi-label">Kræver opmærksomhed</span>
+                <strong>@_dashboard.InactiveStudents</strong>
+                <small>Ingen aktivitet i mindst 7 dage</small>
+            </article>
+            <article class="admin-kpi-card">
+                <span class="admin-kpi-label">Samlet aktiv tid</span>
+                <strong>@FormatDuration(_dashboard.ActiveSeconds)</strong>
+                <small>I den valgte periode</small>
+            </article>
+            <article class="admin-kpi-card">
+                <span class="admin-kpi-label">Gennemførte opgavedele</span>
+                <strong>@_dashboard.CompletedParts</strong>
+                <small>Godkendte dele pr. elev</small>
+            </article>
+        </section>
+
+        <section class="admin-signal-grid" aria-label="Aktivitetssignaler">
+            <article class="admin-panel">
+                <div class="admin-panel-heading">
+                    <div>
+                        <p class="admin-eyebrow">Opfølgning</p>
+                        <h2>Kræver opmærksomhed</h2>
+                    </div>
+                    <span class="admin-count-badge admin-count-warning">@_dashboard.InactiveStudents</span>
+                </div>
+                @if (!_dashboard.Students.Any(student => student.IsInactive))
+                {
+                    <p class="admin-empty-compact">Ingen inaktive elever i denne visning.</p>
+                }
+                else
+                {
+                    <ol class="admin-person-list">
+                        @foreach (var student in _dashboard.Students.Where(student => student.IsInactive).Take(5))
+                        {
+                            <li>
+                                <span class="admin-avatar admin-avatar-warning" aria-hidden="true">@Initial(student.Nickname ?? student.StudentLabel)</span>
+                                <span>
+                                    <a href="/admin/students/@student.UserId">@(student.Nickname ?? student.StudentLabel)</a>
+                                    <small>@LastActivityText(student.LastActivityAt)</small>
+                                </span>
+                            </li>
+                        }
+                    </ol>
+                }
+            </article>
+
+            <article class="admin-panel">
+                <div class="admin-panel-heading">
+                    <div>
+                        <p class="admin-eyebrow">Engagement</p>
+                        <h2>Mest aktive</h2>
+                    </div>
+                </div>
+                @if (!_dashboard.Students.Any(student => student.ActiveSeconds > 0))
+                {
+                    <p class="admin-empty-compact">Der er endnu ingen registreret aktivitet i perioden.</p>
+                }
+                else
+                {
+                    <ol class="admin-person-list admin-ranked-list">
+                        @foreach (var student in _dashboard.Students
+                            .Where(student => student.ActiveSeconds > 0)
+                            .OrderByDescending(student => student.ActiveSeconds)
+                            .Take(5))
+                        {
+                            <li>
+                                <span class="admin-avatar" aria-hidden="true">@Initial(student.Nickname ?? student.StudentLabel)</span>
+                                <span>
+                                    <a href="/admin/students/@student.UserId">@(student.Nickname ?? student.StudentLabel)</a>
+                                    <small>@FormatDuration(student.ActiveSeconds) aktiv tid</small>
+                                </span>
+                            </li>
+                        }
+                    </ol>
+                }
+            </article>
+
+            <article class="admin-panel admin-popular-panel">
+                <div class="admin-panel-heading">
+                    <div>
+                        <p class="admin-eyebrow">Indhold</p>
+                        <h2>Mest brugte sider</h2>
+                    </div>
+                </div>
+                @if (_dashboard.PopularContent.Count == 0)
+                {
+                    <p class="admin-empty-compact">Der er endnu ingen sideaktivitet i perioden.</p>
+                }
+                else
+                {
+                    <ol class="admin-content-list">
+                        @foreach (var content in _dashboard.PopularContent)
+                        {
+                            <li>
+                                <span>
+                                    <span class="admin-type-label">@ContentType(content.ContentType)</span>
+                                    <a href="@ContentUrl(content.ContentType, content.ContentSlug)">@content.Title</a>
+                                </span>
+                                <span class="admin-content-metrics">
+                                    <strong>@FormatDuration(content.ActiveSeconds)</strong>
+                                    <small>@content.ActiveStudents elever · @content.VisitCount besøg</small>
+                                </span>
+                            </li>
+                        }
+                    </ol>
+                }
+            </article>
+        </section>
+
+        <section class="admin-table-section" aria-labelledby="student-table-title" aria-busy="@_loading">
+            <div class="admin-table-heading">
+                <div>
+                    <p class="admin-eyebrow">Detaljeret visning</p>
+                    <h2 id="student-table-title">Elever</h2>
+                </div>
+                <span>@_dashboard.Students.Count resultat@(_dashboard.Students.Count == 1 ? "" : "er")</span>
+            </div>
+
+            @if (_dashboard.Students.Count == 0)
+            {
+                <div class="admin-empty-state">
+                    <span aria-hidden="true">🔎</span>
+                    <h3>Ingen elever matcher filtrene</h3>
+                    <p>Prøv en anden søgning, et andet hold eller nulstil filtrene.</p>
+                    <button type="button" class="btn btn-secondary" @onclick="ResetFiltersAsync">Nulstil filtre</button>
+                </div>
+            }
+            else
+            {
+                <div class="admin-table-scroll" tabindex="0" aria-label="Elevtabel. Tabellen kan rulles vandret.">
+                    <table class="admin-data-table admin-student-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" aria-sort="@AriaSort("student")">
+                                    <button type="button" class="admin-sort-button" @onclick="SortStudentsByName">
+                                        Elev <span aria-hidden="true">@SortIcon("student")</span>
+                                    </button>
+                                </th>
+                                <th scope="col">Internt kaldenavn</th>
+                                <th scope="col">Hold</th>
+                                <th scope="col" aria-sort="@AriaSort("status")">
+                                    <button type="button" class="admin-sort-button" @onclick="SortStudentsByStatus">
+                                        Status / senest aktiv <span aria-hidden="true">@SortIcon("status")</span>
+                                    </button>
+                                </th>
+                                <th scope="col" aria-sort="@AriaSort("activity")">
+                                    <button type="button" class="admin-sort-button" @onclick="SortStudentsByActivity">
+                                        Aktiv tid <span aria-hidden="true">@SortIcon("activity")</span>
+                                    </button>
+                                </th>
+                                <th scope="col" aria-sort="@AriaSort("completed")">
+                                    <button type="button" class="admin-sort-button" @onclick="SortStudentsByCompleted">
+                                        Opgaver <span aria-hidden="true">@SortIcon("completed")</span>
+                                    </button>
+                                </th>
+                                <th scope="col" aria-sort="@AriaSort("progress")">
+                                    <button type="button" class="admin-sort-button" @onclick="SortStudentsByProgress">
+                                        Progression <span aria-hidden="true">@SortIcon("progress")</span>
+                                    </button>
+                                </th>
+                                <th scope="col"><span class="visually-hidden">Handlinger</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var student in SortedStudents)
+                            {
+                                <tr class="@(student.IsInactive ? "admin-row-attention" : null)">
+                                    <td>
+                                        <div class="admin-student-cell">
+                                            <span class="admin-avatar @(student.IsInactive ? "admin-avatar-warning" : null)" aria-hidden="true">
+                                                @Initial(student.Nickname ?? student.StudentLabel)
+                                            </span>
+                                            <span>
+                                                <a href="/admin/students/@student.UserId">@student.StudentLabel</a>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="admin-nickname-cell">
+                                        <div class="admin-inline-edit">
+                                            <input value="@NicknameDraft(student.UserId)"
+                                                   @oninput="eventArgs => UpdateNicknameDraft(student.UserId, eventArgs.Value?.ToString())"
+                                                   maxlength="200"
+                                                   placeholder="Tilføj kaldenavn"
+                                                   aria-label="Internt kaldenavn for @student.StudentLabel"
+                                                   disabled="@_nicknameSaving.Contains(student.UserId)" />
+                                            <button type="button"
+                                                    class="btn btn-sm btn-secondary"
+                                                    @onclick="() => SaveNicknameAsync(student.UserId)"
+                                                    disabled="@_nicknameSaving.Contains(student.UserId)">
+                                                @(_nicknameSaving.Contains(student.UserId) ? "Gemmer…" : "Gem")
+                                            </button>
+                                        </div>
+                                        @if (_nicknameMessages.TryGetValue(student.UserId, out var nicknameMessage))
+                                        {
+                                            <small class="@(_nicknameErrors.Contains(student.UserId) ? "admin-inline-error" : "admin-inline-success")"
+                                                   role="status">@nicknameMessage</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (student.Groups.Count == 0)
+                                        {
+                                            <span class="admin-muted">Intet hold</span>
+                                        }
+                                        else
+                                        {
+                                            <div class="admin-chip-list">
+                                                @foreach (var group in student.Groups)
+                                                {
+                                                    <span class="admin-chip">@group</span>
+                                                }
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="admin-status @(student.IsInactive ? "admin-status-warning" : "admin-status-success")">
+                                            <span aria-hidden="true"></span>
+                                            @(student.IsInactive ? "Kræver opmærksomhed" : "Aktiv")
+                                        </span>
+                                        <small class="admin-status-detail">@LastActivityText(student.LastActivityAt)</small>
+                                    </td>
+                                    <td class="admin-number-cell">@FormatDuration(student.ActiveSeconds)</td>
+                                    <td class="admin-number-cell">@student.CompletedParts / @student.TotalParts</td>
+                                    <td>
+                                        <div class="admin-progress-cell">
+                                            <progress value="@student.CompletedParts" max="@(Math.Max(student.TotalParts, 1))">
+                                                @Progress(student.CompletedParts, student.TotalParts)%
+                                            </progress>
+                                            <span>@Progress(student.CompletedParts, student.TotalParts)%</span>
+                                        </div>
+                                    </td>
+                                    <td class="admin-actions-cell">
+                                        <a href="/admin/students/@student.UserId" class="btn btn-sm btn-ghost" aria-label="Se detaljer for @student.StudentLabel">
+                                            Se detaljer
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private readonly CancellationTokenSource _disposeCts = new();
+    private readonly Dictionary<Guid, string> _nicknameDrafts = [];
+    private readonly Dictionary<Guid, string> _nicknameMessages = [];
+    private readonly HashSet<Guid> _nicknameSaving = [];
+    private readonly HashSet<Guid> _nicknameErrors = [];
+    private AdminDashboardDto? _dashboard;
+    private string _search = string.Empty;
+    private Guid? _groupId;
+    private string _status = "all";
+    private int _periodDays = 7;
+    private string _sortField = "status";
+    private bool _sortDescending = true;
+    private bool _loading;
+    private string? _error;
+
+    private bool HasFilters => !string.IsNullOrWhiteSpace(_search)
+                               || _groupId is not null
+                               || _status != "all"
+                               || _periodDays != 7;
+
+    private string FilterDescription => _groupId is null
+        ? "På tværs af alle hold"
+        : _dashboard?.Groups.FirstOrDefault(group => group.Id == _groupId)?.Name ?? "Valgt hold";
+
+    private IEnumerable<AdminStudentRowDto> SortedStudents
+    {
+        get
+        {
+            var students = _dashboard?.Students ?? [];
+            return _sortField switch
+            {
+                "student" => _sortDescending
+                    ? students.OrderByDescending(StudentSortLabel, StringComparer.CurrentCultureIgnoreCase)
+                    : students.OrderBy(StudentSortLabel, StringComparer.CurrentCultureIgnoreCase),
+                "activity" => _sortDescending
+                    ? students.OrderByDescending(student => student.ActiveSeconds).ThenBy(StudentSortLabel)
+                    : students.OrderBy(student => student.ActiveSeconds).ThenBy(StudentSortLabel),
+                "completed" => _sortDescending
+                    ? students.OrderByDescending(student => student.CompletedParts).ThenBy(StudentSortLabel)
+                    : students.OrderBy(student => student.CompletedParts).ThenBy(StudentSortLabel),
+                "progress" => _sortDescending
+                    ? students.OrderByDescending(ProgressValue).ThenBy(StudentSortLabel)
+                    : students.OrderBy(ProgressValue).ThenBy(StudentSortLabel),
+                _ => _sortDescending
+                    ? students.OrderByDescending(student => student.IsInactive)
+                        .ThenBy(student => student.LastActivityAt)
+                        .ThenBy(StudentSortLabel)
+                    : students.OrderBy(student => student.IsInactive)
+                        .ThenByDescending(student => student.LastActivityAt)
+                        .ThenBy(StudentSortLabel)
+            };
+        }
+    }
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        if (_loading)
+            return;
+
+        _loading = true;
+        _error = null;
+        try
+        {
+            var query = new AdminDashboardQuery(
+                _groupId,
+                string.IsNullOrWhiteSpace(_search) ? null : _search.Trim(),
+                _periodDays,
+                _status);
+            _dashboard = await DashboardService.GetDashboardAsync(query, _disposeCts.Token);
+            foreach (var student in _dashboard.Students)
+                _nicknameDrafts[student.UserId] = student.Nickname ?? string.Empty;
+        }
+        catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _error = FriendlyError(exception);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private Task ApplySearchAsync() => LoadAsync();
+
+    private async Task ChangeGroupAsync(ChangeEventArgs eventArgs)
+    {
+        _groupId = Guid.TryParse(eventArgs.Value?.ToString(), out var value) ? value : null;
+        await LoadAsync();
+    }
+
+    private async Task ChangeStatusAsync(ChangeEventArgs eventArgs)
+    {
+        _status = eventArgs.Value?.ToString() is "inactive" or "active" ? eventArgs.Value!.ToString()! : "all";
+        await LoadAsync();
+    }
+
+    private async Task ChangePeriodAsync(ChangeEventArgs eventArgs)
+    {
+        _periodDays = int.TryParse(eventArgs.Value?.ToString(), out var value) && value is 0 or 7 or 30
+            ? value
+            : 7;
+        await LoadAsync();
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        _search = string.Empty;
+        _groupId = null;
+        _status = "all";
+        _periodDays = 7;
+        await LoadAsync();
+    }
+
+    private void SortStudentsByName() => ChangeSort("student", defaultDescending: false);
+    private void SortStudentsByStatus() => ChangeSort("status", defaultDescending: true);
+    private void SortStudentsByActivity() => ChangeSort("activity", defaultDescending: true);
+    private void SortStudentsByCompleted() => ChangeSort("completed", defaultDescending: true);
+    private void SortStudentsByProgress() => ChangeSort("progress", defaultDescending: true);
+
+    private void ChangeSort(string field, bool defaultDescending)
+    {
+        if (_sortField == field)
+            _sortDescending = !_sortDescending;
+        else
+        {
+            _sortField = field;
+            _sortDescending = defaultDescending;
+        }
+    }
+
+    private string? AriaSort(string field) => _sortField == field
+        ? _sortDescending ? "descending" : "ascending"
+        : null;
+
+    private string SortIcon(string field) => _sortField != field
+        ? "↕"
+        : _sortDescending ? "↓" : "↑";
+
+    private static string StudentSortLabel(AdminStudentRowDto student) =>
+        student.Nickname ?? student.StudentLabel;
+
+    private static double ProgressValue(AdminStudentRowDto student) =>
+        student.TotalParts <= 0 ? 0 : student.CompletedParts / (double)student.TotalParts;
+
+    private string NicknameDraft(Guid userId) =>
+        _nicknameDrafts.GetValueOrDefault(userId, string.Empty);
+
+    private void UpdateNicknameDraft(Guid userId, string? value)
+    {
+        _nicknameDrafts[userId] = value ?? string.Empty;
+        _nicknameMessages.Remove(userId);
+        _nicknameErrors.Remove(userId);
+    }
+
+    private async Task SaveNicknameAsync(Guid userId)
+    {
+        if (!_nicknameSaving.Add(userId))
+            return;
+
+        _nicknameMessages.Remove(userId);
+        _nicknameErrors.Remove(userId);
+        try
+        {
+            var cleanedNickname = _nicknameDrafts.GetValueOrDefault(userId)?.Trim();
+            if (string.IsNullOrWhiteSpace(cleanedNickname))
+                cleanedNickname = null;
+            await DashboardService.SetNicknameAsync(
+                userId,
+                cleanedNickname,
+                _disposeCts.Token);
+            _nicknameDrafts[userId] = cleanedNickname ?? string.Empty;
+            if (_dashboard is not null)
+            {
+                _dashboard = _dashboard with
+                {
+                    Students = _dashboard.Students
+                        .Select(student => student.UserId == userId
+                            ? student with { Nickname = cleanedNickname }
+                            : student)
+                        .ToList()
+                };
+            }
+            _nicknameMessages[userId] = "Gemt";
+        }
+        catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _nicknameErrors.Add(userId);
+            _nicknameMessages[userId] = FriendlyError(exception);
+        }
+        finally
+        {
+            _nicknameSaving.Remove(userId);
+        }
+    }
+
+    private static string ContentType(string value) => value == "exercise" ? "Opgave" : "Emne";
+
+    private static string ContentUrl(string type, string slug) =>
+        type == "exercise" ? $"/exercises/{slug}" : $"/curriculum/{slug}";
+
+    private static string Initial(string value) =>
+        string.IsNullOrWhiteSpace(value) ? "?" : char.ToUpperInvariant(value.Trim()[0]).ToString();
+
+    private static int Progress(int completed, int total) =>
+        total <= 0 ? 0 : (int)Math.Round(completed * 100d / total);
+
+    private static string FormatDuration(int seconds)
+    {
+        if (seconds <= 0)
+            return "0 min";
+
+        var duration = TimeSpan.FromSeconds(seconds);
+        if (duration.TotalHours >= 1)
+            return $"{(int)duration.TotalHours} t {duration.Minutes} min";
+
+        return $"{Math.Max(1, (int)Math.Round(duration.TotalMinutes))} min";
+    }
+
+    private static string LastActivityText(DateTimeOffset? value) =>
+        value is null ? "Aldrig aktiv" : $"Sidst aktiv {FormatRelative(value.Value)}";
+
+    private static string FormatRelative(DateTimeOffset value)
+    {
+        var elapsed = DateTimeOffset.UtcNow - value.ToUniversalTime();
+        if (elapsed < TimeSpan.Zero)
+            elapsed = TimeSpan.Zero;
+        if (elapsed.TotalMinutes < 1)
+            return "lige nu";
+        if (elapsed.TotalHours < 1)
+            return $"for {(int)elapsed.TotalMinutes} min. siden";
+        if (elapsed.TotalDays < 1)
+            return $"for {(int)elapsed.TotalHours} t. siden";
+        if (elapsed.TotalDays < 30)
+            return $"for {(int)elapsed.TotalDays} dage siden";
+        return value.ToLocalTime().ToString("dd.MM.yyyy");
+    }
+
+    private static string FormatDate(DateTimeOffset value) =>
+        value.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
+
+    private static string FriendlyError(Exception exception) =>
+        exception is InvalidOperationException && !string.IsNullOrWhiteSpace(exception.Message)
+            ? exception.Message
+            : "Der opstod en uventet fejl. Prøv igen.";
+
+    public void Dispose()
+    {
+        _disposeCts.Cancel();
+        _disposeCts.Dispose();
+    }
+}

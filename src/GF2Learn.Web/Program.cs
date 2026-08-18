@@ -6,6 +6,7 @@ using GF2Learn.Web.Data;
 using GF2Learn.Web.Models;
 using GF2Learn.Web.Options;
 using GF2Learn.Web.Services;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -59,10 +60,15 @@ builder.Services.AddHttpClient<IExerciseAiService, ExerciseAiService>(client =>
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
-    builder.Services.AddDbContext<Gf2LearnDbContext>(options =>
+    builder.Services.AddDbContextFactory<Gf2LearnDbContext>(options =>
         options.UseNpgsql(connectionString));
     builder.Services.AddScoped<IKnowledgeCheckProgressService, KnowledgeCheckProgressService>();
     builder.Services.AddScoped<IExerciseProgressService, ExerciseProgressService>();
+    builder.Services.AddScoped<IAppUserService, AppUserService>();
+    builder.Services.AddScoped<ILearningGroupService, LearningGroupService>();
+    builder.Services.AddScoped<IPageActivityService, PageActivityService>();
+    builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+    builder.Services.AddHostedService<ActivitySessionCleanupService>();
 }
 
 var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"]
@@ -73,6 +79,11 @@ builder.Services.AddDataProtection()
     .SetApplicationName("GF2Learn");
 
 builder.Services.AddMercantecAuth(builder.Configuration);
+builder.Services.AddAdminAuthorization(builder.Configuration);
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -149,6 +160,8 @@ if (!behindReverseProxy)
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.UseAuthentication();
+if (!string.IsNullOrWhiteSpace(connectionString))
+    app.UseMiddleware<AuthenticatedUserMiddleware>();
 app.UseAuthorization();
 app.UseRequestTimeouts();
 app.UseAntiforgery();
@@ -189,6 +202,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         SaveKnowledgeCheckAnswerRequest request,
         ClaimsPrincipal user,
         IKnowledgeCheckProgressService progressService,
+        IAppUserService users,
         CancellationToken cancellationToken) =>
     {
         var userSub = GetUserSub(user);
@@ -202,6 +216,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
             request.SelectedIndex,
             request.IsCorrect,
             cancellationToken);
+        await users.TouchActivityAsync(userSub, DateTimeOffset.UtcNow, cancellationToken);
 
         return Results.NoContent();
     }).DisableAntiforgery();
@@ -284,42 +299,11 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         return Results.Ok(verifications);
     });
 
-    progress.MapPost("/exercise/verification", async (
-        SaveExerciseVerificationRequest request,
-        ClaimsPrincipal user,
-        IExerciseProgressService progressService,
-        CancellationToken cancellationToken) =>
-    {
-        var userSub = GetUserSub(user);
-        if (userSub is null)
-            return Results.Unauthorized();
-
-        if (request.PartIndex < 0)
-            return Results.BadRequest();
-
-        try
-        {
-            await progressService.SaveVerificationAsync(
-                userSub,
-                request.ContentSlug,
-                request.PartIndex,
-                request.IsSolved,
-                cancellationToken);
-
-            return Results.Ok();
-        }
-        catch (Exception ex)
-        {
-            return Results.Problem(
-                detail: "Kunne ikke gemme Clippy-godkendelse: " + ex.Message,
-                statusCode: StatusCodes.Status500InternalServerError);
-        }
-    }).DisableAntiforgery();
-
     progress.MapPost("/exercise", async (
         SaveExercisePartRequest request,
         ClaimsPrincipal user,
         IServiceProvider services,
+        IAppUserService users,
         CancellationToken cancellationToken) =>
     {
         var userSub = GetUserSub(user);
@@ -345,6 +329,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
                 request.PartIndex,
                 request.AnswerText,
                 cancellationToken);
+            await users.TouchActivityAsync(userSub, saved.SavedAt, cancellationToken);
 
             return Results.Ok(saved);
         }
@@ -359,6 +344,28 @@ if (!string.IsNullOrWhiteSpace(connectionString))
                 statusCode: StatusCodes.Status500InternalServerError);
         }
     }).DisableAntiforgery();
+
+    app.MapPost("/api/activity/heartbeat", async (
+        PageActivityHeartbeatRequest request,
+        ClaimsPrincipal user,
+        HttpContext httpContext,
+        IAntiforgery antiforgery,
+        IPageActivityService activity,
+        CancellationToken cancellationToken) =>
+    {
+        try
+        {
+            await antiforgery.ValidateRequestAsync(httpContext);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.BadRequest();
+        }
+
+        var accepted = await activity.RecordHeartbeatAsync(user, request, cancellationToken);
+        return accepted ? Results.NoContent() : Results.BadRequest();
+    })
+    .RequireAuthorization();
 }
 
 app.MapGet("/api/exercise-ai/status", (IExerciseAiService ai, ClaimsPrincipal user) =>
@@ -429,6 +436,8 @@ exerciseAi.MapPost("/check", async (
     ExerciseAiRequest request,
     IExerciseAiService ai,
     ExerciseAiContextService contexts,
+    ClaimsPrincipal user,
+    IServiceProvider services,
     ILogger<ExerciseAiService> logger,
     CancellationToken cancellationToken) =>
 {
@@ -455,6 +464,22 @@ exerciseAi.MapPost("/check", async (
             request.StudentCode,
             request.ConsoleOutput,
             cancellationToken);
+
+        var userSub = GetUserSub(user);
+        var progressService = services.GetService<IExerciseProgressService>();
+        if (check.IsSolved && userSub is not null && progressService is not null)
+        {
+            await progressService.SaveVerificationAsync(
+                userSub,
+                request.ContentSlug,
+                request.PartIndex,
+                isSolved: true,
+                cancellationToken);
+
+            var users = services.GetService<IAppUserService>();
+            if (users is not null)
+                await users.TouchActivityAsync(userSub, DateTimeOffset.UtcNow, cancellationToken);
+        }
 
         return Results.Ok(check);
     }

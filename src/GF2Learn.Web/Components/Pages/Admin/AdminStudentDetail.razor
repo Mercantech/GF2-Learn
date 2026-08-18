@@ -1,0 +1,363 @@
+@page "/admin/students/{UserId:guid}"
+@layout AdminShell
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = AdminAuthorizationPolicies.Educator)]
+@using GF2Learn.Web.Auth
+@implements IDisposable
+@inject IAdminDashboardService DashboardService
+
+<PageTitle>@(_student?.Nickname ?? _student?.StudentLabel ?? "Elev") — Admin</PageTitle>
+
+<div class="admin-workspace admin-detail-page">
+    <a href="/admin" class="admin-back-link" aria-label="Tilbage til elevoversigten">← Elevoversigt</a>
+
+    @if (_loading && _student is null)
+    {
+        <div class="admin-loading" role="status" aria-live="polite">
+            <span class="admin-spinner" aria-hidden="true"></span>
+            Henter elevens progression…
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <div class="admin-alert admin-alert-error" role="alert">
+            <strong>Elevdata kunne ikke hentes.</strong>
+            <span>@_error</span>
+            <button type="button" class="btn btn-sm btn-secondary" @onclick="LoadAsync">Prøv igen</button>
+        </div>
+    }
+    else if (_notFound)
+    {
+        <div class="admin-empty-state admin-not-found">
+            <span aria-hidden="true">👤</span>
+            <h1>Eleven blev ikke fundet</h1>
+            <p>Eleven findes ikke længere eller er registreret som underviser.</p>
+            <a href="/admin" class="btn btn-secondary">Tilbage til elevoversigten</a>
+        </div>
+    }
+    else if (_student is not null)
+    {
+        <header class="admin-page-header admin-student-header">
+            <div class="admin-student-identity">
+                <span class="admin-avatar admin-avatar-large" aria-hidden="true">
+                    @Initial(_student.Nickname ?? _student.StudentLabel)
+                </span>
+                <div>
+                    <p class="admin-eyebrow">Elevprofil</p>
+                    <h1>@(_student.Nickname ?? _student.StudentLabel)</h1>
+                    @if (!string.IsNullOrWhiteSpace(_student.Nickname))
+                    {
+                        <p>@_student.StudentLabel <span class="admin-private-label">Kun synligt for undervisere</span></p>
+                    }
+                    else
+                    {
+                        <p>Intet internt kaldenavn</p>
+                    }
+                </div>
+            </div>
+            <label class="admin-field admin-period-field">
+                <span>Periode</span>
+                <select value="@_periodDays" @onchange="ChangePeriodAsync" disabled="@_loading" aria-label="Vælg periode for elevdata">
+                    <option value="7">Seneste 7 dage</option>
+                    <option value="30">Seneste 30 dage</option>
+                    <option value="0">Hele perioden</option>
+                </select>
+            </label>
+        </header>
+
+        <section class="admin-profile-strip" aria-label="Elevoplysninger">
+            <dl>
+                <div>
+                    <dt>Hold</dt>
+                    <dd>@(_student.Groups.Count == 0 ? "Intet hold" : string.Join(", ", _student.Groups))</dd>
+                </div>
+                <div>
+                    <dt>Først set</dt>
+                    <dd>@FormatDate(_student.FirstSeenAt)</dd>
+                </div>
+                <div>
+                    <dt>Senest aktiv</dt>
+                    <dd>@(_student.LastActivityAt is null ? "Aldrig" : FormatDate(_student.LastActivityAt.Value))</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="admin-kpi-grid admin-detail-kpis" aria-label="Elevens nøgletal" aria-busy="@_loading">
+            <article class="admin-kpi-card">
+                <span class="admin-kpi-label">Aktiv tid</span>
+                <strong>@FormatDuration(_student.ActiveSeconds)</strong>
+                <small>@PeriodText</small>
+            </article>
+            <article class="admin-kpi-card">
+                <span class="admin-kpi-label">Opgavedele</span>
+                <strong>@_student.CompletedParts / @_student.TotalParts</strong>
+                <div class="admin-kpi-progress">
+                    <progress value="@_student.CompletedParts" max="@(Math.Max(_student.TotalParts, 1))">
+                        @Progress(_student.CompletedParts, _student.TotalParts)%
+                    </progress>
+                    <small>@Progress(_student.CompletedParts, _student.TotalParts)% gennemført</small>
+                </div>
+            </article>
+            <article class="admin-kpi-card">
+                <span class="admin-kpi-label">Pensumspørgsmål</span>
+                <strong>@_student.AnsweredQuestions / @_student.TotalQuestions</strong>
+                <div class="admin-kpi-progress">
+                    <progress value="@_student.AnsweredQuestions" max="@(Math.Max(_student.TotalQuestions, 1))">
+                        @Progress(_student.AnsweredQuestions, _student.TotalQuestions)%
+                    </progress>
+                    <small>@Progress(_student.AnsweredQuestions, _student.TotalQuestions)% besvaret</small>
+                </div>
+            </article>
+            <article class="admin-kpi-card @ActivityClass(_student.LastActivityAt)">
+                <span class="admin-kpi-label">Aktivitetsstatus</span>
+                <strong class="admin-kpi-status-text">@ActivityStatus(_student.LastActivityAt)</strong>
+                <small>@LastActivityText(_student.LastActivityAt)</small>
+            </article>
+        </section>
+
+        <section class="admin-table-section" aria-labelledby="content-table-title" aria-busy="@_loading">
+            <div class="admin-table-heading">
+                <div>
+                    <p class="admin-eyebrow">Brug og progression</p>
+                    <h2 id="content-table-title">Emner og opgaver</h2>
+                </div>
+                <span>@FilteredContentRows.Count af @_student.ContentRows.Count sider</span>
+            </div>
+
+            <div class="admin-local-filters" aria-label="Filtrer emner og opgaver">
+                <label class="admin-field admin-search-field">
+                    <span>Søg efter titel</span>
+                    <input type="search"
+                           @bind="_contentSearch"
+                           @bind:event="oninput"
+                           placeholder="Søg i indhold"
+                           autocomplete="off" />
+                </label>
+                <label class="admin-field">
+                    <span>Type</span>
+                    <select @bind="_contentType" aria-label="Filtrer indholdstype">
+                        <option value="all">Alle typer</option>
+                        <option value="curriculum">Pensum</option>
+                        <option value="exercise">Opgaver</option>
+                    </select>
+                </label>
+                <label class="admin-field">
+                    <span>Kategori / emne</span>
+                    <select @bind="_contentCategory" aria-label="Filtrer efter kategori eller emne">
+                        <option value="all">Alle kategorier</option>
+                        @foreach (var category in ContentCategories)
+                        {
+                            <option value="@category">@category</option>
+                        }
+                    </select>
+                </label>
+                <button type="button"
+                        class="btn btn-ghost"
+                        @onclick="ResetContentFilters"
+                        disabled="@(!HasContentFilters)">
+                    Nulstil
+                </button>
+            </div>
+
+            @if (FilteredContentRows.Count == 0)
+            {
+                <div class="admin-empty-state">
+                    <span aria-hidden="true">@(HasContentFilters ? "🔎" : "📚")</span>
+                    <h3>@(HasContentFilters ? "Intet indhold matcher filtrene" : "Intet indhold fundet")</h3>
+                    <p>@(HasContentFilters ? "Prøv en anden søgning, type eller kategori." : "Der er endnu ikke registreret emner eller opgaver.")</p>
+                    @if (HasContentFilters)
+                    {
+                        <button type="button" class="btn btn-secondary" @onclick="ResetContentFilters">Nulstil filtre</button>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="admin-table-scroll" tabindex="0" aria-label="Indholdstabel. Tabellen kan rulles vandret.">
+                    <table class="admin-data-table admin-content-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Type</th>
+                                <th scope="col">Titel</th>
+                                <th scope="col">Kategori</th>
+                                <th scope="col">Gennemført</th>
+                                <th scope="col">Progression</th>
+                                <th scope="col">Aktiv tid</th>
+                                <th scope="col">Besøg</th>
+                                <th scope="col">Senest set</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in FilteredContentRows
+                                .OrderByDescending(row => row.ActiveSeconds > 0 || row.CompletedItems > 0)
+                                .ThenBy(row => row.ContentType)
+                                .ThenBy(row => row.Title))
+                            {
+                                <tr>
+                                    <td><span class="admin-type-label">@ContentType(row.ContentType)</span></td>
+                                    <td><a href="@ContentUrl(row.ContentType, row.ContentSlug)">@row.Title</a></td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Category) ? "—" : row.Category)</td>
+                                    <td class="admin-number-cell">@row.CompletedItems / @row.TotalItems</td>
+                                    <td>
+                                        <div class="admin-progress-cell">
+                                            <progress value="@row.CompletedItems" max="@(Math.Max(row.TotalItems, 1))">
+                                                @Progress(row.CompletedItems, row.TotalItems)%
+                                            </progress>
+                                            <span>@Progress(row.CompletedItems, row.TotalItems)%</span>
+                                        </div>
+                                    </td>
+                                    <td class="admin-number-cell">@FormatDuration(row.ActiveSeconds)</td>
+                                    <td class="admin-number-cell">@row.VisitCount</td>
+                                    <td>@(row.LastSeenAt is null ? "Ikke set" : FormatDate(row.LastSeenAt.Value))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid UserId { get; set; }
+
+    private readonly CancellationTokenSource _disposeCts = new();
+    private AdminStudentDetailDto? _student;
+    private int _periodDays = 30;
+    private string _contentSearch = string.Empty;
+    private string _contentType = "all";
+    private string _contentCategory = "all";
+    private bool _loading;
+    private bool _notFound;
+    private string? _error;
+
+    private string PeriodText => _periodDays switch
+    {
+        7 => "Seneste 7 dage",
+        30 => "Seneste 30 dage",
+        _ => "Hele perioden"
+    };
+
+    private bool HasContentFilters => !string.IsNullOrWhiteSpace(_contentSearch)
+                                      || _contentType != "all"
+                                      || _contentCategory != "all";
+
+    private IReadOnlyList<string> ContentCategories => _student?.ContentRows
+        .Select(row => row.Category)
+        .Where(category => !string.IsNullOrWhiteSpace(category))
+        .Select(category => category!)
+        .Distinct(StringComparer.CurrentCultureIgnoreCase)
+        .OrderBy(category => category, StringComparer.CurrentCultureIgnoreCase)
+        .ToList() ?? [];
+
+    private IReadOnlyList<AdminStudentContentRowDto> FilteredContentRows => _student?.ContentRows
+        .Where(row => _contentType == "all" || row.ContentType == _contentType)
+        .Where(row => _contentCategory == "all"
+                      || string.Equals(row.Category, _contentCategory, StringComparison.CurrentCultureIgnoreCase))
+        .Where(row => string.IsNullOrWhiteSpace(_contentSearch)
+                      || row.Title.Contains(_contentSearch.Trim(), StringComparison.CurrentCultureIgnoreCase))
+        .ToList() ?? [];
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        if (_loading)
+            return;
+
+        _loading = true;
+        _error = null;
+        _notFound = false;
+        try
+        {
+            _student = await DashboardService.GetStudentAsync(UserId, _periodDays, _disposeCts.Token);
+            _notFound = _student is null;
+        }
+        catch (OperationCanceledException) when (_disposeCts.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _error = FriendlyError(exception);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ChangePeriodAsync(ChangeEventArgs eventArgs)
+    {
+        _periodDays = int.TryParse(eventArgs.Value?.ToString(), out var value) && value is 0 or 7 or 30
+            ? value
+            : 30;
+        await LoadAsync();
+    }
+
+    private void ResetContentFilters()
+    {
+        _contentSearch = string.Empty;
+        _contentType = "all";
+        _contentCategory = "all";
+    }
+
+    private static string ActivityStatus(DateTimeOffset? value) =>
+        value is not null && value >= DateTimeOffset.UtcNow.AddDays(-7) ? "Aktiv" : "Kræver opmærksomhed";
+
+    private static string ActivityClass(DateTimeOffset? value) =>
+        value is not null && value >= DateTimeOffset.UtcNow.AddDays(-7)
+            ? "admin-kpi-success"
+            : "admin-kpi-warning";
+
+    private static string LastActivityText(DateTimeOffset? value)
+    {
+        if (value is null)
+            return "Der er ingen registreret aktivitet";
+
+        var elapsed = DateTimeOffset.UtcNow - value.Value.ToUniversalTime();
+        if (elapsed.TotalMinutes < 1)
+            return "Aktiv lige nu";
+        if (elapsed.TotalHours < 1)
+            return $"Sidst aktiv for {(int)elapsed.TotalMinutes} min. siden";
+        if (elapsed.TotalDays < 1)
+            return $"Sidst aktiv for {(int)elapsed.TotalHours} t. siden";
+        return $"Sidst aktiv for {(int)elapsed.TotalDays} dage siden";
+    }
+
+    private static string ContentType(string value) => value == "exercise" ? "Opgave" : "Emne";
+
+    private static string ContentUrl(string type, string slug) =>
+        type == "exercise" ? $"/exercises/{slug}" : $"/curriculum/{slug}";
+
+    private static string Initial(string value) =>
+        string.IsNullOrWhiteSpace(value) ? "?" : char.ToUpperInvariant(value.Trim()[0]).ToString();
+
+    private static int Progress(int completed, int total) =>
+        total <= 0 ? 0 : (int)Math.Round(completed * 100d / total);
+
+    private static string FormatDuration(int seconds)
+    {
+        if (seconds <= 0)
+            return "0 min";
+
+        var duration = TimeSpan.FromSeconds(seconds);
+        return duration.TotalHours >= 1
+            ? $"{(int)duration.TotalHours} t {duration.Minutes} min"
+            : $"{Math.Max(1, (int)Math.Round(duration.TotalMinutes))} min";
+    }
+
+    private static string FormatDate(DateTimeOffset value) =>
+        value.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
+
+    private static string FriendlyError(Exception exception) =>
+        exception is InvalidOperationException && !string.IsNullOrWhiteSpace(exception.Message)
+            ? exception.Message
+            : "Der opstod en uventet fejl. Prøv igen.";
+
+    public void Dispose()
+    {
+        _disposeCts.Cancel();
+        _disposeCts.Dispose();
+    }
+}
