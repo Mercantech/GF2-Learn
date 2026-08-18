@@ -154,12 +154,42 @@ Opret et GitHub-repo og push dit projekt efter første commit.
 
 Pensum er opdelt i kapitler, der følger undervisningen. Hvert kapitel har **kompetencemål** — det er det, du skal kunne, når du er færdig. Brug dem som tjekliste.
 
-Arbejdsgang:
+Du kan arbejde på to måder. Begge følger det samme pensum og træner de samme kompetencer — forskellen er, om koden kører på GF2 Learn eller på din egen computer.
 
-1. Læs kapitlet og gennemgå kodeeksemplerne
-2. Prøv koden selv i Visual Studio
-3. Løs opgaverne i repoet — start med begynder-niveau
-4. Commit dine løsninger med tydelige beskeder
+### Spor A — Brug GF2 Learn og den indbyggede IDE
+
+Dette er den nemmeste måde at komme i gang på. Du behøver ikke installere noget, og du kan skrive og køre C# direkte i browseren.
+
+1. Læs kapitlet og gennemgå kodeeksemplerne.
+2. Åbn de tilhørende **Exercises**.
+3. Skriv din løsning efter `// TODO` i den indbyggede editor.
+4. Tryk **Kør** eller brug `Ctrl+Enter` for at teste koden.
+5. Brug output og fejlbeskeder til at rette løsningen.
+6. Besvar kapitlets quizspørgsmål og brug kompetencemålene som tjekliste.
+
+Er du logget ind, kan du også gemme løsninger med **Gem løsning** eller `Ctrl+S`.
+
+:::callout type="tip"
+Start her, hvis du er ny. Den indbyggede IDE fjerner arbejdet med installation og projektfiler, så du kan koncentrere dig om at lære C#.
+:::
+
+
+### Spor B — Arbejd lokalt på din egen PC
+
+Dette spor er til dig, der er færdig med dagens opgaver, er foran pensum eller er klar til en mere realistisk udviklerarbejdsgang.
+
+1. Følg guiden [Lokal udvikling](/curriculum/18-lokal-udvikling) og installér .NET SDK.
+2. Vælg **VS Code med C# Dev Kit** eller **Visual Studio**.
+3. Opret et lokalt C#-konsolprojekt.
+4. Genskab kapitlets kodeeksempler og opgaveløsninger i projektet.
+5. Kør koden, sæt breakpoints og undersøg variabler med debuggeren.
+6. Gem ændringerne med Git og skriv tydelige commit-beskeder.
+
+Lokalt arbejder du med rigtige `.cs`- og `.csproj`-filer. Det kræver lidt mere opsætning, men giver dig erfaring med den arbejdsgang, du møder på en arbejdsplads.
+
+:::callout type="info"
+Du behøver ikke vælge ét spor for resten af forløbet. Du kan løse en opgave på GF2 Learn først og bagefter genskabe den lokalt som ekstra træning.
+:::
 
 Studiegrupper er til at diskutere og hjælpe hinanden — ikke til at kopiere løsninger. Det er helt normalt at sidde fast; det er en del af at lære programmering.
 
