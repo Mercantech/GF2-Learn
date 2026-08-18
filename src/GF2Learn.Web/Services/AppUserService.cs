@@ -24,6 +24,8 @@ public sealed class AppUserService(
     Gf2LearnDbContext db,
     IAuthorizationService authorization) : IAppUserService
 {
+    private const int MaxAuthDisplayNameLength = 256;
+
     public async Task<AppUser?> EnsureCurrentUserAsync(
         ClaimsPrincipal principal,
         bool markLogin = false,
@@ -34,6 +36,7 @@ public sealed class AppUserService(
             return null;
 
         var now = DateTimeOffset.UtcNow;
+        var authDisplayName = GetAuthDisplayName(principal);
         var isEducator = (await authorization.AuthorizeAsync(
             principal,
             resource: null,
@@ -51,6 +54,7 @@ public sealed class AppUserService(
             {
                 Id = Guid.NewGuid(),
                 UserSub = userSub,
+                AuthDisplayName = authDisplayName,
                 FirstSeenAt = now,
                 LastLoginAt = now,
                 IsEducator = isEducator,
@@ -75,6 +79,13 @@ public sealed class AppUserService(
         }
 
         var changed = false;
+        if (authDisplayName is not null
+            && !string.Equals(appUser.AuthDisplayName, authDisplayName, StringComparison.Ordinal))
+        {
+            appUser.AuthDisplayName = authDisplayName;
+            changed = true;
+        }
+
         if (appUser.IsEducator != isEducator || appUser.IsSuperAdmin != isSuperAdmin)
         {
             appUser.IsEducator = isEducator;
@@ -92,6 +103,29 @@ public sealed class AppUserService(
             await db.SaveChangesAsync(cancellationToken);
 
         return appUser;
+    }
+
+    private static string? GetAuthDisplayName(ClaimsPrincipal principal)
+    {
+        var displayName = principal.FindFirstValue(ClaimTypes.Name)?.Trim();
+        if (string.IsNullOrWhiteSpace(displayName)
+            || displayName.Any(char.IsControl))
+        {
+            return null;
+        }
+
+        if (displayName.Length <= MaxAuthDisplayNameLength)
+            return displayName;
+
+        displayName = displayName[..MaxAuthDisplayNameLength];
+
+        // Avoid persisting an invalid UTF-16 value if the length limit splits a
+        // supplementary Unicode character in half.
+        if (char.IsHighSurrogate(displayName[^1]))
+            displayName = displayName[..^1];
+
+        displayName = displayName.TrimEnd();
+        return string.IsNullOrWhiteSpace(displayName) ? null : displayName;
     }
 
     public async Task TouchActivityAsync(

@@ -185,6 +185,39 @@ public sealed class LearningGroupServiceTests
         Assert.Empty(await db.LearningGroupMembers.ToListAsync());
     }
 
+    [Fact]
+    public async Task Group_lists_and_search_use_auth_name_with_pseudonymous_fallback()
+    {
+        await using var fixture = await TestFixture.CreateAsync(studentCount: 2);
+        await using (var db = fixture.Factory.CreateDbContext())
+        {
+            var students = await db.AppUsers
+                .OrderBy(user => user.UserSub)
+                .ToListAsync();
+            students[0].AuthDisplayName = "  Mathias Gaardsdal Steenberg  ";
+            students[1].AuthDisplayName = "   ";
+            await db.SaveChangesAsync();
+        }
+
+        await fixture.Service.AddMemberAsync(
+            fixture.GroupId,
+            fixture.Students[0].Id,
+            "superadmin");
+
+        var group = Assert.IsType<LearningGroupDetailDto>(
+            await fixture.Service.GetGroupAsync(fixture.GroupId));
+        Assert.Equal("Mathias Gaardsdal Steenberg", Assert.Single(group.Members).StudentLabel);
+        Assert.Equal(
+            "Elev STUDENT-",
+            Assert.Single(group.AvailableStudents, student => student.UserId == fixture.Students[1].Id).StudentLabel);
+
+        var searchResult = Assert.IsType<LearningGroupDetailDto>(
+            await fixture.Service.GetGroupAsync(fixture.GroupId, "gAaRdSdAl"));
+        Assert.Equal(
+            fixture.Students[0].Id,
+            Assert.Single(searchResult.AvailableStudents).UserId);
+    }
+
     private static ClaimsPrincipal TestPrincipal(string userSub) =>
         new(new ClaimsIdentity(
             [new Claim(ClaimTypes.NameIdentifier, userSub)],

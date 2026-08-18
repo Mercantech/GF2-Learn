@@ -41,6 +41,7 @@ public sealed record AdminDashboardDto(
 public sealed record AdminStudentDetailDto(
     Guid UserId,
     string StudentLabel,
+    string? AuthDisplayName,
     string? Nickname,
     IReadOnlyList<string> Groups,
     DateTimeOffset FirstSeenAt,

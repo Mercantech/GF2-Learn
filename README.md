@@ -94,10 +94,11 @@ AdminAccess__SuperAdminSubjects=
 ```
 
 Hvis Mercantec Auth endnu ikke sender rollerne, kan bruger-id'et fra `/profile`
-indsættes i de relevante `Subjects`-felter. Kaldenavne gemmes separat og sendes
-aldrig til elevsider eller elev-API'er. Navn og e-mail fra login-tokenet gemmes
-ikke i admin-databasen; undervisere ser elevens pseudonyme ID, indtil de selv
-tilføjer et kaldenavn.
+indsættes i de relevante `Subjects`-felter. Elevens navn fra det validerede
+login-token gemmes ved autentificerede besøg, så undervisere kan identificere
+eleven i adminområdet; e-mail gemmes ikke. Underviserens interne kaldenavn gemmes
+separat og sendes aldrig til elevsider eller elev-API'er. Hvis Auth ikke leverer
+et navn, vises et pseudonymt elev-ID som fallback.
 
 Aktiv tid registreres kun for loggede elever og kun mens en pensum- eller
 opgaveside er synlig, browseren har fokus, og eleven ikke har været inaktiv i

@@ -4,6 +4,7 @@ public sealed class AppUser
 {
     public Guid Id { get; set; }
     public required string UserSub { get; set; }
+    public string? AuthDisplayName { get; set; }
     public bool IsEducator { get; set; }
     public bool IsSuperAdmin { get; set; }
     public DateTimeOffset FirstSeenAt { get; set; }

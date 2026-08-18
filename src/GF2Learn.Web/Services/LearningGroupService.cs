@@ -109,11 +109,11 @@ public sealed class LearningGroupService(
         var members = await db.LearningGroupMembers
             .AsNoTracking()
             .Where(member => member.GroupId == groupId && !member.User.IsEducator)
-            .OrderBy(member => member.User.AdminMetadata!.Nickname)
+            .OrderBy(member => member.User.AuthDisplayName)
             .ThenBy(member => member.User.UserSub)
             .Select(member => new LearningGroupMemberDto(
                 member.UserId,
-                StudentLabel(member.User.UserSub, member.User.Id),
+                StudentLabel(member.User.AuthDisplayName, member.User.UserSub, member.User.Id),
                 member.User.AdminMetadata == null ? null : member.User.AdminMetadata.Nickname,
                 member.JoinedAt,
                 member.Source.ToString()))
@@ -126,21 +126,23 @@ public sealed class LearningGroupService(
 
         if (!string.IsNullOrWhiteSpace(normalizedSearch))
         {
-            var pattern = $"%{normalizedSearch}%";
+            var normalizedSearchLower = normalizedSearch.ToLowerInvariant();
             studentsQuery = studentsQuery.Where(user =>
                 (user.AdminMetadata != null
                     && user.AdminMetadata.Nickname != null
-                    && EF.Functions.ILike(user.AdminMetadata.Nickname, pattern))
-                || EF.Functions.ILike(user.UserSub, pattern));
+                    && user.AdminMetadata.Nickname.ToLower().Contains(normalizedSearchLower))
+                || (user.AuthDisplayName != null
+                    && user.AuthDisplayName.ToLower().Contains(normalizedSearchLower))
+                || user.UserSub.ToLower().Contains(normalizedSearchLower));
         }
 
         var available = await studentsQuery
-            .OrderBy(user => user.AdminMetadata!.Nickname)
+            .OrderBy(user => user.AuthDisplayName)
             .ThenBy(user => user.UserSub)
             .Take(100)
             .Select(user => new AvailableStudentDto(
                 user.Id,
-                StudentLabel(user.UserSub, user.Id),
+                StudentLabel(user.AuthDisplayName, user.UserSub, user.Id),
                 user.AdminMetadata == null ? null : user.AdminMetadata.Nickname,
                 user.GroupMemberships.Any(member => member.GroupId == groupId)))
             .ToListAsync(cancellationToken);
@@ -647,8 +649,12 @@ public sealed class LearningGroupService(
         return cleaned.Length <= maxLength ? cleaned : cleaned[..maxLength];
     }
 
-    private static string StudentLabel(string userSub, Guid id)
+    private static string StudentLabel(string? authDisplayName, string userSub, Guid id)
     {
+        var cleanedDisplayName = authDisplayName?.Trim();
+        if (!string.IsNullOrWhiteSpace(cleanedDisplayName))
+            return cleanedDisplayName;
+
         var normalized = userSub.Trim();
         var identifier = normalized.Length == 0
             ? id.ToString("N")[..8]

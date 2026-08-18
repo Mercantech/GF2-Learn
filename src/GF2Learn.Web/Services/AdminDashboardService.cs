@@ -49,12 +49,14 @@ public sealed class AdminDashboardService(
         var search = query.Search?.Trim();
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var pattern = $"%{search}%";
+            var normalizedSearch = search.ToLowerInvariant();
             usersQuery = usersQuery.Where(user =>
                 (user.AdminMetadata != null
                     && user.AdminMetadata.Nickname != null
-                    && EF.Functions.ILike(user.AdminMetadata.Nickname, pattern))
-                || EF.Functions.ILike(user.UserSub, pattern));
+                    && user.AdminMetadata.Nickname.ToLower().Contains(normalizedSearch))
+                || (user.AuthDisplayName != null
+                    && user.AuthDisplayName.ToLower().Contains(normalizedSearch))
+                || user.UserSub.ToLower().Contains(normalizedSearch));
         }
 
         var students = await usersQuery
@@ -110,7 +112,7 @@ public sealed class AdminDashboardService(
                 var isInactive = user.LastActivityAt is null || user.LastActivityAt < inactiveCutoff;
                 return new AdminStudentRowDto(
                     user.Id,
-                    StudentLabel(user.UserSub, user.Id),
+                    StudentLabel(user.AuthDisplayName, user.UserSub, user.Id),
                     user.AdminMetadata?.Nickname,
                     user.GroupMemberships
                         .Where(member => !member.Group.IsArchived)
@@ -131,7 +133,7 @@ public sealed class AdminDashboardService(
             })
             .OrderByDescending(row => row.IsInactive)
             .ThenBy(row => row.IsInactive ? row.LastActivityAt : null)
-            .ThenBy(row => row.Nickname ?? row.StudentLabel, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(row => row.StudentLabel, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
         var visibleUserIds = rows.Select(row => row.UserId).ToList();
@@ -282,7 +284,8 @@ public sealed class AdminDashboardService(
 
         return new AdminStudentDetailDto(
             user.Id,
-            StudentLabel(user.UserSub, user.Id),
+            StudentLabel(user.AuthDisplayName, user.UserSub, user.Id),
+            CleanAuthDisplayName(user.AuthDisplayName),
             user.AdminMetadata?.Nickname,
             user.GroupMemberships
                 .Where(member => !member.Group.IsArchived)
@@ -370,12 +373,22 @@ public sealed class AdminDashboardService(
             ? content.GetExercise(slug)?.Title ?? slug
             : content.GetCurriculum(slug)?.Title ?? slug;
 
-    private static string StudentLabel(string userSub, Guid id)
+    private static string StudentLabel(string? authDisplayName, string userSub, Guid id)
     {
+        var cleanedDisplayName = CleanAuthDisplayName(authDisplayName);
+        if (!string.IsNullOrWhiteSpace(cleanedDisplayName))
+            return cleanedDisplayName;
+
         var normalized = userSub.Trim();
         var identifier = normalized.Length == 0
             ? id.ToString("N")[..8]
             : normalized[..Math.Min(normalized.Length, 8)];
         return $"Elev {identifier.ToUpperInvariant()}";
+    }
+
+    private static string? CleanAuthDisplayName(string? authDisplayName)
+    {
+        var cleaned = authDisplayName?.Trim();
+        return string.IsNullOrWhiteSpace(cleaned) ? null : cleaned;
     }
 }

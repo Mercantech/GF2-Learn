@@ -139,9 +139,13 @@
                         @foreach (var student in _dashboard.Students.Where(student => student.IsInactive).Take(5))
                         {
                             <li>
-                                <span class="admin-avatar admin-avatar-warning" aria-hidden="true">@Initial(student.Nickname ?? student.StudentLabel)</span>
+                                <span class="admin-avatar admin-avatar-warning" aria-hidden="true">@Initial(student.StudentLabel)</span>
                                 <span>
-                                    <a href="/admin/students/@student.UserId">@(student.Nickname ?? student.StudentLabel)</a>
+                                    <a href="/admin/students/@student.UserId">@student.StudentLabel</a>
+                                    @if (!string.IsNullOrWhiteSpace(student.Nickname))
+                                    {
+                                        <small>Internt kaldenavn: @student.Nickname</small>
+                                    }
                                     <small>@LastActivityText(student.LastActivityAt)</small>
                                 </span>
                             </li>
@@ -170,9 +174,13 @@
                             .Take(5))
                         {
                             <li>
-                                <span class="admin-avatar" aria-hidden="true">@Initial(student.Nickname ?? student.StudentLabel)</span>
+                                <span class="admin-avatar" aria-hidden="true">@Initial(student.StudentLabel)</span>
                                 <span>
-                                    <a href="/admin/students/@student.UserId">@(student.Nickname ?? student.StudentLabel)</a>
+                                    <a href="/admin/students/@student.UserId">@student.StudentLabel</a>
+                                    @if (!string.IsNullOrWhiteSpace(student.Nickname))
+                                    {
+                                        <small>Internt kaldenavn: @student.Nickname</small>
+                                    }
                                     <small>@FormatDuration(student.ActiveSeconds) aktiv tid</small>
                                 </span>
                             </li>
@@ -274,7 +282,7 @@
                                     <td>
                                         <div class="admin-student-cell">
                                             <span class="admin-avatar @(student.IsInactive ? "admin-avatar-warning" : null)" aria-hidden="true">
-                                                @Initial(student.Nickname ?? student.StudentLabel)
+                                                @Initial(student.StudentLabel)
                                             </span>
                                             <span>
                                                 <a href="/admin/students/@student.UserId">@student.StudentLabel</a>
@@ -494,7 +502,7 @@
         : _sortDescending ? "↓" : "↑";
 
     private static string StudentSortLabel(AdminStudentRowDto student) =>
-        student.Nickname ?? student.StudentLabel;
+        student.StudentLabel;
 
     private static double ProgressValue(AdminStudentRowDto student) =>
         student.TotalParts <= 0 ? 0 : student.CompletedParts / (double)student.TotalParts;

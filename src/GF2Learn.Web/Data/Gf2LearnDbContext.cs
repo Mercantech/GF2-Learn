@@ -76,6 +76,7 @@ public sealed class Gf2LearnDbContext(DbContextOptions<Gf2LearnDbContext> option
             entity.ToTable("app_users");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.UserSub).HasMaxLength(128).IsRequired();
+            entity.Property(e => e.AuthDisplayName).HasMaxLength(256);
             entity.Property(e => e.IsEducator).HasDefaultValue(false);
             entity.Property(e => e.IsSuperAdmin).HasDefaultValue(false);
             entity.HasIndex(e => e.UserSub).IsUnique();

@@ -44,14 +44,20 @@
                 </span>
                 <div>
                     <p class="admin-eyebrow">Elevprofil</p>
-                    <h1>@(_student.Nickname ?? _student.StudentLabel)</h1>
+                    <h1>
+                        @(_student.Nickname ?? _student.StudentLabel)
+                        @if (!string.IsNullOrWhiteSpace(_student.Nickname))
+                        {
+                            <span class="admin-private-label">Internt kaldenavn</span>
+                        }
+                    </h1>
                     @if (!string.IsNullOrWhiteSpace(_student.Nickname))
                     {
-                        <p>@_student.StudentLabel <span class="admin-private-label">Kun synligt for undervisere</span></p>
+                        <p>@IdentityDescription(_student)</p>
                     }
                     else
                     {
-                        <p>Intet internt kaldenavn</p>
+                        <p>@IdentityDescription(_student) · intet internt kaldenavn</p>
                     }
                 </div>
             </div>
@@ -332,6 +338,11 @@
 
     private static string Initial(string value) =>
         string.IsNullOrWhiteSpace(value) ? "?" : char.ToUpperInvariant(value.Trim()[0]).ToString();
+
+    private static string IdentityDescription(AdminStudentDetailDto student) =>
+        student.AuthDisplayName is null
+            ? $"Auth-identitet: {student.StudentLabel} (navn ikke registreret endnu)"
+            : $"Navn fra Auth: {student.AuthDisplayName}";
 
     private static int Progress(int completed, int total) =>
         total <= 0 ? 0 : (int)Math.Round(completed * 100d / total);
