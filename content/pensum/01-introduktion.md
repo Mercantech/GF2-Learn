@@ -93,7 +93,7 @@ Her er kodeordene, der starter programmet, forklaret ét ad gangen:
 
 Et **namespace** organiserer din kode og adskiller den fra andre dele af programmet. Det står i toppen af stort set alle filer og kan indeholde klasser — og endda indlejrede namespaces.
 
-### Tuborg-klammer — `{ }`
+### Tuborg-klammer - <code>&#123; &#125;</code>
 
 [Formatting (Microsoft Docs)](https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/coding-conventions)
 
