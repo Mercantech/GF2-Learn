@@ -82,7 +82,7 @@ public sealed partial class CurriculumSlideBuilder
         return string.Join("\n\n", lines.Take(2));
     }
 
-    private static IEnumerable<(string Title, string Body)> SplitSections(string body)
+    private IEnumerable<(string Title, string Body)> SplitSections(string body)
     {
         var matches = SectionHeadingRegex().Matches(body);
         if (matches.Count == 0)
@@ -90,7 +90,7 @@ public sealed partial class CurriculumSlideBuilder
 
         for (var i = 0; i < matches.Count; i++)
         {
-            var title = matches[i].Groups[1].Value.Trim();
+            var title = MarkdownToPlainText(matches[i].Groups[1].Value);
             var start = matches[i].Index + matches[i].Length;
             var end = i + 1 < matches.Count ? matches[i + 1].Index : body.Length;
             var sectionBody = body[start..end].Trim();
@@ -194,7 +194,7 @@ public sealed partial class CurriculumSlideBuilder
         }
     }
 
-    private static IEnumerable<(string? Subtitle, string Markdown)> SplitSubsections(string markdown)
+    private IEnumerable<(string? Subtitle, string Markdown)> SplitSubsections(string markdown)
     {
         var matches = SubsectionHeadingRegex().Matches(markdown);
         if (matches.Count == 0)
@@ -209,7 +209,7 @@ public sealed partial class CurriculumSlideBuilder
 
         for (var i = 0; i < matches.Count; i++)
         {
-            var subtitle = matches[i].Groups[1].Value.Trim();
+            var subtitle = MarkdownToPlainText(matches[i].Groups[1].Value);
             var start = matches[i].Index;
             var end = i + 1 < matches.Count ? matches[i + 1].Index : markdown.Length;
             var chunk = markdown[start..end].Trim();
@@ -281,10 +281,15 @@ public sealed partial class CurriculumSlideBuilder
         return text.Length <= 340;
     }
 
-    private static string StripHtml(string html) =>
-        WebUtility.HtmlDecode(Regex.Replace(html, "<[^>]+>", " "))
-            .Replace('\u00a0', ' ')
-            .Trim();
+    private static string StripHtml(string html)
+    {
+        var decoded = WebUtility.HtmlDecode(Regex.Replace(html, "<[^>]+>", " "))
+            .Replace('\u00a0', ' ');
+        return Regex.Replace(decoded, @"\s+", " ").Trim();
+    }
+
+    private string MarkdownToPlainText(string markdown) =>
+        StripHtml(_markdown.ToHtml(markdown.Trim(), null));
 
     private IReadOnlyList<ContentSegment> HighlightSegments(IReadOnlyList<ContentSegment> segments) =>
         segments.Select(segment =>
