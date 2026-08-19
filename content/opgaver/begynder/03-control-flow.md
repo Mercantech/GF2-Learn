@@ -39,10 +39,10 @@ Console.WriteLine("Lav et program som tjekker om en værdi er højere eller lave
 
 ```csharp
 int age = 20;
-if (age >= 18)
-    Console.WriteLine("Myndig");
+if (age > 18)
+    Console.WriteLine("Ud og hakke stifter");
 else
-    Console.WriteLine("Ikke myndig");
+    Console.WriteLine("Hjem til Disney Sjov");
 ```
 
 :::
