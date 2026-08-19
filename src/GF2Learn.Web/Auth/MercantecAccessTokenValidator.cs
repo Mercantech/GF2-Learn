@@ -96,10 +96,12 @@ public sealed class MercantecAccessTokenValidator
             throw new SecurityTokenValidationException("Mercantec access token validation returned an unexpected token type.");
 
         var principal = CreatePrincipal(validatedToken, authenticationScheme);
+        var issuedAt = new DateTimeOffset(
+            DateTime.SpecifyKind(validatedToken.IssuedAt, DateTimeKind.Utc));
         var expiresAt = new DateTimeOffset(
             DateTime.SpecifyKind(validatedToken.ValidTo, DateTimeKind.Utc));
 
-        return new MercantecAccessTokenValidation(principal, expiresAt);
+        return new MercantecAccessTokenValidation(principal, issuedAt, expiresAt);
     }
 
     private async Task<TokenValidationResult> ValidateTokenAsync(
@@ -234,4 +236,5 @@ public sealed class MercantecAccessTokenValidator
 
 public sealed record MercantecAccessTokenValidation(
     ClaimsPrincipal Principal,
+    DateTimeOffset IssuedAt,
     DateTimeOffset ExpiresAt);

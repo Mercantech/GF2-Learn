@@ -54,6 +54,12 @@ public sealed class MercantecAuthExtensionsTests
         Assert.Equal(
             new DateTimeOffset(expires).ToUnixTimeSeconds(),
             ticket.Properties.ExpiresUtc?.ToUnixTimeSeconds());
+        Assert.Equal(
+            new DateTimeOffset(expires).ToUnixTimeSeconds().ToString(),
+            ticket.Principal?.FindFirstValue(AuthSessionMetadataClaims.AccessTokenExpiresAt));
+        Assert.Equal(
+            ticket.Properties.ExpiresUtc?.ToUnixTimeSeconds().ToString(),
+            ticket.Principal?.FindFirstValue(AuthSessionMetadataClaims.CookieExpiresAt));
     }
 
     [Fact]

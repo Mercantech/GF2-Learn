@@ -114,6 +114,10 @@ public sealed class MercantecAccessTokenValidatorTests
         Assert.Equal(
             new DateTimeOffset(expires).ToUnixTimeSeconds(),
             validation.ExpiresAt.ToUnixTimeSeconds());
+        Assert.InRange(
+            validation.IssuedAt,
+            DateTimeOffset.UtcNow.AddMinutes(-2),
+            DateTimeOffset.UtcNow);
         Assert.Equal("student-1", validation.Principal.FindFirstValue("sub"));
     }
 

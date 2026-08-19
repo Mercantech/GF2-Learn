@@ -93,10 +93,17 @@ public static class MercantecAuthExtensions
                             context.HttpContext.RequestAborted);
                         context.Principal = validation.Principal;
 
-                        ConfigureAbsoluteCookieLifetime(
+                        var cookieIssuedAt = DateTimeOffset.UtcNow;
+                        var cookieExpiresAt = ConfigureAbsoluteCookieLifetime(
                             context.Properties,
                             validation.ExpiresAt,
-                            DateTimeOffset.UtcNow);
+                            cookieIssuedAt);
+                        AddSessionMetadataClaims(
+                            context.Principal,
+                            validation.IssuedAt,
+                            validation.ExpiresAt,
+                            cookieIssuedAt,
+                            cookieExpiresAt);
 
                         try
                         {
@@ -184,7 +191,7 @@ public static class MercantecAuthExtensions
         !string.IsNullOrWhiteSpace(options.ClientId)
         && !string.IsNullOrWhiteSpace(options.ClientSecret);
 
-    private static void ConfigureAbsoluteCookieLifetime(
+    private static DateTimeOffset ConfigureAbsoluteCookieLifetime(
         AuthenticationProperties properties,
         DateTimeOffset accessTokenExpiresAt,
         DateTimeOffset issuedAt)
@@ -197,7 +204,31 @@ public static class MercantecAuthExtensions
         properties.ExpiresUtc = accessTokenExpiresAt < maximumExpiry
             ? accessTokenExpiresAt
             : maximumExpiry;
+
+        return properties.ExpiresUtc.Value;
     }
+
+    private static void AddSessionMetadataClaims(
+        ClaimsPrincipal principal,
+        DateTimeOffset accessTokenIssuedAt,
+        DateTimeOffset accessTokenExpiresAt,
+        DateTimeOffset cookieIssuedAt,
+        DateTimeOffset cookieExpiresAt)
+    {
+        if (principal.Identity is not ClaimsIdentity identity)
+            return;
+
+        identity.AddClaims(
+        [
+            UnixTimeClaim(AuthSessionMetadataClaims.AccessTokenIssuedAt, accessTokenIssuedAt),
+            UnixTimeClaim(AuthSessionMetadataClaims.AccessTokenExpiresAt, accessTokenExpiresAt),
+            UnixTimeClaim(AuthSessionMetadataClaims.CookieIssuedAt, cookieIssuedAt),
+            UnixTimeClaim(AuthSessionMetadataClaims.CookieExpiresAt, cookieExpiresAt),
+        ]);
+    }
+
+    private static Claim UnixTimeClaim(string type, DateTimeOffset value) =>
+        new(type, value.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64);
 
     /// <summary>Builds <c>/auth/login?returnUrl=…</c> for the current or given page.</summary>
     public static string LoginUrl(string? returnUrl)

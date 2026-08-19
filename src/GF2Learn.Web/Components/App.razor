@@ -1,9 +1,11 @@
 ﻿@inject IConfiguration Configuration
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @inject IHttpContextAccessor HttpContextAccessor
+@using GF2Learn.Web.Auth
 @{
     var rootHttpContext = HttpContextAccessor.HttpContext;
     var isAuthenticated = rootHttpContext?.User.Identity?.IsAuthenticated == true;
+    var authUser = rootHttpContext?.User;
     var activityTrackingEnabled = isAuthenticated
         && !string.IsNullOrWhiteSpace(Configuration.GetConnectionString("DefaultConnection"));
     var requestVerificationToken = rootHttpContext is null || !activityTrackingEnabled
@@ -18,6 +20,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="gf2-path-base" content="@(Configuration["PathBase"] ?? "")" />
     <meta name="gf2-authenticated" content="@(isAuthenticated ? "true" : "false")" />
+    <meta name="gf2-auth-access-issued-at" content="@authUser?.FindFirst(AuthSessionMetadataClaims.AccessTokenIssuedAt)?.Value" />
+    <meta name="gf2-auth-access-expires-at" content="@authUser?.FindFirst(AuthSessionMetadataClaims.AccessTokenExpiresAt)?.Value" />
+    <meta name="gf2-auth-cookie-issued-at" content="@authUser?.FindFirst(AuthSessionMetadataClaims.CookieIssuedAt)?.Value" />
+    <meta name="gf2-auth-cookie-expires-at" content="@authUser?.FindFirst(AuthSessionMetadataClaims.CookieExpiresAt)?.Value" />
     <meta name="gf2-activity-enabled" content="@(activityTrackingEnabled ? "true" : "false")" />
     <meta name="request-verification-token" content="@requestVerificationToken" />
     <script src="@Assets["js/theme-head.js"]"></script>
