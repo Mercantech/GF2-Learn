@@ -374,45 +374,6 @@ window.gf2Playground = {
     this.bindKeyboardShortcuts(elementId);
   },
 
-  registerTabSnippets: function (editor) {
-    var monaco = window.monaco;
-    var snippets = this.csharpSnippets;
-
-    editor.addCommand(monaco.KeyCode.Tab, function () {
-      editor.trigger("keyboard", "acceptSelectedSuggestion", {});
-    }, "suggestWidgetVisible");
-
-    editor.addCommand(monaco.KeyCode.Tab, function () {
-      var model = editor.getModel();
-      var position = editor.getPosition();
-
-      if (model && position) {
-        var line = model.getLineContent(position.lineNumber);
-        var before = line.substring(0, position.column - 1);
-
-        for (var i = 0; i < snippets.length; i++) {
-          var s = snippets[i];
-          var re = new RegExp("\\b" + s.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$");
-          if (re.test(before)) {
-            var startCol = position.column - s.label.length;
-            editor.executeEdits("snippet", [{
-              range: new monaco.Range(position.lineNumber, startCol, position.lineNumber, position.column),
-              text: "",
-              forceMoveMarkers: true
-            }]);
-            editor.trigger("keyboard", "editor.action.insertSnippet", {
-              snippet: s.insertText
-            });
-            return;
-          }
-        }
-      }
-
-      // Normal indrykning (4 mellemrum) — ikke et råt tab-tegn
-      editor.trigger("keyboard", "tab", {});
-    }, "!suggestWidgetVisible");
-  },
-
   resolveHeightOptions: function (host, options) {
     options = options || {};
     var isExercise = host.classList.contains("playground-editor-host-exercise");
@@ -587,6 +548,7 @@ window.gf2Playground = {
       padding: { top: heightOpts.paddingTop, bottom: heightOpts.paddingBottom },
       quickSuggestions: { other: true, comments: false, strings: false },
       suggestOnTriggerCharacters: true,
+      tabCompletion: "on",
       wordBasedSuggestions: "off",
       suggest: {
         showWords: false,
@@ -607,7 +569,6 @@ window.gf2Playground = {
       self.scheduleHeightSync(elementId);
     });
 
-    this.registerTabSnippets(editor);
     this.editors[elementId] = editor;
     this.registerFormatCommand(elementId, host);
 
