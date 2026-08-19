@@ -15,6 +15,7 @@ window.gf2Playground = {
   csharpSnippets: [
     { label: "cw", detail: "Console.WriteLine(...)", insertText: "Console.WriteLine(${1});" },
     { label: "cwl", detail: "Console.WriteLine med tekst", insertText: 'Console.WriteLine("${1}");' },
+    { label: "cr", detail: "Console.ReadLine()", insertText: "Console.ReadLine();" },
     { label: "for", detail: "for-loop", insertText: "for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)\n{\n\t${0}\n}" },
     { label: "foreach", detail: "foreach-loop", insertText: "foreach (var ${1:item} in ${2:collection})\n{\n\t${0}\n}" },
     { label: "if", detail: "if-sætning", insertText: "if (${1:condition})\n{\n\t${0}\n}" },
@@ -378,6 +379,10 @@ window.gf2Playground = {
     var snippets = this.csharpSnippets;
 
     editor.addCommand(monaco.KeyCode.Tab, function () {
+      editor.trigger("keyboard", "acceptSelectedSuggestion", {});
+    }, "suggestWidgetVisible");
+
+    editor.addCommand(monaco.KeyCode.Tab, function () {
       var model = editor.getModel();
       var position = editor.getPosition();
 
@@ -405,7 +410,7 @@ window.gf2Playground = {
 
       // Normal indrykning (4 mellemrum) — ikke et råt tab-tegn
       editor.trigger("keyboard", "tab", {});
-    });
+    }, "!suggestWidgetVisible");
   },
 
   resolveHeightOptions: function (host, options) {
