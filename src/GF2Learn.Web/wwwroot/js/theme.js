@@ -1,9 +1,6 @@
 (function (global) {
   var STORAGE_KEY = "gf2-theme";
-
-  function systemPreference() {
-    return global.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
+  var DEFAULT_MODE = "dark";
 
   function isValidMode(mode) {
     return mode === "light" || mode === "dark" || mode === "dos";
@@ -14,12 +11,11 @@
       var stored = localStorage.getItem(STORAGE_KEY);
       if (isValidMode(stored)) return stored;
       if (stored === "system") {
-        var migrated = systemPreference();
-        localStorage.setItem(STORAGE_KEY, migrated);
-        return migrated;
+        localStorage.setItem(STORAGE_KEY, DEFAULT_MODE);
+        return DEFAULT_MODE;
       }
     } catch { /* private browsing */ }
-    return systemPreference();
+    return DEFAULT_MODE;
   }
 
   function pathBase() {

@@ -1,6 +1,7 @@
 /* Synkron i <head> før CSS — undgår flash til lys tema */
 (function () {
   var STORAGE_KEY = "gf2-theme";
+  var DEFAULT_MODE = "dark";
 
   function pathBase() {
     var meta = document.querySelector('meta[name="gf2-path-base"]');
@@ -22,7 +23,7 @@
   } catch (e) { /* private browsing */ }
 
   if (!mode) {
-    mode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    mode = DEFAULT_MODE;
   }
 
   var root = document.documentElement;
