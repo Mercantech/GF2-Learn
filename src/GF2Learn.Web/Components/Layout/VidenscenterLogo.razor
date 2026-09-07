@@ -10,7 +10,12 @@
            title="Videnscenter for Automation og Teknologi">
             <img src="@LogoUrl"
                  alt="Videnscenter for Automation og Teknologi"
-                 class="videnscenter-logo videnscenter-logo--vat"
+                 class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--light"
+                 width="@VatWidth"
+                 height="@VatHeight" />
+            <img src="@DarkLogoUrl"
+                 alt="Videnscenter for Automation og Teknologi"
+                 class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--dark"
                  width="@VatWidth"
                  height="@VatHeight" />
         </a>
@@ -20,7 +25,12 @@
         <span class="videnscenter-logo-mark" title="Videnscenter for Automation og Teknologi">
             <img src="@LogoUrl"
                  alt="Videnscenter for Automation og Teknologi"
-                 class="videnscenter-logo videnscenter-logo--vat"
+                 class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--light"
+                 width="@VatWidth"
+                 height="@VatHeight" />
+            <img src="@DarkLogoUrl"
+                 alt="Videnscenter for Automation og Teknologi"
+                 class="videnscenter-logo videnscenter-logo--vat videnscenter-logo--dark"
                  width="@VatWidth"
                  height="@VatHeight" />
         </span>
@@ -29,6 +39,8 @@
 
 @code {
     private string LogoUrl => $"/{(Configuration["PathBase"] ?? "").Trim('/')}/images/partners/Logo_VAT_farver.svg".Replace("//", "/");
+
+    private string DarkLogoUrl => LogoUrl.Replace("Logo_VAT_farver.svg", "Logo_VAT_hvid-1.svg");
 
     [Parameter] public string Size { get; set; } = "footer";
 

@@ -2397,8 +2397,6 @@ a:hover { color: var(--accent-bright); }
   color: rgba(255, 255, 255, 0.92);
   white-space: nowrap;
 }
-.site-footer-vat-bar .videnscenter-logo--light { display: none !important; }
-.site-footer-vat-bar .videnscenter-logo--dark { display: block !important; }
 .site-footer-vat-bar .videnscenter-logo--vat { max-height: 3.25rem; }
 .site-footer-vat-bar .videnscenter-logo--portal { max-height: 2.35rem; opacity: 0.95; }
 .site-footer-inner {
