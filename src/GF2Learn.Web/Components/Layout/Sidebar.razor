@@ -9,6 +9,10 @@
 
 <aside class="sidebar">
     <p class="sidebar-title">@Title</p>
+    @if (Nav.Groups.Any(group => group.Items.Any(Gf2RequirementsCatalog.IsRequired)))
+    {
+        <p class="sidebar-required-legend"><span class="sidebar-required" aria-hidden="true">★</span> Påkrævet på GF2</p>
+    }
     @foreach (var group in Nav.Groups)
     {
         <div class="sidebar-group">
@@ -27,6 +31,10 @@
                            data-curriculum-slug="@(Nav.Section == ContentSectionType.Curriculum ? item.Slug : null)"
                            data-exercise-slug="@(Nav.Section == ContentSectionType.Exercises ? item.Slug : null)">
                             <span class="sidebar-link-text">@item.Title</span>
+                            @if (Gf2RequirementsCatalog.IsRequired(item))
+                            {
+                                <span class="sidebar-required" role="img" aria-label="Påkrævet på GF2" title="Påkrævet på GF2">★</span>
+                            }
                             @if (IsItemComplete(item))
                             {
                                 <span class="sidebar-check" aria-label="Fuldført" title="@CompleteTitle(item)">✓</span>

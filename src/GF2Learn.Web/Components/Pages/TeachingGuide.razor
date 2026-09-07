@@ -1,0 +1,102 @@
+@page "/undervisningsvejledning"
+
+<PageTitle>Pædagogiske overvejelser og vejledning — GF2 Learn</PageTitle>
+
+<article class="teaching-guide">
+    <SectionHero Title="Pædagogiske overvejelser og vejledning" Eyebrow="Til undervisere" Lead="Inspiration til at planlægge, gennemføre og tilpasse undervisningen med GF2 Learn." />
+
+    <aside class="guide-intro">
+        <h2>Sådan gør vi på Mercantec — tilpas det til jeres skole</h2>
+        <p>Vejledningen og grovplanen tager udgangspunkt i den måde, vi bruger platformen på Mercantec. Det er et forslag til afvikling, ikke en fast opskrift. Hver skole har frihed til at organisere undervisningen, vælge arbejdsformer og tilpasse materialet, som det passer til eleverne og de lokale rammer.</p>
+        <p>Brug hele forløbet, udvælg relevante dele, eller supplér med jeres egne opgaver. Tempo, øvelsesmængde, projekttid og evalueringsformer kan tilpasses holdet.</p>
+    </aside>
+
+    <nav class="guide-nav" aria-label="Vejledningens indhold">
+        <a href="/undervisningsvejledning#tilgang">Pædagogisk tilgang</a>
+        <a href="/undervisningsvejledning#omfang">GF2 og fordybelse</a>
+        <a href="/undervisningsvejledning#grovplan">Grovplan · 13 gange</a>
+        <a href="/undervisningsvejledning#evaluering">Feedback og evaluering</a>
+    </nav>
+
+    <section id="tilgang">
+        <h2>Pædagogisk tilgang: forstå, afprøv og forklar</h2>
+        <p>Lad eleverne møde et begreb i en kort forklaring og et konkret kodeeksempel, før de selv skal bruge det. Platformens opdeling i <strong>Teori → Quiz → Opgaver</strong> understøtter denne bevægelse fra forståelse til anvendelse.</p>
+        <ol>
+            <li><strong>Skab et fælles udgangspunkt.</strong> Præsenter dagens mål, og forbind emnet med noget, eleverne allerede har arbejdet med. Brug kapitlets præsentationsvisning til læreroplæg og fælles kodegennemgang.</li>
+            <li><strong>Gør tænkningen synlig.</strong> Bed eleverne forudsige en udskrift eller forklare en betingelse, før koden køres. Vis også, hvordan du undersøger og retter en fejl.</li>
+            <li><strong>Tjek forståelsen.</strong> Brug quizzen som anledning til samtale om svar og misforståelser. Gå tilbage til teorien, når et begreb ikke sidder fast.</li>
+            <li><strong>Lad eleverne arbejde selv.</strong> Følg kapitlets opgavehenvisninger. Veksl mellem individuelle løsninger og makkerarbejde, hvor eleverne skiftes til at skrive kode og forklare deres valg.</li>
+            <li><strong>Saml op.</strong> Afslut med en kort demonstration eller forklaring: Hvad virker, hvordan er det testet, og hvad skal eleven arbejde videre med?</li>
+        </ol>
+        <h3>Differentiering og støtte</h3>
+        <p>Elever med behov for støtte kan arbejde med mindre delopgaver, konkrete testværdier og fælles gennemgang af programmets flow. Lad elever, der er klar til mere, udvide løsningen, afprøve flere tilfælde eller arbejde med ekstra opgaver og projekter.</p>
+        <p>Brug løsningsforslag og hjælp som afsæt for forklaring og nye forsøg. Bed eleven ændre et eksempel og forklare konsekvensen, så en fungerende løsning også bliver til forståelse.</p>
+        <h3>Browser og lokale værktøjer</h3>
+        <p>Browserens kodeeditor gør det let at afprøve små programmer. Brug lokale værktøjer, når eleverne skal arbejde med større projekter, Visual Studio-debugging og LDAP/Active Directory. Se <a href="/curriculum/18-lokal-udvikling">vejledningen til lokal udvikling</a>, og klargør undervisningsmiljøet før LDAP-forløbet.</p>
+    </section>
+
+    <section id="omfang">
+        <h2>GF2-grundlag og ekstra fordybelse</h2>
+        <p>Den samlede grovplan er bredere end platformens påkrævede GF2-grundlag. På Mercantec består grundlaget her af <strong>syv pensumkapitler og fire opgavekapitler</strong>. Se den konkrete oversigt på <a href="/curriculum">Curriculum</a> eller i <a href="/curriculum/01-introduktion">Getting Started</a>.</p>
+        <p>Metoder, datastrukturer, OOP, binære tal og de øvrige ekstra opgaver og projekter giver mulighed for fordybelse. Strings- og Try/catch-opgaverne i planen er også ekstra træning. Gruppefremlæggelser og videoaflevering er forslag til arbejds- og evalueringsformer i Mercantecs afvikling.</p>
+        <p>Gør det tydeligt for eleverne, hvilke dele der er krævet, og hvilke der er ekstra. Den enkelte skole kan tilrettelægge sit eget forløb og kommunikere sine lokale forventninger.</p>
+    </section>
+
+    <section id="grovplan">
+        <h2>Grovplan for undervisningsforløb — GF2 Programmering</h2>
+        <p><strong>Forslag til afvikling:</strong> Forløbet består af 13 undervisningsgange, som normalt placeres med én dag om ugen. Hvis skemaet eller elevgruppen har gavn af kortere arbejdsperioder, kan hver undervisningsgang deles i to halve dage.</p>
+        <p>Kolonnen “Forslag ved halve dage” viser en naturlig opdeling. I dette forslag fastholdes rækkefølgen, mens tempo, øvelsesmængde og projekttid tilpasses holdet. Andre skoler kan vælge en anden organisering.</p>
+        <div class="guide-table-wrap" role="region" aria-label="Grovplan med materialer til 13 undervisningsgange" tabindex="0">
+            <table>
+                <caption>13 undervisningsgange med emner, arbejdsformer og materialer på learn.gf2.dk</caption>
+                <thead>
+                    <tr><th scope="col">Gang</th><th scope="col">Emne</th><th scope="col">Arbejdsform</th><th scope="col">Forslag ved halve dage</th><th scope="col">Materialer på learn.gf2.dk</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var lesson in Lessons)
+                    {
+                        <tr>
+                            <th scope="row">@lesson.Number</th>
+                            <td>@lesson.Topic</td>
+                            <td>@lesson.Work</td>
+                            <td><p><strong>A:</strong> @lesson.FirstHalf</p><p><strong>B:</strong> @lesson.SecondHalf</p></td>
+                            <td><ul>@foreach (var material in lesson.Materials) { <li><a href="@material.Href">@material.Title</a></li> }</ul></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="evaluering">
+        <h2>Feedback, fremlæggelser og evaluering</h2>
+        <p>Brug quizsvar, opgaveløsninger og elevernes forklaringer til løbende at justere undervisningen. En gennemførelsesmarkering giver overblik, men elevens begrundelser, test og evne til at ændre koden er også vigtige i den faglige vurdering.</p>
+        <h3>Gruppefremlæggelse · undervisningsgang 7</h3>
+        <p>Afsæt cirka 15 minutter pr. gruppe. Lad eleverne vise en løsning, forklare centrale kodevalg og demonstrere et testtilfælde. Sørg for, at alle bidrager. Aftal på forhånd, hvad der forventes, og afslut med konkret feedback og et næste skridt.</p>
+        <h3>Faglig forklaringsvideo · undervisningsgang 11</h3>
+        <p>Lad eleverne planlægge en kort forklaring med demonstration af programmet og udvalgte kodestykker. Aftal længde, vurderingskriterier og afleveringssted lokalt; grovplanen forudsætter ikke en videoafleveringsfunktion på GF2 Learn.</p>
+        <h3>Login og holdoverblik</h3>
+        <p>Elever kan læse og afprøve materialet uden login. Med login kan de gemme løsninger og quizsvar og tilmelde sig et hold, så underviseren kan følge fremgangen. Se <a href="/login-fordele">fordelene ved login</a>. Brug overblikket som støtte til dialog og målrettet hjælp.</p>
+    </section>
+</article>
+
+@code {
+    private sealed record Material(string Title, string Href);
+    private sealed record Lesson(int Number, string Topic, string Work, string FirstHalf, string SecondHalf, Material[] Materials);
+    private static readonly Lesson[] Lessons =
+    [
+        new(1, "Første C#-program, variabler, datatyper og strings", "Læreroplæg, opsætning og individuelle begynderøvelser", "Opsætning og første program", "Variabler, datatyper og strings", [new("Introduktion", "/curriculum/01-introduktion"), new("Variabler og datatyper", "/curriculum/02-variabler-og-datatyper"), new("Variabelopgaver", "/exercises/01-variabler"), new("Strings · ekstra", "/exercises/09-strings")]),
+        new(2, "Expressions og aritmetiske, logiske og sammenligningsoperatorer", "Kodeeksempler, beregninger og opgaver med boolske udtryk", "Expressions og aritmetik", "Sammenligning, logik og opgaver", [new("Operatorer og udtryk", "/curriculum/03-operatorer-og-udtryk")]),
+        new(3, "If/else, switch, input og TryParse", "Læreroplæg og øvelser med brugerinput, valg og validering", "Betingelser og switch", "Input, TryParse og validering", [new("Betingelser og input", "/curriculum/04-betingelser"), new("Inputopgaver", "/exercises/02-input"), new("Control flow", "/exercises/03-control-flow"), new("Try/catch · ekstra", "/exercises/08-try-catch")]),
+        new(4, "For, while, do-while, foreach, break og continue", "Gentagelsesøvelser og praktisk problemløsning", "Løkketyper", "Break, continue og øvelser", [new("Løkker", "/curriculum/05-loekker"), new("Loop-opgaver", "/exercises/04-loops")]),
+        new(5, "Metoder, parametre, returværdier og void", "Refaktorering og opdeling af programmer i genbrugelige metoder", "Metoder og parametre", "Returværdier og refaktorering", [new("Metoder", "/curriculum/06-metoder"), new("Metodeopgaver", "/exercises/06-metoder")]),
+        new(6, "Arrays, lister og dictionaries", "Valg af datastruktur, opslag og ændring af data", "Arrays og lister", "Dictionaries og valg af struktur", [new("Datastrukturer", "/curriculum/07-datastrukturer"), new("Datastrukturopgaver", "/exercises/05-arrays-lister-dictionary")]),
+        new(7, "Gruppefremlæggelser", "15-minutters gruppefremlæggelser og fælles opsamling", "Forberedelse og feedback", "Fremlæggelser og opsamling", [new("Projekter", "/projects")]),
+        new(8, "Binære tal, decimal konvertering og IP-adresser", "Matematiske kodeøvelser og anvendelse af loops og betingelser", "Binær og decimal", "IP-adresser og kodeomformer", [new("Binære tal og IP", "/curriculum/08-binaer-og-ip"), new("Binær kodeomformer", "/projects/projekt-2-binaer")]),
+        new(9, "Klasser, objekter, properties og metoder", "Modellering og oprettelse af egne objekter", "Klasser og properties", "Objekter og metoder", [new("Objektorienteret programmering", "/curriculum/09-oop-grundlaeg"), new("Klasser og objekter", "/exercises/07-klasser-og-objekter")]),
+        new(10, "Iteration over arrays, lister og dictionaries", "Nested loops og kombination af datastrukturer", "Iteration over collections", "Nested loops og samlet løsning", [new("Iteration", "/curriculum/10-iteration")]),
+        new(11, "Videoaflevering", "Planlægning, optagelse og aflevering af faglig forklaringsvideo", "Plan og manuskript", "Optagelse og aflevering", [new("Mini-projekter", "/exercises/10-mini-projekter"), new("Projekter", "/projects")]),
+        new(12, "LDAP og Active Directory fra C#", "NuGet, forbindelse, modellering, søgning og fejlhåndtering", "LDAP-forbindelse og modeller", "Søgning, data og fejlhåndtering", [new("LDAP og Active Directory", "/curriculum/13-ldap-active-directory"), new("Enterprise-projekt", "/projects/projekt-3-enterprise")]),
+        new(13, "Debugging i Visual Studio", "Breakpoints, Step Into/Over/Out og løsning af logiske fejl", "Breakpoints og kodeflow", "Fejlsøgning og refleksion", [new("Debugging", "/curriculum/14-fejlfinding"), new("Try/catch · ekstra", "/exercises/08-try-catch")])
+    ];
+}

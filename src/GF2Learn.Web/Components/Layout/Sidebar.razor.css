@@ -1,0 +1,15 @@
+.sidebar-required {
+    flex-shrink: 0;
+    color: var(--accent);
+    font-size: .85rem;
+    line-height: 1;
+}
+
+.sidebar-required-legend {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: -.25rem 0 1.25rem;
+    color: var(--text-muted);
+    font-size: .75rem;
+}
