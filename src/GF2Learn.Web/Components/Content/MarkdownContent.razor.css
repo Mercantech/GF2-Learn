@@ -1,0 +1,92 @@
+.curriculum-stages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin: 1.5rem 0 2rem;
+}
+
+.curriculum-stages a {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .65rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: .65rem;
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.curriculum-stages a:hover,
+.curriculum-stages a:focus-visible {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+}
+
+.curriculum-stages a span { color: var(--accent); }
+
+.curriculum-stage {
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border);
+}
+
+.curriculum-stage:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.curriculum-stage-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: .75rem;
+    background: var(--accent-glow);
+}
+
+.curriculum-stage-number {
+    display: grid;
+    place-items: center;
+    flex: 0 0 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.markdown-body .curriculum-stage-heading h2 {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 1.4rem;
+    scroll-margin-top: 7rem;
+}
+
+.markdown-body .curriculum-stage-heading p {
+    margin: .4rem 0 0;
+    color: var(--text-muted);
+}
+
+.curriculum-stage--opgaver-efter-kapitlet {
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: .75rem;
+    background: var(--surface);
+}
+
+.curriculum-stage--quiz ::deep .knowledge-check {
+    margin-top: 0;
+}
+
+@media (max-width: 600px) {
+    .curriculum-stages { flex-direction: column; }
+    .curriculum-stage-heading { padding: 1rem; gap: .75rem; }
+    .curriculum-stage--opgaver-efter-kapitlet { padding: 1rem; }
+}

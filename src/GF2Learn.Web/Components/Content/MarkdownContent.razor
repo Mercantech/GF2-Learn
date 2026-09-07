@@ -1,119 +1,101 @@
-﻿@using GF2Learn.Web.Models
-
+@using GF2Learn.Web.Models
+@using System.Text.RegularExpressions
 @inject MarkdownService Markdown
-
 @inject RunnableCodeParser RunnableParser
-
 @inject MarkdownCodeHighlighter Highlighter
 
-
-
-<div class="markdown-body @(Item.Section == ContentSectionType.Curriculum ? "curriculum-content" : null)">
-
-    @if (!string.IsNullOrWhiteSpace(Item.YoutubeId))
-
-    {
-
-        <div class="video-embed">
-
-            <iframe src="@($"https://www.youtube.com/embed/{Item.YoutubeId}")" title="Video" allowfullscreen loading="lazy"></iframe>
-
-        </div>
-
-    }
-
-    @if (Item.Section == ContentSectionType.Curriculum)
-
-    {
-
-        @for (var i = 0; i < _segments.Count; i++)
-
+@if (Item.Section == ContentSectionType.Curriculum)
+{
+    <nav class="curriculum-stages" aria-label="Kapitlets dele">
+        @for (var i = 0; i < _sections.Count; i++)
         {
-
-            var segment = _segments[i];
-
-            if (segment.IsRunnableSnippet && segment.RunnableSnippet is not null)
-
-            {
-
-                <RunnableCodeSnippet @key="@($"{Item.Slug}-run-{i}")"
-                                     Code="@segment.RunnableSnippet.Code" />
-
-            }
-
-            else if (!string.IsNullOrWhiteSpace(segment.Html))
-
-            {
-
-                @((MarkupString)segment.Html)
-
-            }
-
+            var section = _sections[i];
+            <a href="@(Item.Href + "#" + section.Id)" data-enhance-nav="false"><span>@(i + 1)</span> @section.Title</a>
         }
-
-    }
-
-    else
-
-    {
-
+    </nav>
+    <div class="markdown-body curriculum-content">
+        @for (var sectionIndex = 0; sectionIndex < _sections.Count; sectionIndex++)
+        {
+            var section = _sections[sectionIndex];
+            <section class="curriculum-stage curriculum-stage--@section.Id" aria-labelledby="@section.Id">
+                <header class="curriculum-stage-heading">
+                    <span class="curriculum-stage-number" aria-hidden="true">@(sectionIndex + 1)</span>
+                    <div>
+                        <h2 id="@section.Id">@section.Title</h2>
+                        <p>@section.Description</p>
+                    </div>
+                </header>
+                @if (sectionIndex == 0 && !string.IsNullOrWhiteSpace(Item.YoutubeId))
+                {
+                    <div class="video-embed">
+                        <iframe src="@($"https://www.youtube.com/embed/{Item.YoutubeId}")" title="Video" allowfullscreen loading="lazy"></iframe>
+                    </div>
+                }
+                @for (var i = 0; i < section.Segments.Count; i++)
+                {
+                    var segment = section.Segments[i];
+                    if (segment.IsRunnableSnippet && segment.RunnableSnippet is not null)
+                    {
+                        <RunnableCodeSnippet @key="@($"{Item.Slug}-{section.Id}-run-{i}")" Code="@segment.RunnableSnippet.Code" />
+                    }
+                    else if (!string.IsNullOrWhiteSpace(segment.Html))
+                    {
+                        @((MarkupString)segment.Html)
+                    }
+                }
+            </section>
+        }
+    </div>
+}
+else
+{
+    <div class="markdown-body">
+        @if (!string.IsNullOrWhiteSpace(Item.YoutubeId))
+        {
+            <div class="video-embed">
+                <iframe src="@($"https://www.youtube.com/embed/{Item.YoutubeId}")" title="Video" allowfullscreen loading="lazy"></iframe>
+            </div>
+        }
         @((MarkupString)Highlighter.Apply(Markdown.ToHtml(Item.Body, null)))
-
-    }
-
-</div>
-
-
-
-@code {
-
-    [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
-
-
-
-    private IReadOnlyList<ContentSegment> _segments = [];
-
-
-
-    protected override void OnParametersSet()
-
-    {
-
-        if (Item.Section != ContentSectionType.Curriculum)
-
-        {
-
-            _segments = [];
-
-            return;
-
-        }
-
-
-
-        var html = Markdown.ToHtml(Item.Body, Item.Slug);
-
-        _segments = HighlightSegments(RunnableParser.BuildSegments(html));
-    }
-
-    private IReadOnlyList<ContentSegment> HighlightSegments(IReadOnlyList<ContentSegment> segments)
-    {
-        if (segments.Count == 0)
-            return segments;
-
-        return segments.Select(segment =>
-        {
-            if (string.IsNullOrWhiteSpace(segment.Html))
-                return segment;
-
-            return new ContentSegment
-            {
-                Html = Highlighter.Apply(segment.Html),
-                Playground = segment.Playground,
-                RunnableSnippet = segment.RunnableSnippet
-            };
-        }).ToList();
-    }
-
+    </div>
 }
 
+@code {
+    [Parameter, EditorRequired] public ContentItem Item { get; set; } = default!;
+
+    private sealed record ChapterSection(string Id, string Title, string Description, IReadOnlyList<ContentSegment> Segments);
+    private readonly List<ChapterSection> _sections = [];
+
+    protected override void OnParametersSet()
+    {
+        _sections.Clear();
+        if (Item.Section != ContentSectionType.Curriculum)
+            return;
+
+        // Render once so question indices and generated heading anchors stay intact.
+        var html = Markdown.ToHtml(Item.Body, Item.Slug);
+        var assignments = Regex.Match(html, "<h2[^>]*>Opgaver efter kapitlet</h2>");
+        var assignmentHtml = assignments.Success ? html[(assignments.Index + assignments.Length)..] : null;
+        if (assignments.Success)
+            html = html[..assignments.Index];
+
+        var quizStart = html.IndexOf("<section class=\"knowledge-check\"", StringComparison.Ordinal);
+        AddSection("teori", "Teori", "Læs forklaringerne, se eksemplerne, og afprøv koden.", quizStart < 0 ? html : html[..quizStart]);
+        if (quizStart >= 0)
+            AddSection("quiz", "Quiz — test din viden", "Tjek din forståelse af teorien, før du går videre til opgaverne.",
+                html[quizStart..].Replace("<h2 class=\"kc-heading\">", "<h2 class=\"kc-heading\" hidden>", StringComparison.Ordinal));
+        if (assignmentHtml is not null)
+            AddSection("opgaver-efter-kapitlet", "Opgaver efter kapitlet", "Nu skal du bruge det, du har lært. Følg opgaverne nedenfor.", assignmentHtml);
+    }
+
+    private void AddSection(string id, string title, string description, string html)
+    {
+        var segments = RunnableParser.BuildSegments(html).Select(segment => new ContentSegment
+        {
+            Html = string.IsNullOrWhiteSpace(segment.Html) ? segment.Html : Highlighter.Apply(segment.Html),
+            Playground = segment.Playground,
+            RunnableSnippet = segment.RunnableSnippet
+        }).ToList();
+        _sections.Add(new(id, title, description, segments));
+    }
+}
