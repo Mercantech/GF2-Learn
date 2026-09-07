@@ -245,3 +245,9 @@ q: Hvad betyder `static` på `Main`-metoden?
 correct: 1
 explain: **`static`** betyder, at metoden hører til klassen selv — ikke til et specifikt objekt. Derfor kan runtime kalde `Main` direkte uden `new Program()`.
 :::
+
+## Opgaver efter kapitlet
+
+Afprøv kapitlets eksempel ved at skrive og køre dit eget “Hej verden”-program. Ændr udskriften, og kør igen.
+
+Læs derefter [Variables & Data Types](/curriculum/02-variabler-og-datatyper), før du laver [Kapitel 1 — Variabler](/exercises/01-variabler).

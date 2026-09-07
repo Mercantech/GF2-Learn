@@ -520,3 +520,9 @@ q: Hvorfor er `const int PassingScore = 60;` et DRY-trick?
 correct: 1
 explain: **Magic numbers** spredt i koden er et DRY-problem — konstanten er ét sted at ændre grænsen.
 :::
+
+## Opgaver efter kapitlet
+
+Gennemgå en færdig løsning fra [Kapitel 6 — Metoder](/exercises/06-metoder) eller [Kapitel 10 — Mini projects](/exercises/10-mini-projekter). Find gentaget logik, og saml den i en metode med passende parametre.
+
+Test alle de steder, der bruger metoden, og kontrollér, at resultatet er uændret.

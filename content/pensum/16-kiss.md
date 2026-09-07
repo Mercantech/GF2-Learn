@@ -419,3 +419,9 @@ q: Du skal vise tre menuvalg i et konsolprogram. KISS-valget er ofte:
 correct: 1
 explain: Til få valg er **if/else** helt rigeligt — simpelt at læse og rette.
 :::
+
+## Opgaver efter kapitlet
+
+Tag en færdig løsning fra [Kapitel 3 — Control flow](/exercises/03-control-flow). Find en betingelse eller kodeblok, du kan gøre enklere uden at ændre programmets adfærd.
+
+Kør løsningen med de samme inputs før og efter. Forklar, hvad du har forenklet, og hvorfor løsningen er lettere at læse.

@@ -151,3 +151,14 @@ q: Hvad er forskellen på **Git** og **GitHub**?
 correct: 1
 explain: **Git** er værktøjet på din maskine. **GitHub** er en platform, hvor du **pusher** commits, samarbejder og laver pull requests.
 :::
+
+## Opgaver efter kapitlet
+
+Brug en færdig løsning fra [Kapitel 1 — Variabler](/exercises/01-variabler) som Git-øvelse:
+
+1. Gem løsningen i et lokalt C#-projekt, og opret et Git-repository.
+2. Lav et commit med en beskrivende besked.
+3. Ændr en udskrift, kontrollér ændringen med `git diff`, og lav et nyt commit.
+4. Find begge commits med `git log`.
+
+Følg [Lokal udvikling](/curriculum/18-lokal-udvikling) først, hvis du mangler et lokalt projekt.

@@ -329,3 +329,9 @@ q: Hvornår vælger du **`for` med indeks** frem for `foreach`?
 correct: 1
 explain: **`for`** giver adgang til **`i`** og `collection[i]` — nødvendigt til nested strukturer, baglæns fjernelse og når indeks betyder noget (fx bit-position i binær oktet).
 :::
+
+## Opgaver efter kapitlet
+
+Genbesøg [Kapitel 5 — Arrays, lister og dictionaries](/exercises/05-arrays-lister-dictionary). Gennemgå dine løsninger, og forklar, hvordan du gennemløber hver samling.
+
+Når du også har læst [Binære tal og IP-adresser](/curriculum/08-binaer-og-ip), skal du arbejde med [Binær kodeomformer](/projects/projekt-2-binaer) og bruge iteration til at behandle alle fire oktetter.

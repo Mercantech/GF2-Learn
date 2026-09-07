@@ -368,3 +368,9 @@ q: Objekter i C# er typisk **reference-typer**. Hvad betyder det?
 correct: 1
 explain: Når du skriver `var p1 = new Person { ... }`, peger **`p1`** på objektet i hukommelsen. Flere variabler kan pege på samme objekt — det er grundlaget for reference-semantik.
 :::
+
+## Opgaver efter kapitlet
+
+Lav [Kapitel 7 — Klasser og objekter](/exercises/07-klasser-og-objekter). Lav alle opgaverne om klasser, objekter, properties og metoder.
+
+Når opgaverne er løst, kan du arbejde videre med emnet i projektet [Bibliotekssystem](/projects/projekt-bibliotek).

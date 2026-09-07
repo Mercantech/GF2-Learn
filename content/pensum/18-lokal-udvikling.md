@@ -208,3 +208,9 @@ Du er klar til at arbejde videre lokalt, når du kan sætte flueben ved alle pun
 - [ ] Projektet har sit første Git-commit
 
 Når det hele virker, kan du fortsætte med et af projekterne fra GF2 Learn på din egen computer.
+
+## Opgaver efter kapitlet
+
+Flyt en færdig løsning fra [Kapitel 1 — Variabler](/exercises/01-variabler) til dit lokale C#-projekt. Kør programmet fra dit udviklingsværktøj eller med `dotnet run`.
+
+Hvis du også har læst [Conditionals & Input](/curriculum/04-betingelser), skal du flytte en løsning fra [Kapitel 2 — Input](/exercises/02-input). Indtast værdier i terminalen i stedet for at bruge browserens `// gf2-input:`-linjer. Sæt et breakpoint, og følg variablernes værdier trin for trin.

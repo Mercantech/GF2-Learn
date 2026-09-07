@@ -272,3 +272,9 @@ q: Hvilken operator har **lavest prioritet** i udtrykket `a && b || c`?
 correct: 1
 explain: Operator-prioritet (fra højest til lavest): parenteser → `* / %` → `+ -` → sammenligning → `!` → **`&&`** → **`||`**. Derfor evalueres `||` sidst — brug parenteser, når du er i tvivl.
 :::
+
+## Opgaver efter kapitlet
+
+Øv operatorerne i din løsning fra [Kapitel 1 — Variabler](/exercises/01-variabler): beregn summen af to tal, resten ved division og resultatet af en sammenligning med `>`.
+
+Læs derefter [Conditionals & Input](/curriculum/04-betingelser), før du laver [Kapitel 2 — Input](/exercises/02-input) og [Kapitel 3 — Control flow](/exercises/03-control-flow). De opgaver kombinerer operatorer med brugerinput og betingelser.

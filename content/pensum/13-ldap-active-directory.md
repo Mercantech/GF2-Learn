@@ -335,3 +335,7 @@ q: Hvad er **Single Sign-On (SSO)** i relation til AD?
 correct: 1
 explain: **AD** er central brugerdatabase — medarbejdere logger ind én gang, og apps tjekker AD for identitet og gruppemedlemskab i stedet for separate brugerlister.
 :::
+
+## Opgaver efter kapitlet
+
+Arbejd med [Programmering i et enterprise](/projects/projekt-3-enterprise). Følg projektets krav, og brug dette kapitel som opslagsværk til LDAP, Active Directory og brugeradministration i undervisningsmiljøet.

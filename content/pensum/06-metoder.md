@@ -355,3 +355,7 @@ q: Hvad er **Single Responsibility** i forbindelse med metoder?
 correct: 1
 explain: Opdel kode i metoder, der hver løser **ét klart problem** — fx `ReadScore()` og `ShowResult()`. Det gør det nemmere at finde fejl og genbruge logik.
 :::
+
+## Opgaver efter kapitlet
+
+Lav [Kapitel 6 — Metoder](/exercises/06-metoder). Lav alle opgaverne om at opdele kode i metoder, bruge parametre og returnere resultater.

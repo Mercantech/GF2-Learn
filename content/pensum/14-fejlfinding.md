@@ -202,3 +202,9 @@ q: Hvorfor er **`try/catch`** relevant ved debugging?
 correct: 1
 explain: Uden **`catch`** stopper programmet ved fx `DivideByZeroException`. Med **`try/catch`** kan du vise brugervenlig besked og bruge debuggeren til at læse **stack trace**.
 :::
+
+## Opgaver efter kapitlet
+
+Lav [Kapitel 8 — Try/catch](/exercises/08-try-catch). Lav alle opgaverne, og afprøv både gyldige og ugyldige inputs.
+
+Når du også har læst [Arrays, Lists & Dictionaries](/curriculum/07-datastrukturer) og [Metoder](/curriculum/06-metoder), skal du lave [Kapitel 10 — Mini projects](/exercises/10-mini-projekter). Brug fejlfinding til at undersøge fejl, og test programmernes forskellige forløb.

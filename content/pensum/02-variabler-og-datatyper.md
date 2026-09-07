@@ -324,3 +324,7 @@ q: Hvad er forskellen på `.Length` og `.ToUpper()` på en string?
 correct: 1
 explain: `.Length` fortæller hvor mange tegn strengen har — det er en property, så du skriver `sentence.Length`. `.ToUpper()` er en metode der returnerer en **ny** string i store bogstaver: `sentence.ToUpper()`.
 :::
+
+## Opgaver efter kapitlet
+
+Lav [Kapitel 1 — Variabler](/exercises/01-variabler) under **Grundlæggende**. Lav alle ni opgaver om datatyper, variabler og string interpolation.

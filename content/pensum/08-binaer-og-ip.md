@@ -303,3 +303,9 @@ q: Hvad skal validering tjekke for **decimal input** per oktet?
 correct: 1
 explain: En oktet kan maksimalt være **255** (`11111111`). Brug **`int.TryParse`** og tjek `number >= 0 && number <= 255` for hver del efter `Split('.')`.
 :::
+
+## Opgaver efter kapitlet
+
+Arbejd med [Binær kodeomformer](/projects/projekt-2-binaer). Start med at omregne en 8-bit gruppe på papir, og implementér derefter omregningen mellem binære og decimale tal.
+
+Projektet kræver også betingelser, løkker og iteration. Læs [Iterating Collections](/curriculum/10-iteration), før du udvider løsningen til fire oktetter.

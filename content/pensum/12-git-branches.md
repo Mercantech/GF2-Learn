@@ -157,3 +157,13 @@ q: Hvad betyder **`-u origin`** ved `git push -u origin feature/ny-funktion`?
 correct: 1
 explain: **Upstream (`-u`)** husker forbindelsen mellem lokal branch og remote. Efter første push med `-u` er `git push` nok til at sende nye commits.
 :::
+
+## Opgaver efter kapitlet
+
+Arbejd videre i dit lokale repository med en færdig løsning fra [Kapitel 1 — Variabler](/exercises/01-variabler):
+
+1. Opret en feature branch.
+2. Tilføj en udskrift, og commit ændringen på branchen.
+3. Merge branchen tilbage i hovedbranchen, og kør programmet igen.
+
+Brug samme arbejdsgang i dine kommende projekter. Læs [Git — Introduction](/curriculum/11-git-intro) først, hvis du mangler et repository.

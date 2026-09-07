@@ -450,3 +450,12 @@ q: Hvad sker der, hvis du erklærer `int x = 20;` **inde i en metode**, når der
 correct: 1
 explain: Den **lokale variabel skygger** (shadowing) for den globale. Inde i metoden refererer `x` til den lokale værdi (20). Uden for metoden er det stadig den globale (10).
 :::
+
+## Opgaver efter kapitlet
+
+Når du har læst kapitlet om betingelser og brugerinput, skal du lave disse opgavekapitler i rækkefølge:
+
+1. **Grundlæggende:** [Kapitel 2 — Input](/exercises/02-input). Lav alle seks opgaver om at læse, konvertere og kombinere brugerinput.
+2. **Logic and loops:** [Kapitel 3 — Control flow](/exercises/03-control-flow). Lav opgaverne og mini-projekterne om `if/else`, `switch` og ternary operator.
+
+Vend tilbage til eksemplerne i dette kapitel, hvis du bliver i tvivl undervejs.

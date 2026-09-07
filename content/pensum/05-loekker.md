@@ -341,3 +341,9 @@ q: Hvordan gennemløber du en **Dictionary** med både nøgle og værdi?
 correct: 1
 explain: **`foreach`** over en dictionary giver **`KeyValuePair`**-elementer med **`.Key`** og **`.Value`**. Du kan også iterere over `.Keys` eller `.Values` separat.
 :::
+
+## Opgaver efter kapitlet
+
+Lav [Kapitel 4 — Loops](/exercises/04-loops) under **Logic and loops**. Lav alle opgaverne, og øv dig i at vælge mellem `for`, `while`, `do-while` og `foreach`.
+
+Læs også [Arrays, Lists & Dictionaries](/curriculum/07-datastrukturer), før du går videre til opgaverne om arrays, lister og dictionaries.

@@ -251,3 +251,9 @@ q: Hvad betyder det, at en metode har **ét ansvar**?
 correct: 1
 explain: Korte metoder som `ReadScore()` og `PrintResult()` gør koden nemmere at teste, læse og rette end én lang `Main` med alt i én blok.
 :::
+
+## Opgaver efter kapitlet
+
+Gennemgå en færdig løsning fra [Kapitel 6 — Metoder](/exercises/06-metoder). Ret navne, indrykning og formatering efter kapitlets retningslinjer.
+
+Kør de samme test før og efter, og kontrollér, at resultaterne er uændrede. Forklar, hvorfor dine nye navne gør koden lettere at forstå.

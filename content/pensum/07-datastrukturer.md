@@ -309,3 +309,12 @@ q: Ifølge huskereglen i kapitlet — hvornår vælger du et **array**?
 correct: 1
 explain: **Array** → kendt, fast antal. **Liste** → ukendt eller varierende antal. **Dictionary** → opslag på nøgle/navn.
 :::
+
+## Opgaver efter kapitlet
+
+Lav disse opgavekapitler i rækkefølge:
+
+1. [Kapitel 5 — Arrays, lister og dictionaries](/exercises/05-arrays-lister-dictionary): øv dig i at gemme, finde og gennemløbe flere værdier.
+2. [Kapitel 9 — Strings](/exercises/09-strings): øv tekstbehandling, herunder `Split`, søgning og gennemløb af tegn.
+
+Læs også [Metoder](/curriculum/06-metoder) og [Fejlfinding](/curriculum/14-fejlfinding), før du samler emnerne i [Kapitel 10 — Mini projects](/exercises/10-mini-projekter).
