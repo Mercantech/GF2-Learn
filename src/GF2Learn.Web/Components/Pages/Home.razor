@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @layout LandingLayout
 @using GF2Learn.Web.Options
 @using Microsoft.Extensions.Options
@@ -221,7 +221,7 @@
         {
             <div class="feature-item feature-item--vc">
                 <div class="feature-item-vc-mark">
-                    <VidenscenterLogo Size="footer" ShowPortal="false" />
+                    <VidenscenterLogo Size="footer" />
                 </div>
                 <h3>Udviklet med VC-støtte</h3>
                 <p>Platformen er udviklet med støtte fra Videnscenter for Automation og Teknologi og deles via Videnscenterportalen.</p>
@@ -246,7 +246,7 @@
     <div class="landing-cta-inner">
         @if (VcBrandingEnabled)
         {
-            <VidenscenterLogo Size="footer" ShowPortal="true" CssClass="landing-cta-vc-logos" />
+            <VidenscenterLogo Size="footer" CssClass="landing-cta-vc-logos" />
         }
         <h2>Ready to get started?</h2>
         <p>Start med introduktionen til programmering — det tager kun få minutter.</p>
