@@ -11,6 +11,7 @@
 
 <SectionShell Section="ContentSectionType.Exercises" Title="Exercises">
     <SectionHero Title="Exercises" Eyebrow="Practice" Lead="Ti begynderkapitler fordelt i syv emner — kør kode i browser-IDE og gem løsninger når du er logget ind." />
+    <Gf2Requirements />
     @{
         var exercises = Content.GetAll()
             .Where(i => i.Section == ContentSectionType.Exercises)

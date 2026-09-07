@@ -14,6 +14,34 @@ timer: 2
 
 Velkommen til **GF2 Programmering**. Du lærer **C#** og **Git** i studiegrupper — med opgaver, projekter og pensum du kan arbejde dig igennem i dit eget tempo.
 
+## Hvilket pensum og hvilke opgaver er krævet på GF2?
+
+Læs først pensum om emnet, og lav derefter de tilhørende opgaver.
+
+**Påkrævet pensum:**
+
+- [Getting Started](/curriculum/01-introduktion) — dette kapitel.
+- [Variables & Data Types](/curriculum/02-variabler-og-datatyper).
+- [Operators & Expressions](/curriculum/03-operatorer-og-udtryk).
+- [Conditionals & Input](/curriculum/04-betingelser).
+- [Loops](/curriculum/05-loekker).
+- [LDAP & Active Directory](/curriculum/13-ldap-active-directory).
+- [Debugging](/curriculum/14-fejlfinding).
+
+**Påkrævede opgaver — Grundlæggende:**
+
+- [Kapitel 1 — Variabler](/exercises/01-variabler).
+- [Kapitel 2 — Input](/exercises/02-input).
+
+**Påkrævede opgaver — Logic and loops:**
+
+- [Kapitel 3 — Control flow](/exercises/03-control-flow).
+- [Kapitel 4 — Loops](/exercises/04-loops).
+
+Når du har gennemgået det krævede pensum og løst **alle opgaver i de fire opgavekapitler**, er du i mål med GF2-målpindene for dette programmeringsforløb.
+
+Resten af sidens pensum, opgaver og projekter er **ekstra træning og fordybelse**. Det gælder også henvisninger til ekstra opgaver efter pensumkapitlerne.
+
 ## Installation og værktøjer
 
 Som udvikler bruger du flere værktøjer, der hver især løser en bestemt opgave. **Visual Studio** er din primære IDE (Integrated Development Environment) til C# — her skriver, kører og debugger du kode. **GitHub Desktop** giver dig et grafisk interface til Git, så du kan committe og pushe uden at huske alle kommandoer. **VS Code** er en let editor, der er praktisk til scripts, markdown og hurtige ændringer.

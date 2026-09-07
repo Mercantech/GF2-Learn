@@ -1,0 +1,18 @@
+.gf2-requirements {
+    margin: 1.5rem 0 2.5rem;
+    padding: clamp(1rem, 3vw, 2rem);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: .75rem;
+    background: var(--surface);
+    line-height: 1.7;
+}
+.gf2-requirements h2 { margin: 0 0 .75rem; }
+.gf2-requirements h3 { margin: 0 0 .75rem; font-size: 1.05rem; }
+.gf2-requirements h4 { margin: .75rem 0 .25rem; }
+.gf2-requirements ul { margin: 0; padding-left: 1.25rem; }
+.gf2-requirements a { color: var(--accent); text-decoration: underline; text-underline-offset: .2em; }
+.gf2-requirements-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+.gf2-requirements-goal { padding: 1rem; border-radius: .5rem; background: var(--accent-glow); }
+.gf2-requirements > p:last-child { margin-bottom: 0; color: var(--text-muted); }
+@media (max-width: 650px) { .gf2-requirements-columns { grid-template-columns: 1fr; } }

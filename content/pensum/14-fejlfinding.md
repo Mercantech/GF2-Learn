@@ -205,6 +205,8 @@ explain: Uden **`catch`** stopper programmet ved fx `DivideByZeroException`. Med
 
 ## Opgaver efter kapitlet
 
+**Ekstra træning:** Dette pensumkapitel er krævet på GF2, men opgaverne og projekterne nedenfor er frivillig fordybelse. De påkrævede opgaver er kapitel 1–4: Variabler, Input, Control flow og Loops.
+
 Lav [Kapitel 8 — Try/catch](/exercises/08-try-catch). Lav alle opgaverne, og afprøv både gyldige og ugyldige inputs.
 
 Når du også har læst [Arrays, Lists & Dictionaries](/curriculum/07-datastrukturer) og [Metoder](/curriculum/06-metoder), skal du lave [Kapitel 10 — Mini projects](/exercises/10-mini-projekter). Brug fejlfinding til at undersøge fejl, og test programmernes forskellige forløb.

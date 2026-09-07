@@ -338,4 +338,6 @@ explain: **AD** er central brugerdatabase — medarbejdere logger ind én gang, 
 
 ## Opgaver efter kapitlet
 
+**Ekstra træning:** Dette pensumkapitel er krævet på GF2, men opgaverne og projekterne nedenfor er frivillig fordybelse. De påkrævede opgaver er kapitel 1–4: Variabler, Input, Control flow og Loops.
+
 Arbejd med [Programmering i et enterprise](/projects/projekt-3-enterprise). Følg projektets krav, og brug dette kapitel som opslagsværk til LDAP, Active Directory og brugeradministration i undervisningsmiljøet.
