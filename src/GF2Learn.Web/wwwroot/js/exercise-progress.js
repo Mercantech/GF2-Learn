@@ -43,7 +43,7 @@
       var parsed = JSON.parse(el.textContent);
       return Array.isArray(parsed) ? parsed : null;
     } catch (e) {
-      console.warn("Exercise progress: kunne ikke læse Clippy-godkendelser.", e);
+      console.warn("Exercise progress: kunne ikke læse Vatson-godkendelser.", e);
       return null;
     }
   }
@@ -58,7 +58,7 @@
         var check = document.createElement("span");
         check.className = "sidebar-check";
         check.setAttribute("aria-label", "Fuldført");
-        check.setAttribute("title", "Alle opgavedele godkendt af Clippy");
+        check.setAttribute("title", "Alle opgavedele godkendt af Vatson");
         check.textContent = "✓";
         link.appendChild(check);
         return;
@@ -70,7 +70,7 @@
         var indexCheck = document.createElement("span");
         indexCheck.className = "index-check";
         indexCheck.setAttribute("aria-label", "Fuldført");
-        indexCheck.setAttribute("title", "Alle opgavedele godkendt af Clippy");
+        indexCheck.setAttribute("title", "Alle opgavedele godkendt af Vatson");
         indexCheck.textContent = "✓";
         link.appendChild(indexCheck);
       }
@@ -88,7 +88,7 @@
       return;
     }
 
-    summary.textContent = done + " af " + total + " opgavedele godkendt af Clippy";
+    summary.textContent = done + " af " + total + " opgavedele godkendt af Vatson";
     summary.hidden = false;
 
     if (done === total) {

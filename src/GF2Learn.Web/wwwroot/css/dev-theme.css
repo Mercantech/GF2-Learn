@@ -3289,20 +3289,20 @@ a:hover { color: var(--accent-bright); }
   cursor: not-allowed;
 }
 .exercise-ide-bar-btn-ai,
-.exercise-ide-bar-btn-clippy {
+.exercise-ide-bar-btn-vatson {
   border-color: rgba(34, 211, 238, 0.28);
   color: var(--accent-teal);
 }
 .exercise-ide-bar-btn-ai:hover:not(:disabled),
-.exercise-ide-bar-btn-clippy:hover:not(:disabled) {
+.exercise-ide-bar-btn-vatson:hover:not(:disabled) {
   background: rgba(34, 211, 238, 0.08);
   border-color: rgba(34, 211, 238, 0.45);
   color: var(--accent-teal);
 }
-.exercise-ide-bar-btn-clippy img {
+.exercise-ide-bar-btn-vatson img {
   flex-shrink: 0;
 }
-.exercise-ide-clippy-badge {
+.exercise-ide-vatson-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -3314,7 +3314,7 @@ a:hover { color: var(--accent-bright); }
   font-size: 0.78rem;
   font-weight: 600;
 }
-.clippy-speech {
+.vatson-speech {
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
@@ -3324,19 +3324,19 @@ a:hover { color: var(--accent-bright); }
   border: 1px solid var(--border);
   background: var(--bg-card);
 }
-.clippy-speech-avatar,
-.clippy-inline-icon {
+.vatson-speech-avatar,
+.vatson-inline-icon {
   flex-shrink: 0;
   object-fit: contain;
 }
-.clippy-speech-avatar {
+.vatson-speech-avatar {
   margin-top: 0.1rem;
 }
-.clippy-speech-bubble {
+.vatson-speech-bubble {
   min-width: 0;
   flex: 1;
 }
-.clippy-speech-name {
+.vatson-speech-name {
   margin: 0 0 0.2rem;
   font-size: 0.72rem;
   font-weight: 700;
@@ -3344,35 +3344,35 @@ a:hover { color: var(--accent-bright); }
   letter-spacing: 0.05em;
   color: var(--text-muted);
 }
-.clippy-speech-title {
+.vatson-speech-title {
   margin: 0 0 0.35rem;
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--text);
 }
-.clippy-speech-body {
+.vatson-speech-body {
   margin: 0;
   font-size: 0.88rem;
   line-height: 1.5;
   white-space: pre-wrap;
   color: var(--text-muted);
 }
-.clippy-speech-hint {
+.vatson-speech-hint {
   border-color: rgba(34, 211, 238, 0.3);
 }
-.clippy-speech-hint .clippy-speech-title {
+.vatson-speech-hint .vatson-speech-title {
   color: var(--accent-teal);
 }
-.clippy-speech-ok {
+.vatson-speech-ok {
   border-color: rgba(34, 197, 94, 0.4);
 }
-.clippy-speech-ok .clippy-speech-title {
+.vatson-speech-ok .vatson-speech-title {
   color: #4ade80;
 }
-.clippy-speech-warn {
+.vatson-speech-warn {
   border-color: rgba(251, 191, 36, 0.35);
 }
-.clippy-speech-warn .clippy-speech-title {
+.vatson-speech-warn .vatson-speech-title {
   color: #fbbf24;
 }
 .exercise-ai-panel {

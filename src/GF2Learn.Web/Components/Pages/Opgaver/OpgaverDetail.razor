@@ -1,4 +1,4 @@
-﻿@page "/exercises/{Slug}"
+@page "/exercises/{Slug}"
 @using System.Security.Claims
 @using System.Text.Json
 @using GF2Learn.Web.Models
@@ -37,7 +37,7 @@ else
             <div class="exercise-page-body">
                 @if (_partCount > 0)
                 {
-                    <p class="exercise-progress-summary" hidden aria-live="polite">0 af @_partCount opgavedele godkendt af Clippy</p>
+                    <p class="exercise-progress-summary" hidden aria-live="polite">0 af @_partCount opgavedele godkendt af Vatson</p>
                 }
                 <ExerciseContent Item="Item"
                                  SavedParts="_savedParts"

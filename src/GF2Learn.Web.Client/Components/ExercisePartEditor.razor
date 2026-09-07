@@ -95,16 +95,16 @@
                 <div class="exercise-ide-bar-group exercise-ide-bar-ai">
                     @if (_isVerified)
                     {
-                        <span class="exercise-ide-clippy-badge" title="Godkendt af Clippy">
-                            <img class="clippy-inline-icon" src="/images/clippy.png" width="22" height="22" alt="" aria-hidden="true" />
+                        <span class="exercise-ide-vatson-badge" title="Godkendt af Vatson">
+                            <img class="vatson-inline-icon" src="@VatsonImages.ForVariant("ok")" width="22" height="22" alt="" aria-hidden="true" />
                             <span>Godkendt</span>
                         </span>
                     }
                     <button type="button"
-                            class="exercise-ide-bar-btn exercise-ide-bar-btn-clippy"
+                            class="exercise-ide-bar-btn exercise-ide-bar-btn-vatson"
                             disabled="@(!_aiEnabled || _aiBusy)"
                             title="@_aiStatusHint"
-                            aria-label="Clippy tip"
+                            aria-label="Vatson tip"
                             @onclick="GetHintAsync">
                         @if (_aiHintLoading)
                         {
@@ -113,15 +113,15 @@
                         }
                         else
                         {
-                            <img class="clippy-inline-icon" src="/images/clippy.png" width="22" height="22" alt="" aria-hidden="true" />
-                            <span>Clippy tip</span>
+                            <img class="vatson-inline-icon" src="@VatsonImages.ForVariant("hint")" width="22" height="22" alt="" aria-hidden="true" />
+                            <span>Vatson tip</span>
                         }
                     </button>
                     <button type="button"
-                            class="exercise-ide-bar-btn exercise-ide-bar-btn-clippy"
+                            class="exercise-ide-bar-btn exercise-ide-bar-btn-vatson"
                             disabled="@(!_aiEnabled || _aiBusy)"
                             title="@_aiStatusHint"
-                            aria-label="Clippy tjek løsning"
+                            aria-label="Vatson tjek løsning"
                             @onclick="CheckSolutionAsync">
                         @if (_aiCheckLoading)
                         {
@@ -130,7 +130,7 @@
                         }
                         else
                         {
-                            <img class="clippy-inline-icon" src="/images/clippy.png" width="22" height="22" alt="" aria-hidden="true" />
+                            <img class="vatson-inline-icon" src="@VatsonImages.ForVariant("warn")" width="22" height="22" alt="" aria-hidden="true" />
                             <span>Tjek løsning</span>
                         }
                     </button>
@@ -151,27 +151,27 @@
             @if (_aiRequiresLogin)
             {
                 <span class="exercise-ide-save-error">
-                    Log ind for at bruge Clippy.
+                    Log ind for at bruge Vatson.
                     <a href="@LoginUrl">Log ind</a>
                 </span>
             }
         </div>
         @if (!string.IsNullOrWhiteSpace(_aiHint))
         {
-            <ClippySpeech Variant="hint"
+            <VatsonSpeech Variant="hint"
                           Title="Et hint til dig"
                           Message="@_aiHint" />
         }
         @if (_aiCheck is not null)
         {
-            <ClippySpeech Variant="@(_aiCheck.IsSolved ? "ok" : "warn")"
+            <VatsonSpeech Variant="@(_aiCheck.IsSolved ? "ok" : "warn")"
                           Title="@(_aiCheck.IsSolved ? "Godt gået!" : "Ikke helt i mål endnu")"
                           Message="@_aiCheck.Feedback" />
         }
         else if (_isVerified && _aiCheck is null && string.IsNullOrWhiteSpace(_aiHint))
         {
-            <ClippySpeech Variant="ok"
-                          Title="Godkendt af Clippy"
+            <VatsonSpeech Variant="ok"
+                          Title="Godkendt af Vatson"
                           Message="Denne opgavedel er allerede godkendt. Du kan stadig gemme nye versioner og køre koden." />
         }
     </Footer>
@@ -247,7 +247,7 @@
             _aiEnabled = status?.Enabled == true;
             _aiRequiresLogin = status?.RequiresLogin == true;
             _aiStatusHint = status?.Enabled == true
-                ? "Clippy AI-hjælp"
+                ? "Vatson AI-hjælp"
                 : (status?.Message ?? "OpenAI-nøgle mangler på serveren");
         }
         catch
