@@ -1,0 +1,45 @@
+@page "/login-fordele"
+@using GF2Learn.Web.Auth
+@inject MercantecAuthStatus AuthStatus
+
+<PageTitle>Hvorfor logge ind? — GF2 Learn</PageTitle>
+
+<div class="login-benefits-page">
+    <SectionHero Title="Hvorfor logge ind?" Eyebrow="Dit arbejde" Lead="Du kan læse pensum og prøve opgaver uden login. Log ind, når du vil gemme dit arbejde og følge din fremgang." />
+
+    <div class="login-benefits-grid">
+        <section>
+            <h2>Gem dine løsninger</h2>
+            <p>Gem din kode i opgaverne, og hent den frem igen, når du vender tilbage. Brug <strong>Gem løsning</strong> i editoren, når du vil gemme dine ændringer.</p>
+        </section>
+        <section>
+            <h2>Behold dine quizsvar</h2>
+            <p>Dine svar i kapitlernes quizzer bliver gemt på din konto, så du kan vende tilbage og se, hvad du allerede har besvaret.</p>
+        </section>
+        <section>
+            <h2>Følg din fremgang</h2>
+            <p>Se markeringer for gennemførte quizzer og løste opgaver i oversigterne. Dine gemte løsninger og svar følger med, når du logger ind på en anden enhed.</p>
+        </section>
+        <section>
+            <h2>Bliv en del af dit hold</h2>
+            <p>Brug <strong>Tilmeld hold</strong> efter login, når din underviser har givet dig en holdkode. Så kan underviseren følge din fremgang og hjælpe dig videre.</p>
+        </section>
+    </div>
+
+    <section class="login-benefits-next">
+        <h2>Fortsæt, når det passer dig</h2>
+        <p>Du logger ind via Mercantec Auth. Du kan også fortsætte med pensum og opgaver uden at logge ind; dit arbejde bliver så ikke gemt på en konto.</p>
+        <div class="login-benefits-actions">
+            <AuthorizeView>
+                <NotAuthorized>
+                    @if (AuthStatus.IsConfigured)
+                    {
+                        <a href="@MercantecAuthExtensions.LoginUrl("/curriculum")" class="btn btn-primary">Log ind</a>
+                    }
+                </NotAuthorized>
+            </AuthorizeView>
+            <a href="/curriculum" class="btn btn-secondary">Gå til pensum</a>
+            <a href="/exercises" class="btn btn-secondary">Gå til opgaver</a>
+        </div>
+    </section>
+</div>

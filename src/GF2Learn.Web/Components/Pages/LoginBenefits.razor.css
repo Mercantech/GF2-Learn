@@ -1,0 +1,9 @@
+.login-benefits-page { max-width: 64rem; margin: 0 auto; padding: 1.5rem; }
+.login-benefits-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.login-benefits-grid section,
+.login-benefits-next { padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: .75rem; }
+.login-benefits-page h2 { font-size: 1.2rem; margin: 0 0 .75rem; }
+.login-benefits-page p { color: var(--text-muted); line-height: 1.7; margin: 0; }
+.login-benefits-next { margin-top: 1.5rem; }
+.login-benefits-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
+@media (max-width: 650px) { .login-benefits-grid { grid-template-columns: 1fr; } }
