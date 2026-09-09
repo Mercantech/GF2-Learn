@@ -83,13 +83,28 @@ Brug `do-while`, når menuen eller prompten skal vises mindst én gang — fx "V
 `foreach` itererer over alle elementer i en **samling** uden at håndtere indeks:
 
 ```csharp
-List<string> names = new List<string> { "Alice", "Bob", "Charlie" };
-
-foreach (string name in names)
+// En kort sanglinje efterfulgt af vores egen Rickroll-tekst.
+List<string> lyrics = new List<string>
 {
-    Console.WriteLine("Navn: " + name);
+    "Never gonna give you up",
+    "Du kom for at lære en løkke,",
+    "men Rick overtog din skærm!",
+    "Én linje ad gangen — sådan virker foreach."
+};
+
+foreach (string line in lyrics)
+{
+    Console.WriteLine(line);
 }
 ```
+
+**Du er blevet Rickrolled!** Tryk på afspilning i videoen nedenfor for at høre musikken, og kør kodeeksemplet for at udskrive linjerne. Musikken styres i videoafspilleren; C#-koden skriver teksten i outputfeltet.
+
+:::video-list
+- [Rick Astley — Rickroll-musikvideo](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+:::
+
+For hver gennemløb får `line` den næste tekst fra `lyrics`. Løkken stopper, når alle fire linjer er skrevet ud. Prøv at tilføje din egen linje til listen og køre eksemplet igen.
 
 `foreach` er den simpleste løkke, når du bare skal læse hvert element. Du kan **ikke** ændre samlingens størrelse under en `foreach` (fx `Add`/`Remove`) — det giver runtime-fejl.
 
