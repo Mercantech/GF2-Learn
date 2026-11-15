@@ -33,10 +33,13 @@ public static class AdminAuthorizationExtensions
             options.SuperAdminSubjects = [.. access.SuperAdminSubjects];
         });
 
-        var educatorRoles = ToSet(access.EducatorRoles.Concat(access.SuperAdminRoles));
-        var superAdminRoles = ToSet(access.SuperAdminRoles);
-        var educatorSubjects = ToSet(access.EducatorSubjects.Concat(access.SuperAdminSubjects));
-        var superAdminSubjects = ToSet(access.SuperAdminSubjects);
+        var useLocalAccounts = AppAuthentication.UseLocalAccounts(configuration);
+        var educatorRoles = ToSet(useLocalAccounts ? [] : access.EducatorRoles.Concat(access.SuperAdminRoles));
+        var superAdminRoles = ToSet(useLocalAccounts ? [] : access.SuperAdminRoles);
+        var educatorSubjects = ToSet(access.EducatorSubjects.Concat(access.SuperAdminSubjects)
+            .Where(subject => LocalAccount.IsLocalSubject(subject) == useLocalAccounts));
+        var superAdminSubjects = ToSet(access.SuperAdminSubjects
+            .Where(subject => LocalAccount.IsLocalSubject(subject) == useLocalAccounts));
 
         services.AddAuthorization(options =>
         {

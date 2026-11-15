@@ -11,7 +11,6 @@ public sealed class MercantecAuthOptions
     public string Audience { get; set; } = "mercantec-apps";
     public string AuthorizationEndpoint { get; set; } = "https://auth.mercantec.tech/oauth/authorize";
     public string TokenEndpoint { get; set; } = "https://auth.mercantec.tech/oauth/token";
-    public string SignOutEndpoint { get; set; } = "https://auth.mercantec.tech/signout";
     public string CallbackPath { get; set; } = "/signin-mercantec";
     public string CookieName { get; set; } = ".gf2learn.auth";
 }

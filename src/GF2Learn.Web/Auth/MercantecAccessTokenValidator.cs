@@ -151,6 +151,8 @@ public sealed class MercantecAccessTokenValidator
     {
         if (string.IsNullOrWhiteSpace(token.Subject))
             throw new SecurityTokenValidationException("Mercantec access token is missing the required sub claim.");
+        if (LocalAccount.IsLocalSubject(token.Subject))
+            throw new SecurityTokenValidationException("Mercantec access token uses a reserved local sub value.");
 
         var claims = new List<Claim>();
         claims.Add(new Claim(ClaimTypes.NameIdentifier, token.Subject));

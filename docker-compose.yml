@@ -1,11 +1,6 @@
 ﻿# Dokploy-deploy: docker compose up -d --build
 #
-# Routing (Traefik på dokploy-network):
-#   Prod: APP_DOMAIN=learn.gf2.dk  (Cloudflare *.gf2.dk → tunnel → Traefik)
-#   Dev:  APP_DOMAIN=vc.mercantec.tech  (Cloudflare *.mercantec.tech → samme Traefik)
-#
-# Samme server / samme Traefik: sæt UNIKT TRAEFIK_PREFIX per Dokploy-app (fx gf2learn-prod / gf2learn-dev).
-# Ellers kolliderer router-labels mellem miljøer.
+# Sæt APP_DOMAIN og et unikt TRAEFIK_PREFIX pr. Dokploy-app. Se DEPLOYMENT.md.
 services:
   web:
     build:
@@ -56,7 +51,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gf2 -d gf2learn"]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
       timeout: 5s
       retries: 10

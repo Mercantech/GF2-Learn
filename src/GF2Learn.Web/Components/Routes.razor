@@ -14,7 +14,7 @@
                         <div class="auth-required">
                             <h1>Login required</h1>
                             <p>Du skal logge ind for at se denne side.</p>
-                            <a href="@MercantecAuthExtensions.LoginUrl(Navigation.Uri)" class="user-link user-link-login">Log in</a>
+                            <a href="@AppAuthentication.LoginUrl(Navigation.Uri)" class="user-link user-link-login" data-enhance-nav="false">Log ind</a>
                         </div>
                     }
                     else

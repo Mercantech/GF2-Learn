@@ -7,5 +7,10 @@
 **/*.user
 **/*.suo
 **/.env
+**/.env.*
 **/node_modules
 **/terminals
+**/.tmp
+**/.test-output
+docs/projekt
+aflevering

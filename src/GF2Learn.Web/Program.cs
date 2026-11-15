@@ -15,7 +15,9 @@ EnvFileLoader.TryLoadFromAncestors(AppContext.BaseDirectory);
 if (EnvFileLoader.LoadedPath is null)
     EnvFileLoader.TryLoadFromAncestors(Directory.GetCurrentDirectory());
 
-var builder = WebApplication.CreateBuilder(args);
+var isLocalAuthCommand = args.FirstOrDefault() == "local-auth";
+var builder = WebApplication.CreateBuilder(isLocalAuthCommand ? [] : args);
+var useLocalAccounts = AppAuthentication.UseLocalAccounts(builder.Configuration);
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -58,6 +60,9 @@ builder.Services.AddHttpClient<IExerciseAiService, ExerciseAiService>(client =>
 });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (useLocalAccounts && string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("Lokal login-tilstand kræver en Postgres-forbindelse i ConnectionStrings__DefaultConnection.");
+
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddDbContextFactory<Gf2LearnDbContext>(options =>
@@ -78,11 +83,15 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
     .SetApplicationName("GF2Learn");
 
-builder.Services.AddMercantecAuth(builder.Configuration);
+if (useLocalAccounts)
+    builder.Services.AddLocalAccountAuth();
+else
+    builder.Services.AddMercantecAuth(builder.Configuration);
 builder.Services.AddAdminAuthorization(builder.Configuration);
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "RequestVerificationToken";
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -97,6 +106,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 var app = builder.Build();
+if (isLocalAuthCommand)
+{
+    Environment.ExitCode = await LocalAccountAuth.RunCommandAsync(app.Services, args, useLocalAccounts);
+    return;
+}
 
 var openAiKey = builder.Configuration["OpenAi:ApiKey"];
 if (!string.IsNullOrWhiteSpace(openAiKey))
@@ -136,7 +150,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
             app.Logger.LogWarning(ex, "Database migration failed, retrying ({Attempt}/{MaxAttempts})...", attempt, maxAttempts);
             Thread.Sleep(TimeSpan.FromSeconds(2));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!useLocalAccounts)
         {
             app.Logger.LogWarning(ex, "Database migration failed — knowledge-check progress will not be saved.");
         }
@@ -166,7 +180,11 @@ app.UseAuthorization();
 app.UseRequestTimeouts();
 app.UseAntiforgery();
 app.MapStaticAssets();
-app.MapMercantecAuthEndpoints();
+app.MapAppLogout();
+if (useLocalAccounts)
+    app.MapLocalAccountLogin();
+else
+    app.MapMercantecAuthEndpoints();
 
 app.MapPost("/api/playground/format", async (
     FormatCSharpRequest request,

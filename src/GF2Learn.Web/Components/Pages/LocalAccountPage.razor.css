@@ -1,0 +1,29 @@
+.local-account {
+    max-width: 26rem;
+    margin-inline: auto;
+    padding: 1.5rem 1rem;
+}
+
+.local-account ::deep .local-account-form {
+    display: grid;
+    gap: .5rem;
+    margin-block: 1rem;
+}
+
+.local-account-form label:not(:first-child) {
+    margin-top: .5rem;
+}
+
+.local-account ::deep .local-account-form input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: .5rem;
+    padding: .6rem .75rem;
+    background: var(--bg-elevated);
+    color: var(--text);
+}
+
+.local-account-error {
+    font-weight: 600;
+    margin-block: .25rem;
+}

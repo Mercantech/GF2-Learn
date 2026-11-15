@@ -1,11 +1,13 @@
 @page "/profile"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @using System.Security.Claims
+@using GF2Learn.Web.Auth
+@inject AppAuthStatus AuthStatus
 
-<PageTitle>Profile — GF2 Learn</PageTitle>
+<PageTitle>Profil — GF2 Learn</PageTitle>
 
 <div class="profile-page">
-    <SectionHero Title="Profile" Eyebrow="Account" Lead="Du er logget ind via Mercantec Auth." />
+    <SectionHero Title="Profil" Eyebrow="Konto" Lead="@(AuthStatus.IsLocal ? "Du er logget ind med en lokal konto." : "Du er logget ind via Mercantec Auth.")" />
 
     <div class="profile-card">
         <div class="profile-avatar-large">@GetInitials(User)</div>
@@ -14,10 +16,13 @@
                 <dt>Navn</dt>
                 <dd>@(User.FindFirst(ClaimTypes.Name)?.Value ?? "—")</dd>
             </div>
-            <div class="profile-row">
-                <dt>E-mail</dt>
-                <dd>@(User.FindFirst(ClaimTypes.Email)?.Value ?? "—")</dd>
-            </div>
+            @if (!AuthStatus.IsLocal)
+            {
+                <div class="profile-row">
+                    <dt>E-mail</dt>
+                    <dd>@(User.FindFirst(ClaimTypes.Email)?.Value ?? "—")</dd>
+                </div>
+            }
             <div class="profile-row">
                 <dt>Bruger-ID</dt>
                 <dd><code>@(User.FindFirst("sub")?.Value ?? "—")</code></dd>
@@ -41,7 +46,7 @@
         </dl>
         <div class="profile-actions">
             <a href="/curriculum" class="btn btn-secondary">Fortsæt med pensum</a>
-            <a href="/auth/logout" class="btn btn-ghost">Log ud</a>
+            <LogoutButton CssClass="btn btn-ghost" />
         </div>
     </div>
 

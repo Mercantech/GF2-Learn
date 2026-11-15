@@ -102,6 +102,25 @@ public sealed class AdminAuthorizationTests
         Assert.True(superAdmin.Succeeded);
     }
 
+    [Theory]
+    [InlineData("local", "local:2f018933-3023-439b-be63-74a2fc9592c9", true)]
+    [InlineData("central", "local:2f018933-3023-439b-be63-74a2fc9592c9", false)]
+    [InlineData("local", "central-user", false)]
+    [InlineData("central", "central-user", true)]
+    public async Task Configured_subjects_are_scoped_to_their_login_provider(
+        string mode, string subject, bool isAuthorized)
+    {
+        using var services = CreateServices(new Dictionary<string, string?>
+        {
+            ["Auth:Mode"] = mode,
+            ["AdminAccess:SuperAdminSubjects"] = "central-user,local:2f018933-3023-439b-be63-74a2fc9592c9"
+        });
+        var user = AuthenticatedUser(new Claim("sub", subject));
+
+        Assert.Equal(isAuthorized, (await AuthorizeAsync(services, user, AdminAuthorizationPolicies.Educator)).Succeeded);
+        Assert.Equal(isAuthorized, (await AuthorizeAsync(services, user, AdminAuthorizationPolicies.SuperAdmin)).Succeeded);
+    }
+
     [Fact]
     public async Task Scalar_role_configuration_replaces_a_lower_priority_array()
     {

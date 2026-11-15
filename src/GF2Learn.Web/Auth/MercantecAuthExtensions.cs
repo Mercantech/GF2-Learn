@@ -4,14 +4,11 @@ using GF2Learn.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.Extensions.Options;
 
 namespace GF2Learn.Web.Auth;
 
 public static class MercantecAuthExtensions
 {
-    private static readonly TimeSpan MaximumCookieLifetime = TimeSpan.FromHours(8);
-
     public static IServiceCollection AddMercantecAuth(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<MercantecAuthOptions>(configuration.GetSection(MercantecAuthOptions.SectionName));
@@ -19,48 +16,9 @@ public static class MercantecAuthExtensions
         var authOptions = configuration.GetSection(MercantecAuthOptions.SectionName).Get<MercantecAuthOptions>()
             ?? new MercantecAuthOptions();
 
-        services.AddCascadingAuthenticationState();
-        services.AddHttpContextAccessor();
         services.AddSingleton<MercantecAccessTokenValidator>();
 
-        var authBuilder = services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                // Cookie (ikke OAuth) ved manglende auth — API får 401 via OnRedirectToLogin.
-                // /auth/login kalder ChallengeAsync(Mercantec) eksplicit.
-                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            })
-            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-            {
-                options.Cookie.Name = authOptions.CookieName;
-                options.Cookie.HttpOnly = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                options.LoginPath = "/auth/login";
-                options.SlidingExpiration = false;
-                options.ExpireTimeSpan = MaximumCookieLifetime;
-                options.Events.OnRedirectToLogin = context =>
-                {
-                    if (IsApiRequest(context.Request))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        return Task.CompletedTask;
-                    }
-
-                    context.Response.Redirect(context.RedirectUri);
-                    return Task.CompletedTask;
-                };
-                options.Events.OnRedirectToAccessDenied = context =>
-                {
-                    if (IsApiRequest(context.Request))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        return Task.CompletedTask;
-                    }
-
-                    context.Response.Redirect(context.RedirectUri);
-                    return Task.CompletedTask;
-                };
-            });
+        var authBuilder = services.AddAppCookie(CookieAuthenticationDefaults.AuthenticationScheme, authOptions.CookieName);
 
         if (IsAuthConfigured(authOptions))
         {
@@ -140,14 +98,13 @@ public static class MercantecAuthExtensions
             });
         }
 
-        services.AddSingleton(new MercantecAuthStatus(IsAuthConfigured(authOptions)));
-        services.AddAuthorization();
+        services.AddSingleton(new AppAuthStatus(IsLocal: false, IsConfigured: IsAuthConfigured(authOptions)));
         return services;
     }
 
     public static IEndpointRouteBuilder MapMercantecAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/auth/login", async (HttpContext context, string? returnUrl, MercantecAuthStatus status) =>
+        endpoints.MapGet("/auth/login", async (HttpContext context, string? returnUrl, AppAuthStatus status) =>
         {
             if (!status.IsConfigured)
             {
@@ -157,31 +114,10 @@ public static class MercantecAuthExtensions
                 return;
             }
 
-            returnUrl ??= context.Request.Query["ReturnUrl"].FirstOrDefault();
-            var redirectUri = ResolvePostLoginRedirect(context, returnUrl);
-
             await context.ChallengeAsync(MercantecAuthOptions.SchemeName, new AuthenticationProperties
             {
-                RedirectUri = redirectUri
+                RedirectUri = AppAuthentication.ResolveReturnUrl(context.Request, returnUrl)
             });
-        });
-
-        endpoints.MapGet("/auth/logout", async (
-            HttpContext context,
-            IOptions<MercantecAuthOptions> authOptions,
-            MercantecAuthStatus status) =>
-        {
-            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-            if (!status.IsConfigured)
-                return Results.Redirect("/");
-
-            var request = context.Request;
-            var appReturnUrl = $"{request.Scheme}://{request.Host}{request.PathBase}/";
-            var signOutUrl =
-                $"{authOptions.Value.SignOutEndpoint}?returnUrl={Uri.EscapeDataString(appReturnUrl)}";
-
-            return Results.Redirect(signOutUrl);
         });
 
         return endpoints;
@@ -196,7 +132,7 @@ public static class MercantecAuthExtensions
         DateTimeOffset accessTokenExpiresAt,
         DateTimeOffset issuedAt)
     {
-        var maximumExpiry = issuedAt.Add(MaximumCookieLifetime);
+        var maximumExpiry = issuedAt.Add(AppAuthentication.MaximumCookieLifetime);
 
         properties.IsPersistent = false;
         properties.AllowRefresh = false;
@@ -230,42 +166,4 @@ public static class MercantecAuthExtensions
     private static Claim UnixTimeClaim(string type, DateTimeOffset value) =>
         new(type, value.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64);
 
-    /// <summary>Builds <c>/auth/login?returnUrl=…</c> for the current or given page.</summary>
-    public static string LoginUrl(string? returnUrl)
-    {
-        if (string.IsNullOrWhiteSpace(returnUrl))
-            return "/auth/login";
-
-        return $"/auth/login?returnUrl={Uri.EscapeDataString(returnUrl)}";
-    }
-
-    private static string ResolvePostLoginRedirect(HttpContext context, string? returnUrl)
-    {
-        var fallback = $"{context.Request.PathBase}/";
-        if (string.IsNullOrWhiteSpace(returnUrl))
-            return fallback;
-
-        if (Uri.TryCreate(returnUrl, UriKind.Absolute, out var absolute))
-        {
-            var path = absolute.PathAndQuery + absolute.Fragment;
-            return string.IsNullOrWhiteSpace(path) ? fallback : path;
-        }
-
-        if (!returnUrl.StartsWith('/'))
-            return fallback;
-
-        if (returnUrl.StartsWith("//", StringComparison.Ordinal))
-            return fallback;
-
-        return returnUrl;
-    }
-
-    private static bool IsApiRequest(HttpRequest request)
-    {
-        var path = (request.PathBase.Value ?? string.Empty) + (request.Path.Value ?? string.Empty);
-        return path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/api", StringComparison.OrdinalIgnoreCase);
-    }
 }
-
-public sealed record MercantecAuthStatus(bool IsConfigured);

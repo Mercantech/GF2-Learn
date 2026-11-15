@@ -1,0 +1,128 @@
+@page "/auth/local"
+@using System.ComponentModel.DataAnnotations
+@using GF2Learn.Web.Auth
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Npgsql
+@inject AppAuthStatus AuthStatus
+@inject NavigationManager Navigation
+
+@if (AuthStatus.IsLocal)
+{
+    <PageTitle>@Title — GF2 Learn</PageTitle>
+    <section class="local-account" aria-labelledby="local-account-title">
+        <h1 id="local-account-title">@Title</h1>
+        <EditForm Model="Input" FormName="@FormName" OnValidSubmit="SubmitAsync" class="local-account-form">
+            <DataAnnotationsValidator />
+            @if (Register)
+            {
+                <label for="account-display-name">Visningsnavn</label>
+                <InputText id="account-display-name" @bind-Value="Input.DisplayName" maxlength="100" autocomplete="name" required />
+            }
+            <label for="account-username">Brugernavn</label>
+            <InputText id="account-username" @bind-Value="Input.UserName" maxlength="100"
+                       autocomplete="username" autocapitalize="none" spellcheck="false" required />
+            <label for="account-password">Adgangskode</label>
+            <input id="account-password" type="password" name="Input.Password"
+                   maxlength="@LocalAccount.MaximumPasswordLength"
+                   autocomplete="@(Register ? "new-password" : "current-password")" required />
+            @if (Register)
+            {
+                <small>Brug mindst @LocalAccount.MinimumPasswordLength tegn.</small>
+            }
+            <ValidationSummary />
+            @if (_error is not null)
+            {
+                <p class="local-account-error" role="alert">@_error</p>
+            }
+            <button type="submit" class="btn btn-primary">@Title</button>
+        </EditForm>
+        <a href="@SwitchUrl" data-enhance-nav="false">@(Register ? "Har du allerede en konto? Log ind" : "Opret en lokal konto")</a>
+    </section>
+}
+
+@code {
+    private const string FormName = "local-account";
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromForm(FormName = FormName)] private Credentials Input { get; set; } = default!;
+    [SupplyParameterFromQuery(Name = "returnUrl")] private string? ReturnUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "register")] private bool Register { get; set; }
+    private string? _error;
+    private string Title => Register ? "Opret konto" : "Log ind";
+    private string SafeReturnUrl => AppAuthentication.ResolveReturnUrl(HttpContext.Request, ReturnUrl);
+    private string SwitchUrl => AppAuthentication.LocalAccountUrl(HttpContext.Request, SafeReturnUrl, !Register);
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+        if (!AuthStatus.IsLocal)
+            Navigation.NotFound();
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (!AuthStatus.IsLocal)
+            return;
+
+        var services = HttpContext.RequestServices;
+        var signIn = services.GetRequiredService<SignInManager<LocalAccount>>();
+        var userName = Input.UserName.Trim();
+        if (Register)
+        {
+            if (string.IsNullOrWhiteSpace(Input.DisplayName) || Input.DisplayName.Length > 100
+                || Input.DisplayName.Any(char.IsControl) || userName.Length is < 3 or > 100
+                || Input.Password.Length < LocalAccount.MinimumPasswordLength)
+            {
+                _error = "Udfyld visningsnavn, brugernavn på mindst 3 tegn og en adgangskode på mindst 12 tegn.";
+                return;
+            }
+
+            var account = new LocalAccount { UserName = userName, DisplayName = Input.DisplayName.Trim() };
+            var users = services.GetRequiredService<UserManager<LocalAccount>>();
+            try
+            {
+                var created = await users.CreateAsync(account, Input.Password);
+                if (!created.Succeeded)
+                {
+                    _error = "Kontoen kunne ikke oprettes. Prøv et andet brugernavn med bogstaver og tal.";
+                    return;
+                }
+            }
+            catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+                { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "UserNameIndex" })
+            {
+                _error = "Brugernavnet er optaget. Vælg et andet.";
+                return;
+            }
+
+            await signIn.SignInAsync(account, isPersistent: false);
+        }
+        else
+        {
+            var result = await signIn.PasswordSignInAsync(userName, Input.Password, isPersistent: false, lockoutOnFailure: true);
+            if (!result.Succeeded)
+            {
+                _error = "Du kunne ikke logges ind. Tjek brugernavn og adgangskode, eller prøv igen senere.";
+                return;
+            }
+        }
+
+        var appUsers = services.GetRequiredService<IAppUserService>();
+        await appUsers.EnsureCurrentUserAsync(
+            HttpContext.User, markLogin: true, cancellationToken: HttpContext.RequestAborted);
+        Navigation.NavigateTo(SafeReturnUrl, forceLoad: true);
+    }
+
+    private sealed class Credentials
+    {
+        public string? DisplayName { get; set; }
+
+        [Required(ErrorMessage = "Skriv dit brugernavn.")]
+        [StringLength(100, ErrorMessage = "Brugernavnet må højst have 100 tegn.")]
+        public string UserName { get; set; } = "";
+
+        [Required(ErrorMessage = "Skriv din adgangskode.")]
+        [StringLength(LocalAccount.MaximumPasswordLength, ErrorMessage = "Adgangskoden må højst have 128 tegn.")]
+        public string Password { get; set; } = "";
+    }
+}

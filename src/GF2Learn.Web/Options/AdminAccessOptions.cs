@@ -25,13 +25,12 @@ public sealed class AdminAccessOptions
     ];
 
     /// <summary>
-    /// OAuth subject identifiers that should have educator access even when the
-    /// identity provider does not issue an educator role.
+    /// Account identifiers that should have educator access.
     /// </summary>
     public string[] EducatorSubjects { get; set; } = [];
 
     /// <summary>
-    /// OAuth subject identifiers that should have super-admin access. A
+    /// Account identifiers that should have super-admin access. A
     /// super-admin also automatically has educator access.
     /// </summary>
     public string[] SuperAdminSubjects { get; set; } = [];

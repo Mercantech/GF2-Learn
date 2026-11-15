@@ -1,19 +1,18 @@
-# Lokal Docker (uden Dokploy/Traefik).
-#
-#   cp .env.example .env   # første gang
-#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
-#
-# App: http://localhost:8031  (health: /health)
+# Lokal Docker (Compose 2.24.4+). Se DEPLOYMENT.md.
 
 services:
   web:
     ports:
-      - "${WEB_HOST_PORT:-8031}:8080"
+      - "127.0.0.1:${WEB_HOST_PORT:-8031}:8080"
     environment:
       GF2_BEHIND_REVERSE_PROXY: "false"
-    networks:
-      - internal
+    networks: !override [internal]
+    labels: !reset []
+
+  postgres:
+    env_file: !reset []
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Sæt POSTGRES_PASSWORD i .env}
 
 networks:
-  dokploy-network:
-    external: false
+  dokploy-network: !reset null

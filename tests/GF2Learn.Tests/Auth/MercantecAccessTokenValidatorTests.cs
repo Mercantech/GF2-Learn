@@ -87,7 +87,8 @@ public sealed class MercantecAccessTokenValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task Token_without_a_non_empty_subject_is_rejected(string? subject)
+    [InlineData("local:2f018933-3023-439b-be63-74a2fc9592c9")]
+    public async Task Token_requires_a_subject_outside_the_local_account_namespace(string? subject)
     {
         using var rsa = RSA.Create(2048);
         var signingKey = CreateKey(rsa, "valid-key");

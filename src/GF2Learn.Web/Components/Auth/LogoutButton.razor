@@ -1,0 +1,8 @@
+<form method="post" action="/auth/logout">
+    <AntiforgeryToken />
+    <button type="submit" class="@CssClass">Log ud</button>
+</form>
+
+@code {
+    [Parameter] public string? CssClass { get; set; }
+}

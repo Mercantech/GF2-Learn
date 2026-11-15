@@ -27,8 +27,8 @@
     return map[match[1].toLowerCase()] || match[1].toUpperCase();
   }
 
-  var isProcessing = false;
   var processTimer = null;
+  var highlightedSource = new WeakMap();
 
   function unwrapCodeBlocks(root) {
     var selector = ".markdown-body .code-block, .curriculum-content .code-block";
@@ -122,6 +122,10 @@
     var hljs = global.hljs;
     if (!hljs) return false;
 
+    var source = code.textContent;
+    if (code.dataset.highlighted === "yes" && highlightedSource.get(code) === source) return true;
+    highlightedSource.set(code, source);
+
     code.classList.remove("hljs");
     code.removeAttribute("data-highlighted");
 
@@ -138,7 +142,7 @@
 
     try {
       if (lang && hljs.getLanguage(lang)) {
-        var result = hljs.highlight(code.textContent, { language: lang, ignoreIllegals: true });
+        var result = hljs.highlight(source, { language: lang, ignoreIllegals: true });
         code.innerHTML = result.value;
         code.classList.add("hljs");
         code.dataset.highlighted = "yes";
@@ -163,15 +167,9 @@
 
   function process(root) {
     root = root || document;
-    isProcessing = true;
-    try {
-      unwrapCodeBlocks(root);
-      syncHljsTheme();
-      enhanceCodeBlocks(root);
-      return highlightAll(root);
-    } finally {
-      isProcessing = false;
-    }
+    syncHljsTheme();
+    enhanceCodeBlocks(root);
+    return highlightAll(root);
   }
 
   function scheduleProcess(root) {
@@ -200,7 +198,6 @@
       watch.dataset.highlightObserved = "1";
       var timer = null;
       new MutationObserver(function () {
-        if (isProcessing) return;
         clearTimeout(timer);
         timer = setTimeout(function () {
           scheduleProcess(watch);

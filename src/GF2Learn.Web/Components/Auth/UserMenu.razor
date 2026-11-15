@@ -1,6 +1,6 @@
 @using System.Security.Claims
 @using GF2Learn.Web.Auth
-@inject MercantecAuthStatus AuthStatus
+@inject AppAuthStatus AuthStatus
 @inject NavigationManager Navigation
 
 <div class="user-menu">
@@ -20,8 +20,8 @@
                             <a href="/join" class="btn btn-ghost btn-sm">Tilmeld hold</a>
                         </NotAuthorized>
                     </AuthorizeView>
-                    <a href="/profile" class="btn btn-ghost btn-sm">Profile</a>
-                    <a href="/auth/logout" class="btn btn-ghost btn-sm">Log out</a>
+                    <a href="/profile" class="btn btn-ghost btn-sm">Profil</a>
+                    <LogoutButton CssClass="btn btn-ghost btn-sm" />
                 </div>
             </Authorized>
             <NotAuthorized>
@@ -32,7 +32,7 @@
                         <circle cx="12" cy="7" r="1" fill="currentColor" stroke="none" />
                     </svg>
                 </a>
-                <a href="@MercantecAuthExtensions.LoginUrl(Navigation.Uri)" class="btn btn-primary btn-sm">Log in</a>
+                <a href="@AppAuthentication.LoginUrl(Navigation.Uri)" class="btn btn-primary btn-sm" data-enhance-nav="false">Log ind</a>
             </NotAuthorized>
         </AuthorizeView>
     }

@@ -1,15 +1,18 @@
 ﻿# GF2 Learn
 
-Central læringsplatform til **Grundforløb 2 programmering** på Mercantec — C#, Git, opgaver og projekter.
+Central læringsplatform til **Grundforløb 2 programmering** med C#, Git, opgaver og projekter.
 
-**Produktion:** [learn.mags.dk](https://learn.mags.dk)
+Læringsplatformen er tilgængelig på [learn.gf2.dk](https://learn.gf2.dk). Se [undervisningsvejledningen](https://learn.gf2.dk/undervisningsvejledning) for forslag til planlægning og brug med et hold.
+
+Se [deployment og `.env`](DEPLOYMENT.md) for lokal Docker, Dokploy og valg af login.
 
 ## Stack
 
 - **Blazor Web App** (.NET 10) med Static SSR
 - **Markdown + YAML frontmatter** i `content/` (versioneret i Git)
 - **Markdig** til rendering med custom directives (`:::git-step`, `:::exercise`, osv.)
-- **Mercantec Auth** ([auth.mercantec.tech](https://auth.mercantec.tech)) — OAuth 2.0 + PKCE
+- **PostgreSQL** til konti, progression og hold
+- **Lokale konti** eller **Mercantec Auth** med OAuth 2.0 og PKCE
 - **Docker** + Cloudflare Tunnel til deploy
 
 ## Tre sektioner
@@ -17,57 +20,20 @@ Central læringsplatform til **Grundforløb 2 programmering** på Mercantec — 
 | Sektion | Indhold |
 |---------|---------|
 | **Pensum** | C#-teori og Git |
-| **Opgaver** | Øvelser (begynder / mellem / avanceret) |
+| **Opgaver** | Øvelser i grundlæggende programmering |
 | **Projekter** | 7 forløb i tre niveauer (begynder → mellem → avanceret/AD) |
 
 Pensum, opgaver og projekter er **offentligt tilgængelige**. `/profile` kræver login.
 
 ## Lokal udvikling
 
-```bash
-cd src/GF2Learn.Web
-dotnet user-secrets set "MercantecAuth:ClientSecret" "dit-client-secret"
-dotnet run --urls http://localhost:5288
+Den dokumenterede Docker-opsætning starter både appen og PostgreSQL. Ved direkte udvikling med .NET 10 SDK kan du starte webprojektet fra projektroden.
+
+```sh
+dotnet run --project src/GF2Learn.Web --launch-profile http
 ```
 
-Åbn **http://localhost:5083** (eller den port du bruger med `dotnet run --urls`)
-
-## Mercantec Auth opsætning
-
-### 1. Opret OAuth-klient i Auth Admin
-
-Registrér klient `gf2-learn` med **præcis** disse redirect URIs:
-
-| Miljø | Redirect URI |
-|-------|----------------|
-| Lokal (`dotnet run`) | `http://localhost:5083/signin-mercantec` |
-| Docker lokal | `http://localhost:2020/signin-mercantec` |
-| Dev (Cloudflare Tunnel) | `https://learn-dev.gf2.dk/signin-mercantec` |
-| Produktion | `https://learn.mags.dk/signin-mercantec` |
-
-### 2. Konfiguration
-
-Miljøvariabler (se `.env.example`):
-
-| Variabel | Beskrivelse |
-|----------|-------------|
-| `MercantecAuth__ClientId` | OAuth client_id (default: `gf2-learn`) |
-| `MercantecAuth__ClientSecret` | Client secret (confidential client) |
-
-JWT valideres mod `iss=https://auth.mercantec.tech` og `aud=mercantec-apps`.
-
-### 3. Endpoints i appen
-
-| Sti | Formål |
-|-----|--------|
-| `/auth/login` | Start OAuth-flow (PKCE S256) |
-| `/signin-mercantec` | OAuth callback (automatisk) |
-| `/auth/logout` | Log ud + redirect til auth signout |
-| `/profile` | Brugerprofil (kræver login) |
-
-### 4. Logout
-
-Logout rydder app-cookie og sender brugeren til `https://auth.mercantec.tech/signout?returnUrl=...` for at nulstille auth-session (SSO).
+Åbn [webprojektet](http://localhost:5083). Angiv `ConnectionStrings__DefaultConnection` til din udviklingsdatabase, hvis du bruger lokale konti eller gemmer progression. Et centralt login på denne port kræver callbacken `http://localhost:5083/signin-mercantec`.
 
 ## Underviser-dashboard
 
@@ -93,12 +59,10 @@ AdminAccess__EducatorSubjects=
 AdminAccess__SuperAdminSubjects=
 ```
 
-Hvis Mercantec Auth endnu ikke sender rollerne, kan bruger-id'et fra `/profile`
-indsættes i de relevante `Subjects`-felter. Elevens navn fra det validerede
-login-token gemmes ved autentificerede besøg, så undervisere kan identificere
-eleven i adminområdet; e-mail gemmes ikke. Underviserens interne kaldenavn gemmes
-separat og sendes aldrig til elevsider eller elev-API'er. Hvis Auth ikke leverer
-et navn, vises et pseudonymt elev-ID som fallback.
+Bruger-ID'et fra `/profile` kan indsættes i de relevante `Subjects`-felter.
+Lokale konti tildeles adgang via disse felter. Brugerens visningsnavn gør det
+muligt for underviseren at identificere eleven. Underviserens interne kaldenavn
+gemmes separat.
 
 Aktiv tid registreres kun for loggede elever og kun mens en pensum- eller
 opgaveside er synlig, browseren har fokus, og eleven ikke har været inaktiv i
@@ -111,7 +75,7 @@ sessions-id'er bruges kortvarigt til deduplikering og slettes senest efter ét d
 ```
 content/
   pensum/           # *.md — teori
-  opgaver/          # begynder/, mellem/, avanceret/
+  opgaver/          # begynder/
   projekter/        # projekt-*/overview.md (ét dokument per projekt)
 ```
 
@@ -149,7 +113,7 @@ Editoren er **Monaco** (samme motor som VS Code) med C#-syntax og snippets — f
 
 Ekstra NuGet-assemblies whitelistes i [`wwwroot/playground/playground.json`](src/GF2Learn.Web/wwwroot/playground/playground.json) — se [`wwwroot/playground/refs/README.md`](src/GF2Learn.Web/wwwroot/playground/refs/README.md).
 
-```markdown
+````markdown
 :::code-playground
 refs: System.Text.Json
 ```csharp
@@ -158,7 +122,7 @@ Console.WriteLine(json);
 ```
 expected: {"navn":"Ada"}
 :::
-```
+````
 
 Manuel test (efter `dotnet run`):
 
@@ -166,38 +130,3 @@ Manuel test (efter `dotnet run`):
 2. Indsæt syntaksfejl — compile-fejl vises i output-panelet.
 3. Uendelig løkke — timeout efter 3 sekunder.
 4. JSON med `System.Text.Json` uden ekstra refs — skal virke via BCL.
-
-## Docker
-
-**Lokal (Windows/macOS/Linux):**
-
-```bash
-cp .env.example .env   # udfyld secrets ved behov
-docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
-```
-
-| Tjeneste | URL |
-|----------|-----|
-| **Web** | http://localhost:8031 |
-| **Health** | http://localhost:8031/health |
-
-**Videnscenter-branding:** sæt `VidenscenterBranding__Enabled=true` i `.env` på VC-afleveringsversionen; `false` (standard) internt hos Mercantec uden VAT-logoer.
-
-**Dokploy (prod/dev på server):** kun `docker-compose.yml` — kræver `dokploy-network` og Traefik.
-
-OAuth redirect for lokal Docker (tilføj i Auth Admin hvis du tester login):
-
-`http://localhost:8031/signin-mercantec`
-
-Videnstjek-progression gemmes i Postgres ved login (migrationer kører automatisk ved opstart).
-
-### Cloudflare Tunnel (dev)
-
-Port exposure som andre apps — se [`deploy/dokploy-cloudflare.md`](deploy/dokploy-cloudflare.md).
-
-| Cloudflare (host cloudflared) | `http://localhost:8031` |
-| Cloudflare (cloudflared i Docker) | `http://host.docker.internal:8031` |
-
-`WEB_HOST_PORT=8031` i Dokploy skal matche.
-
-OAuth: `https://learn-dev.gf2.dk/signin-mercantec`

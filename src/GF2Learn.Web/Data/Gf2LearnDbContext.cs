@@ -1,9 +1,11 @@
+using GF2Learn.Web.Auth;
 using GF2Learn.Web.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace GF2Learn.Web.Data;
 
-public sealed class Gf2LearnDbContext(DbContextOptions<Gf2LearnDbContext> options) : DbContext(options)
+public sealed class Gf2LearnDbContext(DbContextOptions<Gf2LearnDbContext> options) : IdentityUserContext<LocalAccount>(options)
 {
     public DbSet<KnowledgeCheckAnswer> KnowledgeCheckAnswers => Set<KnowledgeCheckAnswer>();
     public DbSet<ExerciseAnswer> ExerciseAnswers => Set<ExerciseAnswer>();
@@ -21,6 +23,13 @@ public sealed class Gf2LearnDbContext(DbContextOptions<Gf2LearnDbContext> option
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<LocalAccount>(entity =>
+        {
+            entity.ToTable("local_accounts");
+            entity.Property(account => account.DisplayName).HasMaxLength(100).IsRequired();
+        });
+
         modelBuilder.Entity<KnowledgeCheckAnswer>(entity =>
         {
             entity.ToTable("knowledge_check_answers");
