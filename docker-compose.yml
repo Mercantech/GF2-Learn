@@ -10,7 +10,7 @@ services:
       - .env
     environment:
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-gf2learn};Username=${POSTGRES_USER:-gf2};Password=${POSTGRES_PASSWORD:-changeme}
+      ConnectionStrings__DefaultConnection: Host=gf2learn-postgres;Port=5432;Database=${POSTGRES_DB:-gf2learn};Username=${POSTGRES_USER:-gf2};Password=${POSTGRES_PASSWORD:-changeme}
       ContentPath: /app/content
       GF2_BEHIND_REVERSE_PROXY: "true"
     networks:
@@ -47,7 +47,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-gf2}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     networks:
-      - internal
+      internal:
+        aliases:
+          - gf2learn-postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

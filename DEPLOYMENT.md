@@ -32,7 +32,7 @@ Et skift af loginmetode giver brugerne adskilte konti og personlig progression. 
 
 ## Dokploy og øvrige variabler
 
-Brug `docker-compose.yml` i Dokploy med `dokploy-network`. Sæt installationens `.env` i Dokploy. Brug det valgte domæne med HTTPS via Traefik. Web forbinder til PostgreSQL på det private Compose-net. Ved password-reset i Dokploy bruges samme kommando fra Compose-projektet uden `-f docker-compose.local.yml`.
+Brug `docker-compose.yml` i Dokploy med `dokploy-network`. Sæt installationens `.env` i Dokploy. Brug det valgte domæne med HTTPS via Traefik. Web forbinder til databasen via aliaset `gf2learn-postgres` på det private Compose-net. Ved password-reset i Dokploy bruges samme kommando fra Compose-projektet uden `-f docker-compose.local.yml`.
 
 En HTTPS-proxy på værten kan også bruge den lokale variant. Proxyen sender trafik til `127.0.0.1` på `WEB_HOST_PORT` med det offentlige værtsnavn og HTTPS-skema og videresender WebSocket-trafik til Blazor.
 
